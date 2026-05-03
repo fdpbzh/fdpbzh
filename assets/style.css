@@ -463,6 +463,9 @@ details a{color:var(--yellow)}
 .foot a{color:var(--lavender);text-decoration:none;border-bottom:1px solid transparent;padding-bottom:1px}
 .foot a:hover{color:var(--yellow);border-bottom-color:var(--yellow)}
 .foot .sep{margin:0 10px;opacity:.5}
+.foot-legal{display:block;margin-top:10px;font-size:11px;opacity:.55;letter-spacing:.5px}
+.foot-legal a{color:var(--lavender);text-decoration:none}
+.foot-legal a:hover{color:var(--yellow);text-decoration:underline}
 
 /* ============ JEU (page dédiée) ============ */
 .game-frame{

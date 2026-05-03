@@ -58,15 +58,73 @@
     <div class="coming-soon">
       <div class="coming-soon-icon">🛍️</div>
       <h3>Bientôt disponible</h3>
-      <p>On prépare une petite collection pour soutenir l'asso : t-shirts, totebags et affiches édition 2026. Sois le ou la première averti·e en nous suivant sur Instagram, ou en nous écrivant un petit mail.</p>
-      <div class="cta-row" style="justify-content:center;margin-top:26px">
-        <a href="https://instagram.com/lassoduport" class="btn btn-primary" target="_blank" rel="noopener">Suivre @lassoduport</a>
-        <a href="mailto:lassoduport@gmail.com?subject=Boutique%20FDP%20%E2%80%94%20me%20pr%C3%A9venir" class="btn btn-secondary">M'avertir par email</a>
+      <p>On prépare une petite collection pour soutenir l'asso : t-shirts, totebags et affiches édition 2026.</p>
+
+      <form id="subForm" style="margin-top:30px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;max-width:480px;margin-left:auto;margin-right:auto;">
+        <input type="email" id="subEmail" required placeholder="ton@email.com"
+          style="flex:1;min-width:220px;padding:13px 18px;border-radius:99px;border:2px solid var(--line);background:var(--bg);color:var(--cream);font-family:inherit;font-size:15px;outline:none;">
+        <button type="submit" class="btn btn-primary" id="subBtn">M'inscrire</button>
+      </form>
+      <p id="subStatus" style="margin-top:14px;font-size:13px;color:var(--lavender);min-height:18px;"></p>
+      <p style="margin-top:8px;font-size:11px;opacity:.55;letter-spacing:.5px">Un seul email à la sortie. Ton adresse n'est partagée avec personne.</p>
+
+      <p style="margin-top:24px;font-size:13px;color:var(--lavender);opacity:.7;">Ou suis-nous :</p>
+      <div class="cta-row" style="justify-content:center;margin-top:10px">
+        <a href="https://instagram.com/lassoduport" class="btn btn-secondary" target="_blank" rel="noopener">@lassoduport</a>
       </div>
     </div>
   </section>
 
 </main>
+
+<script>
+(function(){
+  var SB_URL='https://nhsroymqvwrjflagzznz.supabase.co/rest/v1';
+  var SB_KEY='sb_publishable_UH528FgC5FVbxNFYi9Odlg_jcPZuK4J';
+  var form=document.getElementById('subForm');
+  var emailInput=document.getElementById('subEmail');
+  var status=document.getElementById('subStatus');
+  var btn=document.getElementById('subBtn');
+  if(!form)return;
+  form.addEventListener('submit',function(e){
+    e.preventDefault();
+    var email=emailInput.value.trim().toLowerCase();
+    if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+      status.textContent='Email invalide';
+      status.style.color='#ff6b6b';
+      return;
+    }
+    btn.disabled=true;btn.textContent='Envoi...';
+    fetch(SB_URL+'/subscribers',{
+      method:'POST',
+      headers:{
+        'apikey':SB_KEY,
+        'Authorization':'Bearer '+SB_KEY,
+        'Content-Type':'application/json',
+        'Prefer':'return=minimal'
+      },
+      body:JSON.stringify({email:email})
+    }).then(function(r){
+      if(r.ok){
+        status.textContent='✓ Inscrit ! On te tient au courant.';
+        status.style.color='var(--yellow)';
+        emailInput.value='';
+      }else if(r.status===409||r.status===400){
+        status.textContent='✓ Tu es déjà inscrit·e !';
+        status.style.color='var(--lavender)';
+      }else{
+        status.textContent='Erreur, réessaie plus tard.';
+        status.style.color='#ff6b6b';
+      }
+    }).catch(function(){
+      status.textContent='Erreur réseau, réessaie.';
+      status.style.color='#ff6b6b';
+    }).finally(function(){
+      btn.disabled=false;btn.textContent='M\'inscrire';
+    });
+  });
+})();
+</script>
 
 <footer class="foot">
   <a href="mailto:lassoduport@gmail.com">lassoduport@gmail.com</a>
@@ -74,6 +132,7 @@
   <a href="https://instagram.com/lassoduport" target="_blank" rel="noopener">@lassoduport</a>
   <span class="sep">·</span>
   L'asso du Port — Pors-Poulhan
+  <span class="foot-legal"><a href="mentions-legales.html">Mentions légales</a></span>
 </footer>
 
 <script src="assets/script.js"></script>
