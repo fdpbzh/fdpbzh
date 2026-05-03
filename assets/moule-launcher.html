@@ -43,12 +43,15 @@ input[type=text]::placeholder{color:#7c3f9e;}
     <input type="text" id="nameInput" maxlength="12" placeholder="TON PSEUDO" autocomplete="off" spellcheck="false">
     <button class="btn" id="btnPlay">▶ LANCER</button>
     <button class="btn-sm" id="btnLbMenu">🏆 SCORES</button>
+    <p class="sub" style="font-size:clamp(4px,1.1vw,6px);color:#ffd700;line-height:1.8;border-top:1px solid #6b21a8;padding-top:6px;margin-top:4px;">🎁 TOP 10 = BOISSON OFFERTE · 1ER = LOT MYSTÈRE<br>À RÉCUPÉRER SUR PLACE LE 8 AOÛT</p>
   </div>
   <div class="screen hidden" id="sResult">
     <h1>💥 RÉSULTAT</h1>
     <p class="sub" id="resName"></p>
     <p class="big" id="resDist"></p>
     <p class="sub" id="resComment"></p>
+    <input type="text" id="instaInput" maxlength="30" placeholder="@TON_INSTA (OPTIONNEL)" autocomplete="off" spellcheck="false">
+    <p class="sub" style="font-size:clamp(4px,1vw,6px);color:#7c3f9e;letter-spacing:1px;line-height:1.8;">SI TU FINIS DANS LE TOP 10, ON TE RECONNAÎT SUR PLACE</p>
     <button class="btn" id="btnReplay">▶ REJOUER</button>
     <button class="btn-sm" id="btnLbRes">🏆 SCORES</button>
   </div>
@@ -60,54 +63,91 @@ input[type=text]::placeholder{color:#7c3f9e;}
   </div>
 </div>
 <script>
-// ══════ JSONBIN ══════
-var JB_KEY='$2a$10$zQdfAPc9cFn8RUPBU1mPb.5C6t7nz1FKSv0wlWPzUDYtBgBhcQD4C';
-var JB_SCORES='69e64c3c856a68218953e2f8';
-var JB_COUNT='69e64c6a36566621a8d29ce4';
-var JB_BASE='https://api.jsonbin.io/v3/b/';
+// ══════ SUPABASE ══════
+var SB_URL='https://nhsroymqvwrjflagzznz.supabase.co/rest/v1';
+var SB_KEY='sb_publishable_UH528FgC5FVbxNFYi9Odlg_jcPZuK4J';
+var MAX_SCORE=6020; // borne théorique (anti-triche)
+var MIN_PLAY_MS=5000; // durée minimale d'une partie valide
+var MIN_ACTIONS=1;
 
-function jbGet(binId){
-  return fetch(JB_BASE+binId+'/latest',{headers:{'X-Master-Key':JB_KEY}})
-    .then(function(r){return r.json();})
-    .then(function(d){return d.record;});
+function sbHeaders(extra){
+  var h={apikey:SB_KEY,'Authorization':'Bearer '+SB_KEY};
+  if(extra)for(var k in extra)h[k]=extra[k];
+  return h;
 }
-function jbSet(binId,data){
-  return fetch(JB_BASE+binId,{
-    method:'PUT',
-    headers:{'Content-Type':'application/json','X-Master-Key':JB_KEY},
-    body:JSON.stringify(data)
-  }).then(function(r){return r.json();});
+
+// ══════ SESSION (anti-triche) ══════
+var sessionToken=null;
+var sessionStartTime=0;
+var actionCount=0;
+
+function newSession(){
+  // UUID v4 simple
+  sessionToken='xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){
+    var r=Math.random()*16|0,v=c==='x'?r:(r&0x3|0x8);return v.toString(16);
+  });
+  sessionStartTime=Date.now();
+  actionCount=0;
 }
+function trackAction(){actionCount++;}
 
 // ══════ SCORES ══════
 function loadScores(){
-  return jbGet(JB_SCORES).then(function(d){return d.scores||[];})
+  return fetch(SB_URL+'/scores?select=name,score&order=score.desc&limit=10',{headers:sbHeaders()})
+    .then(function(r){return r.json();})
     .catch(function(){return[];});
 }
 function saveScore(name,dist){
-  jbGet(JB_SCORES).then(function(d){
-    var scores=d.scores||[];
-    scores.push({name:name.toUpperCase().slice(0,12),score:dist});
-    scores.sort(function(a,b){return b.score-a.score;});
-    scores=scores.slice(0,50);
-    return jbSet(JB_SCORES,{scores:scores});
-  }).catch(function(){});
+  // Anti-triche : on valide tout côté client AVANT d'envoyer
+  if(!sessionToken){console.warn('No session');return Promise.resolve();}
+  var playTime=Date.now()-sessionStartTime;
+  if(playTime<MIN_PLAY_MS){console.warn('Partie trop courte: '+playTime+'ms');return Promise.resolve();}
+  if(dist<0||dist>MAX_SCORE){console.warn('Score hors limites: '+dist);return Promise.resolve();}
+  if(actionCount<MIN_ACTIONS){console.warn('Pas assez d\'actions');return Promise.resolve();}
+
+  var insta=null;
+  var instaEl=document.getElementById('instaInput');
+  if(instaEl&&instaEl.value){
+    insta=instaEl.value.trim();
+    if(insta.charAt(0)==='@')insta=insta.substring(1);
+    if(insta.length>30)insta=insta.substring(0,30);
+    if(!insta)insta=null;
+  }
+
+  var body={
+    name:name.toUpperCase().slice(0,12),
+    score:dist,
+    insta:insta,
+    session_id:sessionToken,
+    play_time_ms:playTime,
+    action_count:actionCount
+  };
+
+  return fetch(SB_URL+'/scores',{
+    method:'POST',
+    headers:sbHeaders({'Content-Type':'application/json','Prefer':'return=minimal'}),
+    body:JSON.stringify(body)
+  }).then(function(){
+    // Empêche de soumettre 2 fois la même partie
+    sessionToken=null;
+    // Refresh du compteur
+    loadCount();
+  }).catch(function(e){console.warn('Score save failed:',e);});
 }
 
-// ══════ COMPTEUR ══════
+// ══════ COMPTEUR (auto = nombre de lignes en base) ══════
 var totalGames=0;
 function loadCount(){
-  jbGet(JB_COUNT).then(function(d){
-    totalGames=d.count||0;
+  return fetch(SB_URL+'/scores?select=*',{
+    method:'HEAD',
+    headers:sbHeaders({'Prefer':'count=exact','Range':'0-0'})
+  }).then(function(r){
+    var range=r.headers.get('content-range');
+    if(range){
+      var m=range.match(/\/(\d+)/);
+      if(m)totalGames=parseInt(m[1]);
+    }
     updateCountDisplay();
-  }).catch(function(){});
-}
-function incrementCount(){
-  jbGet(JB_COUNT).then(function(d){
-    var n=(d.count||0)+1;
-    totalGames=n;
-    updateCountDisplay();
-    return jbSet(JB_COUNT,{count:n});
   }).catch(function(){});
 }
 function updateCountDisplay(){
@@ -920,10 +960,11 @@ function drawHUD(d){
 function onDown(){
   if(gState!=='play')return;
   getAC();
+  trackAction();
   if(phase==='done'){showResult();return;}
   if(phase==='ready'||phase==='charging'){if(phase==='ready')armT=0;phase='charging';isDown=true;}
 }
-function onUp(){if(!isDown||gState!=='play')return;isDown=false;if(phase==='charging'){var tip=getTipWorld(),lv=getLaunchVec();M.wx=tip.wx;M.wy=tip.wy;M.vx=lv.vx;M.vy=lv.vy;M.ang=0;M.spin=-0.08;M.dist=0;sfxLaunch();snapT=0;phase='snap';}}
+function onUp(){if(!isDown||gState!=='play')return;isDown=false;trackAction();if(phase==='charging'){var tip=getTipWorld(),lv=getLaunchVec();M.wx=tip.wx;M.wy=tip.wy;M.vx=lv.vx;M.vy=lv.vy;M.ang=0;M.spin=-0.08;M.dist=0;sfxLaunch();snapT=0;phase='snap';}}
 canvas.addEventListener('touchstart',function(e){e.preventDefault();onDown();},{passive:false});
 canvas.addEventListener('touchend',function(e){e.preventDefault();onUp();},{passive:false});
 canvas.addEventListener('mousedown',function(e){e.preventDefault();onDown();});
@@ -948,14 +989,14 @@ function showResult(){
   document.getElementById('resName').textContent=playerName.toUpperCase();
   document.getElementById('resDist').textContent=M.dist+' METRES';
   document.getElementById('resComment').textContent=getComment(M.dist);
-  show(sResult);saveScore(playerName,M.dist);incrementCount();stopBGM();
+  show(sResult);saveScore(playerName,M.dist);stopBGM();
 }
 
 // ══════ SCREENS ══════
 var sMenu=document.getElementById('sMenu'),sResult=document.getElementById('sResult'),sLb=document.getElementById('sLb');
 function show(s){[sMenu,sResult,sLb].forEach(function(x){x.classList.add('hidden');});s.classList.remove('hidden');}
 function hideAll(){[sMenu,sResult,sLb].forEach(function(x){x.classList.add('hidden');});}
-function startGame(){resetAll();gState='play';hideAll();startBGM();}
+function startGame(){resetAll();newSession();gState='play';hideAll();startBGM();}
 
 document.getElementById('btnPlay').onclick=function(){var n=document.getElementById('nameInput').value.trim();playerName=n||'MOULE';getAC();startGame();};
 document.getElementById('nameInput').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('btnPlay').click();});
@@ -966,12 +1007,15 @@ document.getElementById('btnBack').onclick=function(){show(sMenu);};
 
 function showLb(){
   show(sLb);
+  document.getElementById('lbContent').innerHTML='<p class="loader">CHARGEMENT...</p>';
   loadScores().then(function(scores){
     var medals=['1er','2e','3e'],rc=['rank-gold','rank-silver','rank-bronze'];
-    if(!scores.length){document.getElementById('lbContent').innerHTML='<p class="sub">Joue une partie d\'abord !</p>';return;}
+    if(!scores||!scores.length){document.getElementById('lbContent').innerHTML='<p class="sub">Joue une partie d\'abord !</p>';return;}
     var html='<table class="lb-table"><thead><tr><th>#</th><th>NOM</th><th>DIST</th></tr></thead><tbody>';
     scores.slice(0,10).forEach(function(sc,i){html+='<tr class="'+(sc.name===playerName.toUpperCase()?'me':'')+'"><td class="'+(rc[i]||'')+'">'+(medals[i]||i+1)+'</td><td>'+sc.name+'</td><td>'+sc.score+'m</td></tr>';});
     document.getElementById('lbContent').innerHTML=html+'</tbody></table>';
+  }).catch(function(){
+    document.getElementById('lbContent').innerHTML='<p class="sub">Erreur de chargement</p>';
   });
 }
 

@@ -3,22 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FDP — Fête du Port · 8 août 2026 · Pors-Poulhan</title>
-<meta name="description" content="La Fête du Port revient le 8 août 2026 à Pors-Poulhan. Concerts, championnats du monde inutiles, buvette. Open air 17h-2h, entrée libre.">
-<meta name="theme-color" content="#0F0628">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🦪%3C/text%3E%3C/svg%3E">
-<meta property="og:title" content="FDP — Fête du Port · 8 août 2026">
-<meta property="og:description" content="Concerts, championnats du monde inutiles, buvette à Pors-Poulhan.">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://fdp.bzh">
-<meta property="og:image" content="https://fdp.bzh/Affiche%20VFestival2.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<title>Option C — Affiche en background</title>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 @font-face{
   font-family:'DK Longreach';
-  src:url('DK%20Longreach.otf') format('opentype');
+  src:url('../DK%20Longreach.otf') format('opentype');
   font-display:swap;
 }
 *{margin:0;padding:0;box-sizing:border-box}
@@ -29,6 +19,8 @@
 }
 html,body{overflow-x:hidden}
 body{font-family:'Manrope',sans-serif;color:var(--cream);background:var(--dark);min-height:100vh}
+
+.back{position:fixed;top:18px;left:18px;z-index:100;background:rgba(0,0,0,.5);color:var(--yellow);padding:8px 16px;border:1px solid var(--yellow);border-radius:99px;text-decoration:none;font-size:13px;font-weight:700;backdrop-filter:blur(10px)}
 
 /* ============ HERO PLEIN ÉCRAN ============ */
 .hero{
@@ -41,18 +33,19 @@ body{font-family:'Manrope',sans-serif;color:var(--cream);background:var(--dark);
   justify-content:flex-end;
   isolation:isolate;
 }
+
 /* Couche 1 — Affiche en background full bleed */
 .hero-bg{
   position:absolute;
   inset:0;
   z-index:1;
-  background-image:url('Affiche%20VFestival2.png');
+  background-image:url('../Affiche%20VFestival2.png');
   background-size:cover;
   background-position:center;
   background-repeat:no-repeat;
   will-change:transform;
 }
-/* Léger voile pour faire ressortir le jeu */
+/* Léger voile pour mieux faire ressortir le jeu */
 .hero-bg::after{
   content:"";
   position:absolute;
@@ -64,6 +57,7 @@ body{font-family:'Manrope',sans-serif;color:var(--cream);background:var(--dark);
     rgba(15,6,40,.85) 100%);
   pointer-events:none;
 }
+
 /* Couche 2 — Contenu (jeu + nav) en bas */
 .hero-content{
   position:relative;
@@ -75,6 +69,7 @@ body{font-family:'Manrope',sans-serif;color:var(--cream);background:var(--dark);
   align-items:center;
   gap:20px;
 }
+
 /* Le jeu, dans un cadre subtil */
 .game-card{
   width:100%;
@@ -89,11 +84,12 @@ body{font-family:'Manrope',sans-serif;color:var(--cream);background:var(--dark);
     0 0 0 6px rgba(15,6,40,.6);
 }
 .game-card iframe{width:100%;height:100%;border:0;display:block}
+
 /* Tip + nav minimaliste */
 .game-tip{
   font-size:13px;
   color:var(--cream);
-  opacity:.85;
+  opacity:.8;
   letter-spacing:.5px;
   text-shadow:0 1px 4px rgba(0,0,0,.8);
   text-align:center;
@@ -118,6 +114,7 @@ body{font-family:'Manrope',sans-serif;color:var(--cream);background:var(--dark);
   text-shadow:0 1px 4px rgba(0,0,0,.8);
 }
 .nav-min a:hover{opacity:1;color:var(--yellow);border-bottom-color:var(--yellow)}
+
 /* Mobile : moins d'espace, jeu compact */
 @media(max-width:700px){
   .hero{justify-content:flex-end}
@@ -128,10 +125,12 @@ body{font-family:'Manrope',sans-serif;color:var(--cream);background:var(--dark);
 @media(max-width:480px){
   .nav-min{font-size:10px;letter-spacing:1px;gap:10px}
 }
-/* Très petits écrans portrait — affiche tient en hauteur naturellement */
+
+/* Très petits écrans portrait — l'affiche tient en hauteur naturellement */
 @media(max-width:700px) and (orientation:portrait){
   .hero-bg{background-position:center 30%}
 }
+
 /* Prefers reduced motion */
 @media (prefers-reduced-motion: reduce){
   .hero-bg{transform:none !important;will-change:auto}
@@ -140,19 +139,21 @@ body{font-family:'Manrope',sans-serif;color:var(--cream);background:var(--dark);
 </head>
 <body>
 
+<a href="index.html" class="back">← Comparer les styles</a>
+
 <section class="hero">
   <div class="hero-bg" aria-hidden="true"></div>
 
   <div class="hero-content">
     <div class="game-card">
-      <iframe src="assets/moule-launcher.html" title="Moule Launcher" loading="lazy" allow="autoplay" allowfullscreen></iframe>
+      <iframe src="../assets/moule-launcher.html" title="Moule Launcher" loading="lazy" allow="autoplay" allowfullscreen></iframe>
     </div>
     <p class="game-tip">Maintiens pour charger · relâche pour lancer</p>
     <nav class="nav-min">
-      <a href="programme.html">Programme</a>
-      <a href="infos.html">Infos pratiques</a>
-      <a href="asso.html">L'asso</a>
-      <a href="contact.html">Contact</a>
+      <a href="#">Programme</a>
+      <a href="#">Infos pratiques</a>
+      <a href="#">L'asso</a>
+      <a href="#">Contact</a>
     </nav>
   </div>
 </section>
