@@ -1,0 +1,29 @@
+{
+  "name": "FDP — Fête du Port",
+  "short_name": "FDP",
+  "description": "La Fête du Port à Pors-Poulhan, le 8 août 2026",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0F0628",
+  "theme_color": "#0F0628",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

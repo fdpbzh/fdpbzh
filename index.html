@@ -6,12 +6,80 @@
 <title>FDP — Fête du Port · 8 août 2026 · Pors-Poulhan</title>
 <meta name="description" content="La Fête du Port revient le 8 août 2026 à Pors-Poulhan. Concerts, championnats du monde inutiles, buvette. Open air 17h-2h, entrée libre.">
 <meta name="theme-color" content="#0F0628">
+
+<!-- Favicons -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🦪%3C/text%3E%3C/svg%3E">
-<meta property="og:title" content="FDP — Fête du Port · 8 août 2026">
-<meta property="og:description" content="Concerts, championnats du monde inutiles, buvette à Pors-Poulhan.">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+
+<!-- Open Graph / partage social -->
+<meta property="og:title" content="FDP — Fête du Port · 8 août 2026 · Pors-Poulhan">
+<meta property="og:description" content="Concerts (KLEM H · BYE BYE PANKE · DJUNGLE), championnats du monde inutiles, buvette. Open air 17h–2h, entrée libre.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://fdp.bzh">
 <meta property="og:image" content="https://fdp.bzh/Affiche%20VFestival2.png">
+<meta property="og:image:width" content="1733">
+<meta property="og:image:height" content="2600">
+<meta property="og:image:alt" content="Affiche FDP 2026 — Fête du Port à Pors-Poulhan">
+<meta property="og:locale" content="fr_FR">
+<meta property="og:site_name" content="FDP — Fête du Port">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="FDP — Fête du Port · 8 août 2026">
+<meta name="twitter:description" content="Concerts, championnats du monde inutiles, buvette à Pors-Poulhan. Entrée libre.">
+<meta name="twitter:image" content="https://fdp.bzh/Affiche%20VFestival2.png">
+
+<!-- Schema.org Event (pour Google Events) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Event",
+  "name": "FDP — Fête du Port 2026",
+  "startDate": "2026-08-08T17:00:00+02:00",
+  "endDate": "2026-08-09T02:00:00+02:00",
+  "eventStatus": "https://schema.org/EventScheduled",
+  "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+  "location": {
+    "@type": "Place",
+    "name": "Port de Pors-Poulhan",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Plouhinec",
+      "postalCode": "29710",
+      "addressRegion": "Bretagne",
+      "addressCountry": "FR"
+    }
+  },
+  "image": ["https://fdp.bzh/Affiche%20VFestival2.png"],
+  "description": "Concerts (KLEM H, BYE BYE PANKE, DJUNGLE), championnats du monde inutiles, buvette à Pors-Poulhan. Open air 17h-2h, entrée libre.",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "EUR",
+    "availability": "https://schema.org/InStock",
+    "url": "https://fdp.bzh",
+    "validFrom": "2026-01-01T00:00:00+01:00"
+  },
+  "organizer": {
+    "@type": "Organization",
+    "name": "L'asso du Port",
+    "url": "https://fdp.bzh",
+    "email": "lassoduport@gmail.com"
+  },
+  "performer": [
+    {"@type": "MusicGroup", "name": "KLEM H"},
+    {"@type": "MusicGroup", "name": "BYE BYE PANKE"},
+    {"@type": "MusicGroup", "name": "DJUNGLE"}
+  ]
+}
+</script>
+
+<!-- Préchargement de l'affiche (LCP) -->
+<link rel="preload" as="image" href="Affiche%20VFestival2.webp" type="image/webp">
+<link rel="preload" as="image" href="Affiche%20VFestival2.png" fetchpriority="high">
+
+<!-- Polices -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -41,12 +109,20 @@ body{font-family:'Manrope',sans-serif;color:var(--cream);background:var(--dark);
   justify-content:flex-end;
   isolation:isolate;
 }
-/* Couche 1 — Affiche en background full bleed */
+/* Couche 1 — Affiche en background full bleed (WebP si dispo, PNG sinon) */
 .hero-bg{
   position:absolute;
   inset:0;
   z-index:1;
   background-image:url('Affiche%20VFestival2.png');
+  background-image:-webkit-image-set(
+    url('Affiche%20VFestival2.webp') type('image/webp'),
+    url('Affiche%20VFestival2.png') type('image/png')
+  );
+  background-image:image-set(
+    url('Affiche%20VFestival2.webp') type('image/webp'),
+    url('Affiche%20VFestival2.png') type('image/png')
+  );
   background-size:cover;
   background-position:center;
   background-repeat:no-repeat;
