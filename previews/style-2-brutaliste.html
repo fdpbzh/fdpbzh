@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Style 2 · Éditorial brutaliste</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Anton&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#F5F1E8;--ink:#0A0A0A;--ink-soft:#3a3a3a;--accent:#E83A1A;--gold:#C9A227;
+}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+.back{position:fixed;top:18px;left:18px;z-index:10;background:var(--ink);color:var(--bg);padding:8px 16px;text-decoration:none;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.back:hover{background:var(--accent)}
+
+.topnav{padding:24px 40px;display:flex;justify-content:space-between;align-items:center;border-bottom:1.5px solid var(--ink)}
+.brand{font-family:'Anton',sans-serif;font-size:34px;letter-spacing:1px}
+.menu{display:flex;gap:28px;font-size:14px;font-weight:500}
+.menu a{color:var(--ink);text-decoration:none;border-bottom:1.5px solid transparent;padding-bottom:2px}
+.menu a:hover,.menu a.on{border-color:var(--accent)}
+
+.hero{padding:80px 40px 100px;max-width:1300px;margin:0 auto;display:grid;grid-template-columns:1.1fr .9fr;gap:60px;align-items:end}
+@media(max-width:900px){.hero{grid-template-columns:1fr;padding:50px 24px}}
+.h-left .meta{display:flex;gap:20px;font-size:13px;font-weight:500;letter-spacing:2px;text-transform:uppercase;margin-bottom:30px;align-items:center}
+.h-left .meta .dot{width:8px;height:8px;background:var(--accent);border-radius:50%}
+.h-left h1{font-family:'Anton',sans-serif;font-size:clamp(110px,18vw,260px);line-height:.85;letter-spacing:-3px;margin-bottom:30px}
+.h-left h1 .it{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;font-size:.42em;letter-spacing:-1px;display:block;margin-top:6px;color:var(--ink-soft)}
+.h-left .lede{font-family:'Instrument Serif',serif;font-size:clamp(22px,2.6vw,30px);line-height:1.3;max-width:520px;color:var(--ink-soft)}
+.h-left .lede span{color:var(--accent)}
+.h-right{display:flex;flex-direction:column;align-items:flex-end;gap:24px}
+@media(max-width:900px){.h-right{align-items:flex-start}}
+.affiche-wrap{max-width:380px;width:100%;border:1.5px solid var(--ink);box-shadow:8px 8px 0 var(--accent)}
+.affiche-wrap img{display:block;width:100%}
+.cta-row{display:flex;gap:14px;flex-wrap:wrap}
+.btn{padding:16px 32px;text-decoration:none;font-weight:700;font-size:14px;letter-spacing:1px;text-transform:uppercase;display:inline-flex;align-items:center;gap:10px}
+.btn-d{background:var(--ink);color:var(--bg)}
+.btn-d:hover{background:var(--accent)}
+.btn-l{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+.btn-l:hover{background:var(--ink);color:var(--bg)}
+
+.marquee{border-top:1.5px solid var(--ink);border-bottom:1.5px solid var(--ink);padding:18px 0;overflow:hidden;background:var(--ink);color:var(--bg)}
+.marquee-track{display:flex;gap:60px;font-family:'Anton',sans-serif;font-size:38px;letter-spacing:1px;animation:scr 30s linear infinite;white-space:nowrap}
+.marquee-track span{display:inline-flex;align-items:center;gap:60px}
+.marquee-track .star{color:var(--accent)}
+@keyframes scr{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+.section{max-width:1300px;margin:0 auto;padding:90px 40px;display:grid;grid-template-columns:1fr 2.2fr;gap:60px}
+@media(max-width:900px){.section{grid-template-columns:1fr;padding:60px 24px}}
+.s-l h2{font-family:'Anton',sans-serif;font-size:64px;line-height:.9;letter-spacing:-1px;margin-bottom:14px}
+.s-l p{font-size:15px;color:var(--ink-soft);max-width:240px}
+.s-r{display:grid;grid-template-columns:repeat(2,1fr);gap:1.5px;background:var(--ink);border:1.5px solid var(--ink)}
+@media(max-width:600px){.s-r{grid-template-columns:1fr}}
+.s-r .b{background:var(--bg);padding:34px 28px;min-height:200px;display:flex;flex-direction:column;justify-content:space-between}
+.s-r .num{font-family:'Anton',sans-serif;font-size:42px;color:var(--accent)}
+.s-r h3{font-size:20px;font-weight:700;margin:14px 0 8px}
+.s-r p{font-size:14px;color:var(--ink-soft);line-height:1.55}
+</style>
+</head>
+<body>
+
+<a href="index.html" class="back">← retour</a>
+
+<nav class="topnav">
+  <div class="brand">FDP/26</div>
+  <div class="menu">
+    <a href="#" class="on">Accueil</a>
+    <a href="#">L'asso</a>
+    <a href="#">Programme</a>
+    <a href="#">Infos</a>
+    <a href="#">Le jeu</a>
+    <a href="#">Contact</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="h-left">
+    <div class="meta">
+      <span class="dot"></span>
+      <span>Édition 2026</span>
+      <span>—</span>
+      <span>08.08 · Pors-Poulhan</span>
+    </div>
+    <h1>FDP<span class="it">Fête du Port, samedi 8 août.</span></h1>
+    <p class="lede">Une soirée. Trois concerts. Des championnats <span>parfaitement inutiles</span>. Et le petit port qui s'embrase, de 17h à 2h du matin.</p>
+  </div>
+  <div class="h-right">
+    <div class="affiche-wrap"><img src="../Affiche%20VFestival2.png" alt="Affiche FDP 2026" onerror="this.onerror=null;this.src='../assets/affiche.png'"></div>
+    <div class="cta-row">
+      <a href="#" class="btn btn-d">Programme →</a>
+      <a href="#" class="btn btn-l">Le jeu</a>
+    </div>
+  </div>
+</section>
+
+<div class="marquee">
+  <div class="marquee-track">
+    <span>KLEM H<span class="star">✦</span>BYE BYE PANKE<span class="star">✦</span>DJUNGLE<span class="star">✦</span>CHAMPIONNATS DU MONDE INUTILES<span class="star">✦</span>OPEN AIR<span class="star">✦</span>ENTRÉE LIBRE<span class="star">✦</span></span>
+    <span>KLEM H<span class="star">✦</span>BYE BYE PANKE<span class="star">✦</span>DJUNGLE<span class="star">✦</span>CHAMPIONNATS DU MONDE INUTILES<span class="star">✦</span>OPEN AIR<span class="star">✦</span>ENTRÉE LIBRE<span class="star">✦</span></span>
+  </div>
+</div>
+
+<section class="section">
+  <div class="s-l">
+    <h2>Au programme.</h2>
+    <p>Quatre temps forts qui font la couleur de la soirée.</p>
+  </div>
+  <div class="s-r">
+    <div class="b"><div class="num">01</div><div><h3>Trois concerts live</h3><p>KLEM H, BYE BYE PANKE, DJUNGLE — programmation 100% bretonne, ouverte à tous.</p></div></div>
+    <div class="b"><div class="num">02</div><div><h3>Championnats inutiles</h3><p>Lancer de moule, tir à la corde imaginaire, cri de mouette. Le sport qui n'existait pas.</p></div></div>
+    <div class="b"><div class="num">03</div><div><h3>Buvette &amp; resto</h3><p>Bières locales, vin, frites, crêpes, galettes-saucisses. Carte acceptée.</p></div></div>
+    <div class="b"><div class="num">04</div><div><h3>L'heure dorée</h3><p>Coucher de soleil sur le port. Ambiance bretonne, musique sous les étoiles.</p></div></div>
+  </div>
+</section>
+
+</body>
+</html>
