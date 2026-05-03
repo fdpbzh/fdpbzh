@@ -3,8 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>404 · FDP</title>
+<title>404 — Page introuvable · FDP</title>
+<meta name="description" content="Cette page n'existe pas sur fdp.bzh.">
 <meta name="theme-color" content="#0F0628">
+<meta name="robots" content="noindex">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🦪%3C/text%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/site.webmanifest">
@@ -29,19 +31,23 @@
     <a href="/" class="header-logo" aria-label="Accueil">
       <img src="/assets/Logo-fdp.png" alt="FDP">
     </a>
+    <button class="nav-toggle" aria-label="Menu" aria-expanded="false">☰</button>
     <nav class="site-nav">
-      <a href="/">Accueil</a>
+      <a href="/programme.html">Programme</a>
+      <a href="/infos.html">Infos pratiques</a>
+      <a href="/asso.html">L'asso</a>
+      <a href="/contact.html">Contact</a>
     </nav>
   </div>
 </header>
 
 <main>
   <header class="page-head text-center">
-    <h1 style="font-size:clamp(80px,15vw,180px)">404</h1>
-    <p class="lead" style="margin:0 auto;max-width:520px">Cette page s'est échouée comme une moule sur le sable.</p>
+    <h1 style="font-size:clamp(100px,18vw,200px);line-height:1">404</h1>
+    <p class="lead" style="margin:14px auto 0;max-width:520px;font-size:18px">Cette page s'est échouée comme une moule sur le sable.</p>
     <div class="cta-row" style="justify-content:center;margin-top:30px">
       <a href="/" class="btn btn-primary">Retour à l'accueil</a>
-      <a href="/jeu.html" class="btn btn-secondary">🦪 Aller jouer</a>
+      <a href="/jeu.html" class="btn btn-secondary">🦪 Jouer à La Moule Volante</a>
     </div>
   </header>
 </main>
@@ -55,8 +61,8 @@
   <span class="foot-legal"><a href="/mentions-legales.html">Mentions légales</a></span>
 </footer>
 
+<script src="/assets/script.js"></script>
 <!-- Analytics : GoatCounter (sans cookie, sans tracker) -->
 <script data-goatcounter="https://fdp.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
-
 </body>
 </html>

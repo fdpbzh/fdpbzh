@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /previews/
+Disallow: /mentions-legales.html
 
 Sitemap: https://fdp.bzh/sitemap.xml
