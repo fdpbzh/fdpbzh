@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🦪 Moule Launcher · FDP 2026</title>
+<meta name="description" content="Le jeu officiel de la FDP : lance ta moule le plus loin possible et inscris-toi au Hall of Fame.">
+<meta name="theme-color" content="#0F0628">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🦪%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+  <defs>
+    <filter id="recolor-yellow" color-interpolation-filters="sRGB">
+      <feFlood flood-color="#FFC93C"/>
+      <feComposite in2="SourceGraphic" operator="in"/>
+    </filter>
+  </defs>
+</svg>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <a href="index.html" class="header-logo" aria-label="Accueil">
+      <img src="assets/Logo-fdp.png" alt="FDP">
+    </a>
+    <button class="nav-toggle" aria-label="Menu" aria-expanded="false">☰</button>
+    <nav class="site-nav">
+      <a href="programme.html">Programme</a>
+      <a href="infos.html">Infos pratiques</a>
+      <a href="asso.html">L'asso</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <header class="page-head">
+    <h1>🦪 Moule Launcher</h1>
+    <p class="lead">Le championnat officiel du lancer de moule, version pixel. Bats le record et viens défendre ta place le 8 août à Pors-Poulhan.</p>
+  </header>
+
+  <section class="section">
+    <div class="game-frame">
+      <iframe src="assets/moule-launcher.html" title="Moule Launcher" loading="lazy" allow="autoplay" allowfullscreen></iframe>
+    </div>
+    <p class="game-tip">💡 Maintiens pour charger la pince · relâche au bon angle pour lancer</p>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <a href="mailto:lassoduport@gmail.com">lassoduport@gmail.com</a>
+  <span class="sep">·</span>
+  <a href="https://instagram.com/lassoduport" target="_blank" rel="noopener">@lassoduport</a>
+  <span class="sep">·</span>
+  L'asso du Port — Pors-Poulhan
+</footer>
+
+<script src="assets/script.js"></script>
+</body>
+</html>
