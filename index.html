@@ -50,7 +50,14 @@ body{font-family:'Manrope',sans-serif;color:var(--cream);background:var(--dark);
   background-size:cover;
   background-position:center;
   background-repeat:no-repeat;
+  background-color:#0F0628;
   will-change:transform;
+}
+/* Sur écran large (desktop) : affiche entière + bandes violettes sur les côtés */
+@media(min-width:900px){
+  .hero-bg{
+    background-size:contain;
+  }
 }
 /* Léger voile pour faire ressortir le jeu */
 .hero-bg::after{
@@ -145,9 +152,8 @@ body{font-family:'Manrope',sans-serif;color:var(--cream);background:var(--dark);
 
   <div class="hero-content">
     <div class="game-card">
-      <iframe src="assets/moule-launcher.html" title="Moule Launcher" loading="lazy" allow="autoplay" allowfullscreen></iframe>
+      <iframe src="assets/moule-launcher.html" title="La Moule Volante" loading="lazy" allow="autoplay" allowfullscreen></iframe>
     </div>
-    <p class="game-tip">Maintiens pour charger · relâche pour lancer</p>
     <nav class="nav-min">
       <a href="programme.html">Programme</a>
       <a href="infos.html">Infos pratiques</a>

@@ -3,14 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MOULE LAUNCHER — FDP 2026</title>
+<title>La Moule Volante — FDP 2026</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{width:100%;height:100%;background:#0d0014;display:flex;align-items:center;justify-content:center;font-family:'Press Start 2P',monospace;overflow:hidden;touch-action:none;}
 #wrap{position:relative;width:min(100vw,calc(100vh*16/9));height:min(100vh,calc(100vw*9/16));max-width:710px;max-height:400px;}
 canvas{width:100%;height:100%;display:block;image-rendering:pixelated;border:2px solid #6b21a8;box-shadow:0 0 30px #c026d355;}
-.screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(13,0,20,0.93);gap:10px;padding:20px;z-index:20;}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(13,0,20,0.93);gap:10px;padding:18px;z-index:20;overflow-y:auto;}
+@media(max-height:300px){.screen{justify-content:flex-start;padding:10px;gap:6px}}
 .screen.hidden{display:none;}
 h1{font-size:clamp(13px,3.5vw,20px);color:#f0abfc;text-align:center;text-shadow:3px 3px #6b21a8,0 0 18px #c026d3;line-height:1.7;}
 .sub{font-size:clamp(5px,1.5vw,8px);color:#d8b4fe;text-align:center;line-height:2.2;}
@@ -37,8 +38,8 @@ input[type=text]::placeholder{color:#7c3f9e;}
 <div id="wrap">
   <canvas id="c" width="710" height="400"></canvas>
   <div class="screen" id="sMenu">
-    <h1>🦀 MOULE LAUNCHER 🦪</h1>
-    <p class="sub">APPUIE → LA PINCE MONTE<br>RELÂCHE AU BON ANGLE → LANCE !<br>💥 LOGOS FDP = BONUS · 🐦 MOUETTES = OBSTACLE</p>
+    <h1>🦀 LA MOULE VOLANTE 🦪</h1>
+    <p class="sub">MAINTIENS POUR CHARGER · RELÂCHE POUR LANCER</p>
     <p id="gameCount" style="font-size:clamp(4px,1.2vw,6px);color:#c026d3;letter-spacing:1px;">...</p>
     <input type="text" id="nameInput" maxlength="12" placeholder="TON PSEUDO" autocomplete="off" spellcheck="false">
     <button class="btn" id="btnPlay">▶ LANCER</button>
@@ -998,7 +999,21 @@ function show(s){[sMenu,sResult,sLb].forEach(function(x){x.classList.add('hidden
 function hideAll(){[sMenu,sResult,sLb].forEach(function(x){x.classList.add('hidden');});}
 function startGame(){resetAll();newSession();gState='play';hideAll();startBGM();}
 
-document.getElementById('btnPlay').onclick=function(){var n=document.getElementById('nameInput').value.trim();playerName=n||'MOULE';getAC();startGame();};
+document.getElementById('btnPlay').onclick=function(){
+  var inp=document.getElementById('nameInput');
+  var n=inp.value.trim();
+  if(!n){
+    inp.focus();
+    inp.placeholder='ENTRE TON PSEUDO !';
+    inp.style.borderColor='#ff3030';
+    inp.style.boxShadow='0 0 12px #ff3030';
+    setTimeout(function(){inp.style.borderColor='';inp.style.boxShadow='';inp.placeholder='TON PSEUDO';},1500);
+    return;
+  }
+  playerName=n;
+  getAC();
+  startGame();
+};
 document.getElementById('nameInput').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('btnPlay').click();});
 document.getElementById('btnReplay').onclick=function(){getAC();startGame();};
 document.getElementById('btnLbRes').onclick=function(){showLb();};
