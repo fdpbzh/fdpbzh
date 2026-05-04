@@ -38,29 +38,33 @@ input[type=text]::placeholder{color:#7c3f9e;}
 <div id="wrap">
   <canvas id="c" width="710" height="400"></canvas>
   <div class="screen" id="sMenu">
-    <h1>🦀 LA MOULE VOLANTE 🦪</h1>
+    <h1>★ LA MOULE VOLANTE ★</h1>
     <p class="sub">MAINTIENS POUR CHARGER · RELÂCHE POUR LANCER</p>
     <p id="gameCount" style="font-size:clamp(4px,1.2vw,6px);color:#c026d3;letter-spacing:1px;">...</p>
     <input type="text" id="nameInput" maxlength="12" placeholder="TON PSEUDO" autocomplete="off" spellcheck="false">
     <button class="btn" id="btnPlay">▶ LANCER</button>
-    <button class="btn-sm" id="btnLbMenu">🏆 SCORES</button>
-    <p class="sub" style="font-size:clamp(4px,1.1vw,6px);color:#ffd700;line-height:1.8;border-top:1px solid #6b21a8;padding-top:6px;margin-top:4px;">🎁 TOP 10 = BOISSON OFFERTE · 1ER = LOT MYSTÈRE<br>À RÉCUPÉRER SUR PLACE LE 8 AOÛT</p>
+    <button class="btn-sm" id="btnLbMenu">★ SCORES</button>
+    <p class="sub" style="font-size:clamp(4px,1.1vw,6px);color:#ffd700;line-height:1.8;border-top:1px solid #6b21a8;padding-top:6px;margin-top:4px;">TOP 10 = BOISSON OFFERTE · 1ER = OPEN BAR<br>À RÉCUPÉRER SUR PLACE LE 8 AOÛT<br><span style="color:#7c3f9e;font-size:.85em">+18 ANS · DANS LA LIMITE DU RAISONNABLE</span></p>
   </div>
   <div class="screen hidden" id="sResult">
-    <h1>💥 RÉSULTAT</h1>
+    <h1>★ RÉSULTAT ★</h1>
     <p class="sub" id="resName"></p>
     <p class="big" id="resDist"></p>
     <p class="sub" id="resComment"></p>
-    <input type="text" id="instaInput" maxlength="30" placeholder="@TON_INSTA (OPTIONNEL)" autocomplete="off" spellcheck="false">
-    <p class="sub" style="font-size:clamp(4px,1vw,6px);color:#7c3f9e;letter-spacing:1px;line-height:1.8;">UNIQUEMENT POUR TE RECONNAÎTRE SI TU GAGNES · EFFACÉ APRÈS LA FÊTE</p>
+    <div id="topInstaBox" class="hidden" style="border-top:1px solid #ffd700;border-bottom:1px solid #ffd700;padding:8px 0;width:100%;display:flex;flex-direction:column;align-items:center;gap:6px;">
+      <p class="sub" style="color:#ffd700;font-size:clamp(6px,1.6vw,9px);letter-spacing:1px;">★ TU ES DANS LE TOP 10 ★</p>
+      <input type="text" id="instaInput" maxlength="30" placeholder="@TON_INSTA" autocomplete="off" spellcheck="false">
+      <p class="sub" style="font-size:clamp(4px,1vw,6px);color:#7c3f9e;letter-spacing:1px;">POUR QU'ON TE RECONNAISSE LE 8 AOÛT</p>
+      <button class="btn-sm" id="btnConfirmInsta">CONFIRMER</button>
+    </div>
     <button class="btn" id="btnReplay">▶ REJOUER</button>
     <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;">
-      <button class="btn-sm" id="btnShare">🔗 PARTAGER</button>
-      <button class="btn-sm" id="btnLbRes">🏆 SCORES</button>
+      <button class="btn-sm" id="btnShare">→ PARTAGER</button>
+      <button class="btn-sm" id="btnLbRes">★ SCORES</button>
     </div>
   </div>
   <div class="screen hidden" id="sLb">
-    <p style="font-size:clamp(8px,2vw,13px);color:#ffd700">🏆 HALL OF FAME</p>
+    <p style="font-size:clamp(8px,2vw,13px);color:#ffd700">★ HALL OF FAME ★</p>
     <p class="sub">Record de distance</p>
     <div id="lbContent"><p class="loader">CHARGEMENT...</p></div>
     <button class="btn-sm" id="btnBack">← RETOUR</button>
@@ -96,32 +100,26 @@ function newSession(){
 function trackAction(){actionCount++;}
 
 // ══════ SCORES ══════
+var lastScoreId=null; // id de la dernière partie pour ajouter l'insta après coup
+
 function loadScores(){
   return fetch(SB_URL+'/scores?select=name,score&order=score.desc&limit=10',{headers:sbHeaders()})
     .then(function(r){return r.json();})
     .catch(function(){return[];});
 }
+
 function saveScore(name,dist){
   // Anti-triche : on valide tout côté client AVANT d'envoyer
-  if(!sessionToken){console.warn('No session');return Promise.resolve();}
+  if(!sessionToken){console.warn('No session');return Promise.resolve(null);}
   var playTime=Date.now()-sessionStartTime;
-  if(playTime<MIN_PLAY_MS){console.warn('Partie trop courte: '+playTime+'ms');return Promise.resolve();}
-  if(dist<0||dist>MAX_SCORE){console.warn('Score hors limites: '+dist);return Promise.resolve();}
-  if(actionCount<MIN_ACTIONS){console.warn('Pas assez d\'actions');return Promise.resolve();}
-
-  var insta=null;
-  var instaEl=document.getElementById('instaInput');
-  if(instaEl&&instaEl.value){
-    insta=instaEl.value.trim();
-    if(insta.charAt(0)==='@')insta=insta.substring(1);
-    if(insta.length>30)insta=insta.substring(0,30);
-    if(!insta)insta=null;
-  }
+  if(playTime<MIN_PLAY_MS){console.warn('Partie trop courte: '+playTime+'ms');return Promise.resolve(null);}
+  if(dist<0||dist>MAX_SCORE){console.warn('Score hors limites: '+dist);return Promise.resolve(null);}
+  if(actionCount<MIN_ACTIONS){console.warn('Pas assez d\'actions');return Promise.resolve(null);}
 
   var body={
     name:name.toUpperCase().slice(0,12),
     score:dist,
-    insta:insta,
+    insta:null, // Pas d'insta à la sauvegarde initiale
     session_id:sessionToken,
     play_time_ms:playTime,
     action_count:actionCount
@@ -129,14 +127,42 @@ function saveScore(name,dist){
 
   return fetch(SB_URL+'/scores',{
     method:'POST',
-    headers:sbHeaders({'Content-Type':'application/json','Prefer':'return=minimal'}),
+    headers:sbHeaders({'Content-Type':'application/json','Prefer':'return=representation'}),
     body:JSON.stringify(body)
-  }).then(function(){
-    // Empêche de soumettre 2 fois la même partie
-    sessionToken=null;
-    // Refresh du compteur
+  }).then(function(r){return r.json();}).then(function(data){
+    sessionToken=null; // empêche double soumission
+    if(data&&data[0]&&data[0].id){lastScoreId=data[0].id;}
     loadCount();
-  }).catch(function(e){console.warn('Score save failed:',e);});
+    return data&&data[0]?data[0]:null;
+  }).catch(function(e){console.warn('Score save failed:',e);return null;});
+}
+
+function updateInsta(insta){
+  if(!lastScoreId)return Promise.resolve();
+  if(insta.charAt(0)==='@')insta=insta.substring(1);
+  insta=insta.trim().slice(0,30);
+  if(!insta)return Promise.resolve();
+  return fetch(SB_URL+'/scores?id=eq.'+lastScoreId,{
+    method:'PATCH',
+    headers:sbHeaders({'Content-Type':'application/json','Prefer':'return=minimal'}),
+    body:JSON.stringify({insta:insta})
+  }).then(function(){
+    lastScoreId=null; // une seule mise à jour possible
+  }).catch(function(e){console.warn('Insta update failed:',e);});
+}
+
+// Vérifie si le score qualifie pour le top 10 et révèle l'input insta
+function checkTop10AndRevealInsta(){
+  loadScores().then(function(scores){
+    if(!scores)return;
+    var qualifies=false;
+    if(scores.length<10){qualifies=true;} // moins de 10 scores : automatique
+    else{qualifies=M.dist>=scores[scores.length-1].score;}
+    if(qualifies){
+      var box=document.getElementById('topInstaBox');
+      if(box)box.classList.remove('hidden');
+    }
+  });
 }
 
 // ══════ COMPTEUR (auto = nombre de lignes en base) ══════
@@ -347,9 +373,9 @@ function drawCrab(holding){
   px(0,0,AL+s*3,s*2,s*3,s,'#881808');
   if(holding){ctx.save();ctx.translate(AL+s*4,0);ctx.rotate(-armAngle);drawMussel(0,0,.7);ctx.restore();}
   ctx.restore();
-  // Grosse pince gauche fixe — vrai miroir, part vers la gauche
-  var lpsx=toSX(CRAB_WX+s*6);var lpsy=CRAB_SY-s*2;
-  ctx.save();ctx.translate(lpsx,lpsy);ctx.scale(-1,1);
+  // Grosse pince fixe — à droite du corps, s'étend vers la droite (un crabe a une pince de chaque côté)
+  var lpsx=toSX(CRAB_WX+s*4);var lpsy=CRAB_SY-s*2;
+  ctx.save();ctx.translate(lpsx,lpsy);
   px(0,0,0,-s,AL*.8,s*2,'#c02808'); // bras
   px(0,0,AL*.8,-s*2,s*2,s*4,'#b82008'); // coude
   px(0,0,AL*.8+s*2,-s*3,s*4,s,'#d03010'); // mâchoire sup
@@ -993,7 +1019,17 @@ function showResult(){
   document.getElementById('resName').textContent=playerName.toUpperCase();
   document.getElementById('resDist').textContent=M.dist+' METRES';
   document.getElementById('resComment').textContent=getComment(M.dist);
-  show(sResult);saveScore(playerName,M.dist);stopBGM();
+  // Reset visibilité de la box insta (cachée par défaut)
+  var box=document.getElementById('topInstaBox');
+  if(box)box.classList.add('hidden');
+  var instaIn=document.getElementById('instaInput');
+  if(instaIn)instaIn.value='';
+  show(sResult);
+  // On sauvegarde, puis on vérifie si on est dans le top 10
+  saveScore(playerName,M.dist).then(function(){
+    checkTop10AndRevealInsta();
+  });
+  stopBGM();
 }
 
 // ══════ SCREENS ══════
@@ -1022,6 +1058,22 @@ document.getElementById('btnReplay').onclick=function(){getAC();startGame();};
 document.getElementById('btnLbRes').onclick=function(){showLb();};
 document.getElementById('btnLbMenu').onclick=function(){showLb();};
 document.getElementById('btnBack').onclick=function(){show(sMenu);};
+
+// Confirmer l'insta (apparaît uniquement si top 10)
+document.getElementById('btnConfirmInsta').onclick=function(){
+  var b=this;
+  var inp=document.getElementById('instaInput');
+  var v=inp.value.trim();
+  if(!v){inp.focus();return;}
+  b.disabled=true;b.textContent='ENVOI...';
+  updateInsta(v).then(function(){
+    b.textContent='✓ ENREGISTRÉ';
+    inp.disabled=true;
+  }).catch(function(){
+    b.textContent='ERREUR';
+    setTimeout(function(){b.disabled=false;b.textContent='CONFIRMER';},1500);
+  });
+};
 
 // Partage du score
 document.getElementById('btnShare').onclick=function(){
