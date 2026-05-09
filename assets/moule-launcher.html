@@ -1210,9 +1210,11 @@ function updatePhysics(){
   if(M.wy>=gy-8){
     M.wy=gy-8;var spd=Math.sqrt(M.vx*M.vx+M.vy*M.vy);
     if(spd<1.0){phase='done';return;}
-    // Auto-explode si la moule rate son lancé (< 14m) — game over instantané pour relancer vite
-    var distNow=Math.max(0,Math.round((M.wx-CRAB_WX)/METERS));
-    if(distNow<14){phase='done';return;}
+    // Auto-explode si la moule rate son lancé (< 14m) — mais on laisse 0.8s pour échapper la zone de lancement
+    if(Date.now()-flightStartT>800){
+      var distNow=Math.max(0,Math.round((M.wx-CRAB_WX)/METERS));
+      if(distNow<14){phase='done';return;}
+    }
     combo=0; // reset combo au sol
     if(inSea){sfxSplash();M.vy*=-0.3;M.vx*=0.65;M.spin*=.5;}
     else{sfxBounce();M.vy*=-0.46;M.vx*=0.76;M.spin*=.55;}
