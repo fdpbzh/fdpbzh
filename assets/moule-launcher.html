@@ -1269,12 +1269,6 @@ function loop(ts){
     // Monte linéairement de ARM_LO vers ARM_HI puis reste bloqué
     var chargeP=Math.min(armT,1);
     armAngle=ARM_LO+(ARM_HI-ARM_LO)*chargeP;
-    // Barre de charge visuelle
-    var bw=Math.round(chargeP*(W-60));
-    ctx.fillStyle='rgba(0,0,0,.4)';ctx.fillRect(30,H-20,W-60,8);
-    ctx.fillStyle=chargeP<0.5?'#ffd700':chargeP<0.85?'#ff8000':'#ff3030';
-    ctx.fillRect(30,H-20,bw,8);
-    ctx.strokeStyle='rgba(240,171,252,.5)';ctx.lineWidth=1;ctx.strokeRect(30,H-20,W-60,8);
     if(Math.floor(armT*8)%4===0)sfxCharge();
     drawCrab(true);drawInstruction('RELACHE POUR LANCER !','#ffd700');
   }
