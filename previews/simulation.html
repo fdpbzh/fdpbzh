@@ -109,7 +109,7 @@ const SHORE = 650;
 const GY = 300, SY = 314;
 const GRAVITY = 0.176;
 const LAUNCH_SPD = 17.6;
-const VX_CAP = 50;
+const VX_CAP = 70;
 const REAL_END_WX = 117260;
 const CRAB_WX = 130;
 const ARM_LEN = 60;
@@ -172,7 +172,7 @@ function simulateGame(chargeP) {
       if (hitFdps.has(i)) continue;
       const fwx = FDP_DEFS[i];
       const fy = fwx >= SHORE ? SY - 22 : GY - 22;
-      if (Math.abs(M.wx - fwx) < 42 && Math.abs(M.wy - fy) < 28) {
+      if (Math.abs(M.wx - fwx) < 50 && Math.abs(M.wy - fy) < 38) {
         hitFdps.add(i);
         combo++;
         const mult = combo >= 6 ? 1.5 : combo === 5 ? 1.4 : combo === 4 ? 1.3 : combo === 3 ? 1.2 : combo === 2 ? 1.1 : 1.0;
@@ -188,7 +188,7 @@ function simulateGame(chargeP) {
       if (hitGulls.has(i)) continue;
       const dx = M.wx - GULL_WXS[i];
       const dy = M.wy - gullYs[i];
-      if (dx * dx + dy * dy < 28 * 28) {
+      if (dx * dx + dy * dy < 35 * 35) {
         hitGulls.add(i);
         M.vy = Math.min(M.vy, -7) - Math.random() * 2;
         M.vx = Math.max(M.vx * 1.15, 12) + Math.random() * 3;
@@ -204,6 +204,11 @@ function simulateGame(chargeP) {
       M.wy = gy - 8;
       const speed = Math.sqrt(M.vx * M.vx + M.vy * M.vy);
       if (speed < 1.0) break;
+      // Auto-explode <14m après 800ms (~48 frames) — empêche les rebonds éternels près du lanceur
+      if (frames > 48) {
+        const distNow = Math.max(0, Math.round((M.wx - CRAB_WX) / METERS));
+        if (distNow < 14) break;
+      }
       combo = 0;
       if (inSea) { M.vy *= -0.3; M.vx *= 0.65; }
       else { M.vy *= -0.46; M.vx *= 0.76; }

@@ -33,16 +33,11 @@ input[type=text]::placeholder{color:#7c3f9e;}
 .lb-table tr.me td{color:#fff;background:#2a004a;}
 .rank-gold{color:#ffd700}.rank-silver{color:#c0c0c0}.rank-bronze{color:#cd7f32}
 .loader{font-size:6px;color:#7c3f9e;animation:blink .6s step-end infinite;}
-#btnGiveUp{position:absolute;top:6px;right:6px;z-index:30;background:rgba(40,0,10,.85);border:1px solid #ff5050;color:#ff8080;font-family:'Press Start 2P',monospace;font-size:8px;letter-spacing:1px;cursor:pointer;padding:6px 9px;line-height:1;border-radius:2px;display:none;transition:background .15s;}
-#btnGiveUp.show{display:block;animation:btnPulse 1s infinite;}
-#btnGiveUp:hover{background:rgba(255,80,80,.25);color:#ff5050;}
-@keyframes btnPulse{50%{opacity:.7;border-color:#ffd060;}}
 </style>
 </head>
 <body>
 <div id="wrap">
   <canvas id="c" width="710" height="400"></canvas>
-  <button id="btnGiveUp" type="button" aria-label="Abandonner et recommencer" title="Faire exploser la moule">× ABANDON</button>
   <div class="screen" id="sMenu">
     <h1>★ LA MOULE VOLANTE ★</h1>
     <p class="sub">MAINTIENS POUR CHARGER · RELÂCHE POUR LANCER</p>
@@ -112,6 +107,23 @@ function loadScores(){
     .catch(function(){return[];});
 }
 
+// Charge le top 1 (champion actuel) pour afficher son squelette en jeu
+var topScore=null; // {name, score, wx}
+function loadTopScore(){
+  return fetch(SB_URL+'/scores?select=name,score&order=score.desc&limit=1',{headers:sbHeaders()})
+    .then(function(r){return r.json();})
+    .then(function(data){
+      if(data&&data[0]){
+        topScore={
+          name:data[0].name,
+          score:data[0].score,
+          wx:data[0].score*METERS+CRAB_WX
+        };
+      }
+    })
+    .catch(function(){});
+}
+
 function saveScore(name,dist){
   // Anti-triche : on valide tout côté client AVANT d'envoyer
   if(!sessionToken){console.warn('No session');return Promise.resolve(null);}
@@ -137,6 +149,7 @@ function saveScore(name,dist){
     sessionToken=null; // empêche double soumission
     if(data&&data[0]&&data[0].id){lastScoreId=data[0].id;}
     loadCount();
+    loadTopScore(); // refresh du record en cas de nouveau champion
     return data&&data[0]?data[0]:null;
   }).catch(function(e){console.warn('Score save failed:',e);return null;});
 }
@@ -357,7 +370,7 @@ function drawGrain(){
 // ══════ WORLD ══════
 var METERS=13,SHORE=650,GY=300,SY=314;
 var GRAVITY=0.176,LAUNCH_SPD=17.6;
-var VX_CAP=60; // vitesse horizontale maximale (anti-décollage)
+var VX_CAP=70; // vitesse horizontale maximale (anti-décollage)
 var FINISH_WX=65130,CELEBRATE_WX=65130,WORLD_END=120000;
 var CELEBRATE_END_WX=78260; // fin de la zone célébration (panneau "MAX 6000m" hommage)
 var SQUELETTE_WX=78130; // squelettes des champions à 6010m
@@ -467,39 +480,7 @@ function drawMusselFlying(wx2,sy,angle){
   var sx=toSX(wx2);
 
   if(slowMoActive){
-    // Direction et magnitude de la vélocité
-    var vmag=Math.sqrt(M.vx*M.vx+M.vy*M.vy);
-    var vdir=Math.atan2(M.vy,M.vx);
-
-    // 1. ONDE DE CHOC (cône blanc-bleu compressé d'air, devant la moule)
-    ctx.save();
-    ctx.translate(sx,sy);
-    ctx.rotate(vdir);
-    var coneSize=Math.min(vmag*1.0,55);
-    var pulse=Math.sin(bgT*30)*2;
-    var sg=ctx.createLinearGradient(8,0,coneSize,0);
-    sg.addColorStop(0,'rgba(220,240,255,0.85)');
-    sg.addColorStop(0.3,'rgba(180,210,255,0.55)');
-    sg.addColorStop(0.7,'rgba(120,170,255,0.25)');
-    sg.addColorStop(1,'rgba(80,130,255,0)');
-    ctx.fillStyle=sg;
-    ctx.beginPath();
-    ctx.moveTo(8,-12-pulse);
-    ctx.lineTo(coneSize+pulse*2,-3);
-    ctx.lineTo(coneSize+pulse*4,0);
-    ctx.lineTo(coneSize+pulse*2,3);
-    ctx.lineTo(8,12+pulse);
-    ctx.closePath();
-    ctx.fill();
-    // Bord net du cône (compression air visible)
-    ctx.strokeStyle='rgba(255,255,255,0.7)';
-    ctx.lineWidth=1;
-    ctx.beginPath();
-    ctx.moveTo(8,-10);ctx.lineTo(coneSize,0);ctx.lineTo(8,10);
-    ctx.stroke();
-    ctx.restore();
-
-    // 2. HALO DE CHALEUR (rouge-orange pulsant, autour de la moule)
+    // 2. HALO DE CHALEUR (rouge-orange pulsant, autour de la moule — météor effect)
     var pulseR=24+Math.sin(bgT*12)*4;
     var hg=ctx.createRadialGradient(sx,sy,0,sx,sy,pulseR);
     hg.addColorStop(0,'rgba(255,180,60,0.55)');
@@ -1025,18 +1006,35 @@ function drawMussSkeleton(cx,cy,name){
 
 function drawSquelettesHommage(){
   var sx=toSX(SQUELETTE_WX);
-  if(sx<-150||sx>W+150)return;
-  drawMussSkeleton(sx-30,GY-2,'PLOUPLOU');
-  drawMussSkeleton(sx+30,GY-2,'SEBITCH');
-  // Petit panneau "★ HOMMAGE ★" au-dessus
-  ctx.fillStyle='rgba(255,215,0,.8)';
-  ctx.font='bold 6px "Press Start 2P"';
-  ctx.textAlign='center';
-  ctx.fillText('★ HOMMAGE ★',sx,GY-60);
-  ctx.fillStyle='rgba(240,171,252,.6)';
-  ctx.font='4px "Press Start 2P"';
-  ctx.fillText('CHAMPIONS 2026',sx,GY-50);
-  ctx.textAlign='left';
+  if(sx>=-150&&sx<=W+150){
+    drawMussSkeleton(sx-30,GY-2,'PLOUPLOU');
+    drawMussSkeleton(sx+30,GY-2,'SEBITCH');
+    ctx.fillStyle='rgba(255,215,0,.8)';
+    ctx.font='bold 6px "Press Start 2P"';
+    ctx.textAlign='center';
+    ctx.fillText('★ HOMMAGE ★',sx,GY-60);
+    ctx.fillStyle='rgba(240,171,252,.6)';
+    ctx.font='4px "Press Start 2P"';
+    ctx.fillText('CHAMPIONS 2026',sx,GY-50);
+    ctx.textAlign='left';
+  }
+
+  // Squelette du champion en cours (top score actuel)
+  if(topScore&&topScore.score>0){
+    var tsx=toSX(topScore.wx);
+    if(tsx>=-150&&tsx<=W+150){
+      drawMussSkeleton(tsx,GY-2,topScore.name);
+      // Couronne + label "RECORD"
+      ctx.fillStyle='rgba(255,215,0,.95)';
+      ctx.font='bold 7px "Press Start 2P"';
+      ctx.textAlign='center';
+      ctx.fillText('♛ RECORD ♛',tsx,GY-62);
+      ctx.fillStyle='rgba(255,255,150,.7)';
+      ctx.font='5px "Press Start 2P"';
+      ctx.fillText(topScore.score+' M',tsx,GY-50);
+      ctx.textAlign='left';
+    }
+  }
 }
 
 function drawDanceCrab(cx,cy,t2){
@@ -1186,8 +1184,9 @@ function resetAll(){
   M={wx:0,wy:0,vx:0,vy:0,ang:0,spin:0,dist:0};
   combo=0;shakeT=0;shakeStr=0;gullBoostT=0;
   fireParticles=[];
+  fireworks=[];
+  topBeaten=false;
   flightStartT=0;
-  var bg=document.getElementById('btnGiveUp');if(bg)bg.classList.remove('show');
   setSlowMo(false);
   resetFDPs();resetGulls();
 }
@@ -1221,8 +1220,8 @@ function updatePhysics(){
   }
   fdps.forEach(function(m){
     if(m.hit)return;var fy=getFdpY(m);
-    // Hitbox élargie en X (50) et Y (32) — plus de panache, moins de frustration
-    if(Math.abs(M.wx-m.wx)<50&&Math.abs(M.wy-fy)<32){
+    // Hitbox élargie en X (50) et Y (38) — plus de panache, moins de frustration
+    if(Math.abs(M.wx-m.wx)<50&&Math.abs(M.wy-fy)<38){
       m.hit=true;m.ep=0.01;sfxFDP();
       combo++;
       var mult=combo>=6?1.5:combo===5?1.4:combo===4?1.3:combo===3?1.2:combo===2?1.1:1.0;
@@ -1282,15 +1281,13 @@ function loop(ts){
   if(phase==='snap'){snapT++;armAngle+=(ARM_HI-0.3-armAngle)*0.4;drawCrab(false);drawMusselFlying(M.wx,M.wy,M.ang);if(snapT>6)phase='flying';}
   if(phase==='flying'){
     updatePhysics();
+    checkBeatTop();
+    updateFireworks();
     if(toSX(CRAB_WX)>-100)drawCrab(false);
     drawFireParticles();
+    drawFireworks();
     drawMusselFlying(M.wx,M.wy,M.ang);
     drawHUD(M.dist);
-    // Affiche le bouton ABANDON après 5 sec de vol
-    if(Date.now()-flightStartT>5000){
-      var bg=document.getElementById('btnGiveUp');
-      if(bg)bg.classList.add('show');
-    }
   }
   if(phase==='done'){
     if(toSX(CRAB_WX)>-100)drawCrab(false);
@@ -1298,6 +1295,17 @@ function loop(ts){
     drawHUD(M.dist);
     // Instruction clignotante
     if(Math.floor(bgT*2)%2===0)drawInstruction('TAPE POUR VOIR TON SCORE','#ffd700');
+  }
+  // Embrasement atmosphérique au combo 6+ (la moule met le ciel en feu)
+  if(combo>=6&&phase==='flying'){
+    var intensity=Math.min((combo-5)*0.08,0.3);
+    var pulse=intensity+Math.sin(bgT*15)*0.04;
+    ctx.fillStyle='rgba(255,180,80,'+pulse+')';
+    ctx.fillRect(0,0,W,H);
+    if(combo>=8){
+      ctx.fillStyle='rgba(255,255,200,'+(pulse*0.4)+')';
+      ctx.fillRect(0,0,W,H);
+    }
   }
   // Texture grain (effet papier/CRT) — toujours appliquée
   drawGrain();
@@ -1474,35 +1482,61 @@ function showLb(){
   });
 }
 
-// Bouton abandon (apparait après 5 sec de vol)
+// Variable utilisée par l'auto-explode <14m (sursis 800ms après lancement)
 var flightStartT=0;
-(function(){
-  var b=document.getElementById('btnGiveUp');
-  if(!b)return;
-  b.addEventListener('click',function(e){
-    e.stopPropagation();
-    if(phase!=='flying'&&phase!=='snap')return;
-    // Petite explosion visuelle
-    for(var i=0;i<28;i++){
-      var ang=Math.random()*Math.PI*2;
-      var spd=2+Math.random()*5;
-      fireParticles.push({
-        wx:M.wx,wy:M.wy,
-        vx:Math.cos(ang)*spd,vy:Math.sin(ang)*spd,
-        life:1,sz:3+Math.random()*4,
-        col:Math.random()<.5?'#ff6020':Math.random()<.5?'#ffd060':'#ffec80',
-        type:'flame'
-      });
-    }
-    M.vx=0;M.vy=0;
-    phase='done';
-    b.classList.remove('show');
-    setTimeout(showResult,400);
+
+// === FEU D'ARTIFICE quand le record est battu ===
+var fireworks=[];
+var topBeaten=false;
+function spawnFireworkBurst(wx,wy){
+  var cols=['#ff3030','#ffd700','#80c0ff','#ff80c0','#ffec80','#80ff80','#ff8030'];
+  var c=cols[Math.floor(Math.random()*cols.length)];
+  for(var i=0;i<35;i++){
+    var ang=Math.random()*Math.PI*2;
+    var spd=2+Math.random()*5;
+    fireworks.push({
+      wx:wx,wy:wy,
+      vx:Math.cos(ang)*spd,vy:Math.sin(ang)*spd,
+      life:1.5,sz:2+Math.random()*2,
+      col:Math.random()<.7?c:'#ffffff'
+    });
+  }
+}
+function updateFireworks(){
+  for(var i=fireworks.length-1;i>=0;i--){
+    var p=fireworks[i];
+    p.wx+=p.vx;p.wy+=p.vy;p.vy+=0.08;p.life-=0.022;p.sz*=0.985;
+    if(p.life<=0||p.sz<.4)fireworks.splice(i,1);
+  }
+}
+function drawFireworks(){
+  fireworks.forEach(function(p){
+    var sx=toSX(p.wx);
+    if(sx<-20||sx>W+20)return;
+    ctx.globalAlpha=Math.min(p.life,1);
+    ctx.fillStyle=p.col;
+    ctx.fillRect(sx-p.sz/2,p.wy-p.sz/2,p.sz,p.sz);
   });
-})();
+  ctx.globalAlpha=1;
+}
+function checkBeatTop(){
+  if(!topScore||topBeaten)return;
+  if(M.dist>topScore.score){
+    topBeaten=true;
+    // Salve initiale
+    spawnFireworkBurst(M.wx-30,M.wy-20);
+    spawnFireworkBurst(M.wx+10,M.wy-50);
+    spawnFireworkBurst(M.wx+40,M.wy-10);
+    // Salves supplémentaires différées
+    setTimeout(function(){spawnFireworkBurst(M.wx-50,M.wy-40);},350);
+    setTimeout(function(){spawnFireworkBurst(M.wx+30,M.wy-30);},700);
+    setTimeout(function(){spawnFireworkBurst(M.wx,M.wy-20);},1100);
+  }
+}
 
 show(sMenu);
 loadCount();
+loadTopScore(); // charge le champion actuel pour afficher son squelette en jeu
 requestAnimationFrame(loop);
 </script>
 </body>
