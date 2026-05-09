@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Preview monuments — pixel art</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#0a0014;color:#fff;padding:30px 20px;line-height:1.5;min-height:100vh}
+h1{font-size:26px;font-weight:800;margin-bottom:6px}
+.lead{color:#aaa;font-size:14px;max-width:680px;margin-bottom:24px}
+.card{background:#15001f;border-radius:12px;border:1px solid #2a0040;margin-bottom:18px;overflow:hidden}
+.card-canvas{width:100%;height:200px;display:block;image-rendering:pixelated;background:#180028}
+.card-info{padding:14px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px}
+.card-info h3{font-size:16px;color:#FFC93C;font-weight:700}
+.card-info .meta{font-size:12px;color:#888;font-family:monospace}
+.back{position:fixed;top:18px;left:18px;background:#222;color:#FFC93C;padding:8px 16px;border-radius:99px;text-decoration:none;font-size:13px;font-weight:700}
+.note{margin-top:24px;padding:18px 22px;background:#19191c;border-radius:10px;border:1px solid #2a2a30}
+.note strong{color:#FFC93C}
+@media(min-width:760px){
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+}
+</style>
+</head>
+<body>
+
+<a href="../index.html" class="back">← Retour</a>
+
+<h1>Monuments — preview pixel art</h1>
+<p class="lead">5 monuments à placer dans l'arrière-plan du jeu. Chacun est dessiné en pixel art au-dessus d'un ciel correspondant à sa zone (couleurs réelles du jeu). Tu valides ou tu me dis ce qui ne va pas.</p>
+
+<div class="grid">
+  <div class="card">
+    <canvas id="c1" class="card-canvas" width="400" height="200"></canvas>
+    <div class="card-info">
+      <h3>1 · Phare de Pors-Poulhan</h3>
+      <span class="meta">~115m · zone coucher de soleil</span>
+    </div>
+  </div>
+  <div class="card">
+    <canvas id="c2" class="card-canvas" width="400" height="200"></canvas>
+    <div class="card-info">
+      <h3>2 · Tour Eiffel</h3>
+      <span class="meta">~1540m · zone nuit</span>
+    </div>
+  </div>
+  <div class="card">
+    <canvas id="c3" class="card-canvas" width="400" height="200"></canvas>
+    <div class="card-info">
+      <h3>3 · Tour de Pise</h3>
+      <span class="meta">~3460m · zone nuit</span>
+    </div>
+  </div>
+  <div class="card">
+    <canvas id="c4" class="card-canvas" width="400" height="200"></canvas>
+    <div class="card-info">
+      <h3>4 · Pyramides</h3>
+      <span class="meta">~5770m · zone nuit fin</span>
+    </div>
+  </div>
+  <div class="card">
+    <canvas id="c5" class="card-canvas" width="400" height="200"></canvas>
+    <div class="card-info">
+      <h3>5 · Pagode chinoise</h3>
+      <span class="meta">~8080m · zone astrale</span>
+    </div>
+  </div>
+</div>
+
+<div class="note">
+  <p><strong>Notes</strong> : les monuments sont des silhouettes pixel art en arrière-plan, semi-transparentes pour ne pas voler la vedette aux moules. Ils ne sont pas interactifs (juste décor). Couleurs du ciel réelles selon la zone du parcours.</p>
+  <p style="margin-top:8px"><strong>Si tu valides</strong> : je les intègre dans le jeu à leurs positions exactes.</p>
+  <p style="margin-top:8px"><strong>Si tu veux ajuster</strong> : dis-moi (taille, couleur, simplifier/complexifier, autre design pour la Chine, etc.)</p>
+</div>
+
+<script>
+function px(ctx,cx,cy,x,y,w,h,col){ctx.fillStyle=col;ctx.fillRect(cx+x,cy+y,w,h);}
+
+// === DRAW SKY GRADIENT FOR EACH ZONE ===
+function drawSky(ctx, w, h, palette){
+  var g = ctx.createLinearGradient(0, 0, 0, h);
+  g.addColorStop(0, palette.top);
+  g.addColorStop(0.55, palette.mid);
+  g.addColorStop(1, palette.bot);
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, w, h);
+  // Add some stars if night/astral
+  if(palette.starA){
+    for(var i=0; i<30; i++){
+      var sx = Math.floor(Math.random()*w);
+      var sy = Math.floor(Math.random()*h*0.6);
+      var col = palette.astral && Math.random() < 0.4 ?
+        ['#ffeec0','#80c0ff','#f0abfc','#c0f0ff'][Math.floor(Math.random()*4)] :
+        'rgba(240,171,252,0.7)';
+      ctx.fillStyle = col;
+      ctx.fillRect(sx, sy, Math.random()<0.2?2:1, Math.random()<0.2?2:1);
+    }
+  }
+}
+
+// === DRAW GROUND (mer + plage) ===
+function drawGround(ctx, w, h, isAstral){
+  if(isAstral) return; // pas de sol en mode astral
+  var GY = 150;
+  ctx.fillStyle = '#150026';
+  ctx.fillRect(0, GY, w, h-GY);
+  // Ondulations mer
+  for(var i=0; i<3; i++){
+    ctx.fillStyle = 'rgba(107,33,168,'+(0.08+i*0.05)+')';
+    ctx.beginPath();
+    ctx.moveTo(0, GY+i*7);
+    for(var x=0; x<w; x+=5){
+      ctx.lineTo(x, GY+i*7+Math.sin(x*0.05+i)*3);
+    }
+    ctx.lineTo(w, h);
+    ctx.lineTo(0, h);
+    ctx.closePath();
+    ctx.fill();
+  }
+}
+
+// === MONUMENT 1 : PHARE DE PORS-POULHAN ===
+function drawLighthouse(ctx, cx, cy, s){
+  s = s || 3;
+  // Rocher / base
+  px(ctx,cx,cy,-s*5,-s,s*10,s*2,'#1f0d40');
+  px(ctx,cx,cy,-s*4,-s*2,s*8,s,'#2a1860');
+  // Tour (rayures rouge-blanc style phare)
+  for(var i=0;i<6;i++){
+    px(ctx,cx,cy,-s*2,-s*2-(i+1)*s,s*4,s, i%2===0 ? '#cccce0' : '#a02050');
+  }
+  // Cabine vitrée
+  px(ctx,cx,cy,-s*2,-s*9,s*4,s,'#3a2070');
+  px(ctx,cx,cy,-s*3,-s*10,s*6,s,'#4a3080');
+  // Lanterne / lumière
+  px(ctx,cx,cy,-s*2,-s*11,s*4,s*1.5,'#FFD060');
+  // Toit pointu
+  px(ctx,cx,cy,-s,-s*12,s*2,s,'#3a2070');
+  px(ctx,cx,cy,-Math.round(s/2),-s*13,s,s,'#3a2070');
+  // Halo lumineux
+  ctx.fillStyle = 'rgba(255, 220, 80, 0.15)';
+  ctx.beginPath();
+  ctx.moveTo(cx, cy-s*10);
+  ctx.lineTo(cx+s*20, cy-s*4);
+  ctx.lineTo(cx+s*20, cy-s*16);
+  ctx.fill();
+}
+
+// === MONUMENT 2 : TOUR EIFFEL ===
+function drawEiffel(ctx, cx, cy, s){
+  s = s || 2;
+  var col = '#3a2470';
+  var col2 = '#4a3080';
+  // Niveau bas (pieds en V)
+  px(ctx,cx,cy,-s*8,-s,s*16,s,col);
+  // Pieds (4 piliers)
+  for(var i=0;i<5;i++){
+    var y = -s*1-i*s;
+    var spread = 8 - i*1.5;
+    px(ctx,cx,cy,-s*spread,y,s,s,col);
+    px(ctx,cx,cy,s*(spread-1),y,s,s,col);
+  }
+  // Premier étage
+  px(ctx,cx,cy,-s*3,-s*7,s*6,s,col2);
+  px(ctx,cx,cy,-s*2,-s*8,s*4,s,col);
+  // Section moyenne
+  for(var i=0;i<6;i++){
+    var y = -s*8-i*s;
+    var spread = 2 - Math.floor(i/3);
+    px(ctx,cx,cy,-s*spread,y,s,s,col);
+    px(ctx,cx,cy,s*(spread-1),y,s,s,col);
+  }
+  // Deuxième étage
+  px(ctx,cx,cy,-s*2,-s*15,s*4,s,col2);
+  px(ctx,cx,cy,-s,-s*16,s*2,s,col);
+  // Pointe
+  px(ctx,cx,cy,-s,-s*17,s*2,s,col);
+  px(ctx,cx,cy,-Math.round(s/2),-s*18,s,s,col);
+  px(ctx,cx,cy,-Math.round(s/2),-s*19,s,Math.round(s/2),col);
+  // Antenne
+  px(ctx,cx,cy,-1,-s*20,2,s*2,col2);
+}
+
+// === MONUMENT 3 : TOUR DE PISE (penchée) ===
+function drawPisa(ctx, cx, cy, s){
+  s = s || 3;
+  var lean = 1.5; // décalage horizontal par étage (effet penché)
+  var col = '#3a2470';
+  var col2 = '#4a3080';
+  var col3 = '#5a3590';
+  // 7 étages cylindriques superposés (chacun décalé un peu plus)
+  for(var i=0;i<7;i++){
+    var ox = Math.round(i*lean);
+    var y = -s*(2+i*1.5);
+    // Cylindre
+    px(ctx,cx,cy,-s*3+ox,y,s*6,s,col);
+    px(ctx,cx,cy,-s*3+ox,y-s,s*6,s,col2);
+    // Détail colonnade (petites colonnes)
+    for(var c=0;c<3;c++){
+      px(ctx,cx,cy,-s*2+c*s+ox,y-Math.round(s*0.6),Math.max(1,Math.round(s/3)),s,col3);
+    }
+  }
+  // Base plus large
+  px(ctx,cx,cy,-s*4,-s*2,s*8,s,col);
+  px(ctx,cx,cy,-s*4,-s,s*8,s,col2);
+  px(ctx,cx,cy,-s*5,0,s*10,s,col);
+  // Toit
+  var topOx = Math.round(7*lean);
+  px(ctx,cx,cy,-s*2+topOx,-s*13,s*4,s,col2);
+  px(ctx,cx,cy,-s+topOx,-s*14,s*2,s,col);
+}
+
+// === MONUMENT 4 : PYRAMIDES ===
+function drawPyramids(ctx, cx, cy, s){
+  s = s || 3;
+  var col = '#3a2470';
+  var col2 = '#4a3080';
+  var col3 = '#5a3590';
+  // Petite pyramide à gauche
+  drawPyramid(ctx, cx-s*8, cy, s*0.7, col);
+  // Grande pyramide centrale
+  drawPyramid(ctx, cx, cy, s*1.2, col2);
+  // Moyenne à droite
+  drawPyramid(ctx, cx+s*9, cy, s*0.95, col);
+  // Sable au sol
+  px(ctx,cx,cy,-s*15,0,s*30,s,'#2a1860');
+}
+function drawPyramid(ctx, cx, cy, s, col){
+  var levels = 8;
+  for(var i=0;i<levels;i++){
+    var w = (levels-i)*s;
+    var y = -i*s-s;
+    px(ctx,cx,cy,-w/2,y,w,s,col);
+    // Léger highlight d'un côté
+    if(i>0)px(ctx,cx,cy,-w/2,y,Math.max(1,Math.round(s/3)),s,'rgba(255,255,255,0.08)');
+  }
+}
+
+// === MONUMENT 5 : PAGODE CHINOISE ===
+function drawPagoda(ctx, cx, cy, s){
+  s = s || 3;
+  var col = '#3a2470';
+  var col2 = '#5a3590';
+  var col3 = '#7a4cb0';
+  // 4 étages de pagode (plus gros en bas)
+  var levels = [
+    {w: 12, h: 2}, // bas
+    {w: 10, h: 1.5},
+    {w: 8, h: 1.5},
+    {w: 6, h: 1.2}
+  ];
+  var y = 0;
+  for(var i=0;i<levels.length;i++){
+    var lvl = levels[i];
+    var w = lvl.w*s;
+    var h = Math.round(lvl.h*s);
+    // Mur
+    px(ctx,cx,cy,-w/2+s,y-s*3-h,w-s*2,s*3,col);
+    // Fenêtre/porte
+    if(i===0)px(ctx,cx,cy,-s,y-s*3,s*2,s*3,'#1a0a30');
+    // Toit incurvé (en pixel : trapèze)
+    var tw = w + s*2;
+    px(ctx,cx,cy,-tw/2,y-s*3-h,tw,Math.max(1,Math.round(h*0.7)),col2);
+    px(ctx,cx,cy,-tw/2-s,y-s*3-h+Math.round(h*0.2),s,Math.round(h*0.5),col2); // pointe gauche
+    px(ctx,cx,cy,tw/2,y-s*3-h+Math.round(h*0.2),s,Math.round(h*0.5),col2); // pointe droite
+    // Décoration toit (rouge accent)
+    px(ctx,cx,cy,-tw/2,y-s*3-h-1,tw,1,col3);
+    y -= s*3+h;
+  }
+  // Pointe au sommet
+  px(ctx,cx,cy,-Math.round(s/2),y-s*2,s,s*2,col);
+  px(ctx,cx,cy,-1,y-s*3,2,s,col2);
+}
+
+// === RENDER EACH PREVIEW ===
+function render(canvasId, drawMonument, palette, isAstral){
+  var canvas = document.getElementById(canvasId);
+  var ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  drawSky(ctx, 400, 200, palette);
+  drawGround(ctx, 400, 200, isAstral);
+  // Centre du monument : cy = ground level (150)
+  ctx.globalAlpha = 0.85;
+  drawMonument(ctx, 200, 150);
+  ctx.globalAlpha = 1;
+}
+
+// Phare — coucher de soleil pink
+render('c1', drawLighthouse, {
+  top:'#2D0E5C', mid:'#E91E8D', bot:'#FF7AC0', starA:0
+});
+// Tour Eiffel — nuit
+render('c2', drawEiffel, {
+  top:'#0d0014', mid:'#180028', bot:'#2a0040', starA:1
+});
+// Tour de Pise — nuit
+render('c3', drawPisa, {
+  top:'#0d0014', mid:'#180028', bot:'#2a0040', starA:1
+});
+// Pyramides — nuit fin
+render('c4', drawPyramids, {
+  top:'#0d0014', mid:'#180028', bot:'#2a0040', starA:1
+});
+// Pagode — astral
+render('c5', drawPagoda, {
+  top:'#020008', mid:'#06001a', bot:'#0a002a', starA:1, astral:true
+}, true);
+</script>
+
+</body>
+</html>

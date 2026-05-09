@@ -210,14 +210,16 @@ var N={
   _:0
 };
 var BPM=168,BASE_BEAT=60/BPM,BEAT=BASE_BEAT;
-// === SLOW MO (combo x5+) ===
+// === MÉTÉOR MODE (combo x5+) ===
 var slowMoActive=false;
 var timeScale=1;
+var slowMoEntryFlash=0;
 function setSlowMo(active){
   if(active===slowMoActive)return;
   slowMoActive=active;
-  timeScale=active?0.5:1;
-  BEAT=active?BASE_BEAT*0.5:BASE_BEAT; // musique 2x plus rapide quand slow mo
+  timeScale=active?0.65:1; // ralenti modéré (était 0.5 trop lent)
+  BEAT=active?BASE_BEAT*0.5:BASE_BEAT; // musique 2x plus rapide
+  if(active)slowMoEntryFlash=18; // flash écran à l'activation
 }
 
 var MELODY=[
@@ -439,46 +441,152 @@ function drawMussel(cx,cy,sc){
   px(cx,cy,(s*.4|0), (-s*1.2)|0, Math.max(1,s*.4|0), Math.max(1,es*.6|0),'#0a0820');
 }
 function drawMusselFlying(wx2,sy,angle){
-  var sx=toSX(wx2);ctx.save();ctx.translate(sx,sy);ctx.rotate(angle);drawMussel(0,0,1);
-  // Halo de feu autour de la moule en slow mo
+  var sx=toSX(wx2);
+
   if(slowMoActive){
-    ctx.fillStyle='rgba(255,140,40,0.35)';
-    ctx.beginPath();ctx.arc(0,0,18+Math.sin(bgT*8)*3,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='rgba(255,220,80,0.4)';
-    ctx.beginPath();ctx.arc(0,0,10,0,Math.PI*2);ctx.fill();
+    // Direction et magnitude de la vélocité
+    var vmag=Math.sqrt(M.vx*M.vx+M.vy*M.vy);
+    var vdir=Math.atan2(M.vy,M.vx);
+
+    // 1. ONDE DE CHOC (cône blanc-bleu compressé d'air, devant la moule)
+    ctx.save();
+    ctx.translate(sx,sy);
+    ctx.rotate(vdir);
+    var coneSize=Math.min(vmag*1.0,55);
+    var pulse=Math.sin(bgT*30)*2;
+    var sg=ctx.createLinearGradient(8,0,coneSize,0);
+    sg.addColorStop(0,'rgba(220,240,255,0.85)');
+    sg.addColorStop(0.3,'rgba(180,210,255,0.55)');
+    sg.addColorStop(0.7,'rgba(120,170,255,0.25)');
+    sg.addColorStop(1,'rgba(80,130,255,0)');
+    ctx.fillStyle=sg;
+    ctx.beginPath();
+    ctx.moveTo(8,-12-pulse);
+    ctx.lineTo(coneSize+pulse*2,-3);
+    ctx.lineTo(coneSize+pulse*4,0);
+    ctx.lineTo(coneSize+pulse*2,3);
+    ctx.lineTo(8,12+pulse);
+    ctx.closePath();
+    ctx.fill();
+    // Bord net du cône (compression air visible)
+    ctx.strokeStyle='rgba(255,255,255,0.7)';
+    ctx.lineWidth=1;
+    ctx.beginPath();
+    ctx.moveTo(8,-10);ctx.lineTo(coneSize,0);ctx.lineTo(8,10);
+    ctx.stroke();
+    ctx.restore();
+
+    // 2. HALO DE CHALEUR (rouge-orange pulsant, autour de la moule)
+    var pulseR=24+Math.sin(bgT*12)*4;
+    var hg=ctx.createRadialGradient(sx,sy,0,sx,sy,pulseR);
+    hg.addColorStop(0,'rgba(255,180,60,0.55)');
+    hg.addColorStop(0.4,'rgba(255,80,20,0.35)');
+    hg.addColorStop(1,'rgba(255,30,0,0)');
+    ctx.fillStyle=hg;
+    ctx.beginPath();ctx.arc(sx,sy,pulseR,0,Math.PI*2);ctx.fill();
+
+    // 3. CŒUR INCANDESCENT (blanc-jaune au centre)
+    var coreR=10+Math.sin(bgT*20)*1.5;
+    var cg=ctx.createRadialGradient(sx,sy,0,sx,sy,coreR);
+    cg.addColorStop(0,'rgba(255,255,230,0.85)');
+    cg.addColorStop(0.6,'rgba(255,220,100,0.5)');
+    cg.addColorStop(1,'rgba(255,180,60,0)');
+    ctx.fillStyle=cg;
+    ctx.beginPath();ctx.arc(sx,sy,coreR,0,Math.PI*2);ctx.fill();
+  }
+
+  // 4. LA MOULE (avec teinte feu si slow mo)
+  ctx.save();
+  ctx.translate(sx,sy);
+  ctx.rotate(angle);
+  drawMussel(0,0,1);
+  if(slowMoActive){
+    // Teinte rouge-orange par-dessus (métal en fusion)
+    ctx.globalCompositeOperation='lighter';
+    ctx.fillStyle='rgba(255,130,40,0.35)';
+    ctx.fillRect(-10,-30,20,40);
+    ctx.fillStyle='rgba(255,220,100,0.2)';
+    ctx.fillRect(-8,-28,16,36);
+    ctx.globalCompositeOperation='source-over';
   }
   ctx.restore();
 }
 
-// === PARTICULES FEU (en slow mo) ===
+// === PARTICULES FEU / MÉTÉOR (en slow mo) ===
 var fireParticles=[];
 function spawnFire(){
-  for(var i=0;i<3;i++){
+  // 1. Cœur blanc-incandescent (juste autour de la moule)
+  for(var i=0;i<2;i++){
     fireParticles.push({
-      wx:M.wx+(Math.random()-.5)*10,
+      wx:M.wx+(Math.random()-.5)*6,
+      wy:M.wy+(Math.random()-.5)*6,
+      vx:-M.vx*0.03+(Math.random()-.5)*1,
+      vy:(Math.random()-.5)*0.5,
+      life:0.6,sz:3+Math.random()*2,
+      col:'#ffffff',type:'core'
+    });
+  }
+  // 2. Flammes jaunes/orange (traînée principale)
+  for(var i=0;i<5;i++){
+    fireParticles.push({
+      wx:M.wx-(Math.random()*4),
       wy:M.wy+(Math.random()-.5)*10,
-      vx:-M.vx*0.05+(Math.random()-.5)*1.5,
-      vy:-Math.random()*1.2-.5,
-      life:1,
-      sz:2+Math.random()*4,
-      col:Math.random()<.4?'#ffec80':Math.random()<.6?'#ff8c00':'#ff3030'
+      vx:-M.vx*0.08+(Math.random()-.5)*1.5,
+      vy:-Math.random()*1.5-.3,
+      life:1,sz:3+Math.random()*5,
+      col:Math.random()<.35?'#ffec80':Math.random()<.65?'#ff9020':'#ff4030',
+      type:'flame'
+    });
+  }
+  // 3. Sparks (étincelles blanches qui giclent dans toutes directions)
+  if(Math.random()<.85){
+    for(var k=0;k<2;k++){
+      var ang=Math.random()*Math.PI*2;
+      var spd=2+Math.random()*5;
+      fireParticles.push({
+        wx:M.wx,wy:M.wy,
+        vx:Math.cos(ang)*spd-M.vx*0.05,
+        vy:Math.sin(ang)*spd-Math.abs(M.vy)*0.05,
+        life:0.7,sz:1.5+Math.random()*0.8,
+        col:Math.random()<.5?'#ffffff':'#ffec80',
+        type:'spark'
+      });
+    }
+  }
+  // 4. Fumée sombre derrière (trace longue)
+  if(Math.random()<.6){
+    fireParticles.push({
+      wx:M.wx-Math.random()*8,
+      wy:M.wy+(Math.random()-.5)*14,
+      vx:-M.vx*0.02+(Math.random()-.5)*0.5,
+      vy:-Math.random()*0.6,
+      life:1.4,sz:5+Math.random()*5,
+      col:'rgba(80,40,40,0.5)',
+      type:'smoke'
     });
   }
 }
 function updateFireParticles(){
   for(var i=fireParticles.length-1;i>=0;i--){
     var p=fireParticles[i];
-    p.wx+=p.vx;p.wy+=p.vy;p.vy+=0.06;p.life-=0.04;p.sz*=0.96;
-    if(p.life<=0||p.sz<.5)fireParticles.splice(i,1);
+    p.wx+=p.vx;p.wy+=p.vy;
+    if(p.type==='smoke'){p.vy-=0.02;p.sz*=1.015;p.life-=0.018;}
+    else if(p.type==='spark'){p.vy+=0.12;p.life-=0.05;p.sz*=0.99;}
+    else{p.vy+=0.05;p.life-=0.04;p.sz*=0.96;}
+    if(p.life<=0||p.sz<.4)fireParticles.splice(i,1);
   }
 }
 function drawFireParticles(){
-  fireParticles.forEach(function(p){
-    var sx=toSX(p.wx);
-    if(sx<-20||sx>W+20)return;
-    ctx.globalAlpha=Math.min(p.life,1);
-    ctx.fillStyle=p.col;
-    ctx.fillRect(sx-p.sz/2,p.wy-p.sz/2,p.sz,p.sz);
+  // Smoke d'abord (en fond), puis flames/core (devant), puis sparks (au-dessus)
+  ['smoke','flame','core','spark'].forEach(function(type){
+    fireParticles.forEach(function(p){
+      if(p.type!==type)return;
+      var sx=toSX(p.wx);
+      if(sx<-20||sx>W+20)return;
+      ctx.globalAlpha=Math.min(p.life,1);
+      ctx.fillStyle=p.col;
+      ctx.fillRect(sx-p.sz/2,p.wy-p.sz/2,p.sz,p.sz);
+    });
   });
   ctx.globalAlpha=1;
 }
@@ -668,8 +776,9 @@ var FDP_DEFS=(function(){
     2800,3100,3500,3900,4300,4700,5150,5600,6150,6700,7350,8000,8750,9500,
     10250,11000,11500,12000,12450,12900,13300,13700];
   var p2=[];
-  for(var w=14000;w<63000;w+=800)p2.push(w);
-  p2.push(63000);
+  // Étendu jusqu'à ~5900m pour donner une chance d'atteindre les squelettes (6010m)
+  for(var w=14000;w<77000;w+=800)p2.push(w);
+  p2.push(77000); // ~5923m, dernier logo FDP
   return p1.concat(p2).map(function(wx){return{wx:wx};});
 })();
 var fdps=[];
@@ -1111,6 +1220,11 @@ function loop(ts){
   // Shake
   var sx=0,sy=0;
   if(shakeT>0){shakeT--;sx=(Math.random()-.5)*shakeStr;sy=(Math.random()-.5)*shakeStr;}
+  // Shake continu en mode météor (subtil)
+  if(slowMoActive&&phase==='flying'){
+    sx+=(Math.random()-.5)*1.5;
+    sy+=(Math.random()-.5)*1.5;
+  }
 
   ctx.save();
   if(sx||sy)ctx.translate(sx,sy);
@@ -1143,6 +1257,17 @@ function loop(ts){
     drawHUD(M.dist);
     // Instruction clignotante
     if(Math.floor(bgT*2)%2===0)drawInstruction('TAPE POUR VOIR TON SCORE','#ffd700');
+  }
+  // Flash d'entrée mode météor (overlay full-screen)
+  if(slowMoEntryFlash>0){
+    slowMoEntryFlash--;
+    var a=slowMoEntryFlash/18;
+    ctx.fillStyle='rgba(255,180,80,'+(a*0.6)+')';
+    ctx.fillRect(0,0,W,H);
+    if(slowMoEntryFlash>10){
+      ctx.fillStyle='rgba(255,255,200,'+(a*0.3)+')';
+      ctx.fillRect(0,0,W,H);
+    }
   }
   ctx.restore();
 }
