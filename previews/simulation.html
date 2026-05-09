@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Simulation 100 000 parties — La Moule Volante</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#0a0014;color:#fff;padding:30px 22px;line-height:1.5;min-height:100vh}
+h1{font-size:26px;font-weight:800;margin-bottom:6px}
+.lead{color:#aaa;font-size:14px;max-width:680px;margin-bottom:24px}
+.back{position:fixed;top:18px;left:18px;background:#222;color:#FFC93C;padding:8px 16px;border-radius:99px;text-decoration:none;font-size:13px;font-weight:700}
+button{background:#FFC93C;color:#0a0014;border:0;padding:10px 22px;border-radius:99px;font-weight:700;cursor:pointer;font-size:14px;margin-bottom:20px}
+button:disabled{background:#444;color:#888;cursor:wait}
+.controls{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:24px}
+.controls label{font-size:13px;color:#aaa}
+.controls select{background:#15001f;color:#FFC93C;border:1px solid #6b21a8;padding:8px 12px;border-radius:6px;font-size:13px}
+.progress{height:6px;background:#15001f;border-radius:3px;overflow:hidden;margin-bottom:20px}
+.progress-fill{height:100%;background:linear-gradient(90deg,#FFC93C,#FF4D9B);width:0;transition:width .1s}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:24px}
+.card{background:#15001f;border:1px solid #2a0040;border-radius:10px;padding:16px 18px}
+.card .label{font-size:12px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.card .value{font-size:26px;font-weight:800;color:#FFC93C}
+.card .value.small{font-size:18px}
+.card .sub{font-size:12px;color:#aaa;margin-top:4px}
+
+.section{margin-top:26px}
+.section h2{font-size:18px;color:#FFC93C;margin-bottom:14px;letter-spacing:1px}
+
+.histogram{background:#15001f;border-radius:10px;padding:18px;border:1px solid #2a0040}
+.bar{display:flex;align-items:center;gap:10px;margin-bottom:6px;font-size:12px}
+.bar .label{width:90px;color:#aaa;font-family:monospace;text-align:right}
+.bar .fill{flex:1;height:18px;background:#2a0040;border-radius:3px;overflow:hidden;position:relative}
+.bar .fill-inner{height:100%;background:linear-gradient(90deg,#6b21a8,#FFC93C);transition:width .3s}
+.bar .count{font-family:monospace;color:#FFC93C;min-width:80px;font-size:11px}
+
+table{width:100%;border-collapse:collapse;background:#15001f;border-radius:10px;overflow:hidden}
+table th,table td{padding:8px 14px;text-align:left;border-bottom:1px solid #2a0040;font-size:13px}
+table th{background:#2a0040;color:#FFC93C;font-weight:700}
+table td.score{font-family:monospace;color:#FFC93C;font-weight:700;text-align:right}
+table tr.gold td:first-child{color:#FFC93C;font-weight:800}
+table tr.silver td:first-child{color:#c0c0c0;font-weight:800}
+table tr.bronze td:first-child{color:#cd7f32;font-weight:800}
+
+.note{margin-top:24px;padding:18px 22px;background:#19191c;border-radius:10px;border:1px solid #2a2a30;font-size:13px;color:#aaa}
+.note strong{color:#FFC93C}
+
+#status{font-size:13px;color:#aaa;margin-bottom:8px}
+</style>
+</head>
+<body>
+
+<a href="../index.html" class="back">← Retour</a>
+
+<h1>Simulation 100 000 parties</h1>
+<p class="lead">Avec la nouvelle physique (cap vx=50, FDPs jusqu'à ~5923m, hitbox X±42, anti-triche 9020m). Modèle simplifié : pas de mouvements de mouettes (positions fixes), pas de visualisation, juste les calculs de trajectoire pure.</p>
+
+<div class="controls">
+  <label>Modèle de joueur :
+    <select id="profile">
+      <option value="varied" selected>Variés (mix réaliste)</option>
+      <option value="random">Aléatoires (uniformes 0-100%)</option>
+      <option value="optimal">Joueurs optimaux (charge ~70%)</option>
+      <option value="full">Charge max (toujours 100%)</option>
+    </select>
+  </label>
+  <label>Nombre de parties :
+    <select id="count">
+      <option value="10000">10 000</option>
+      <option value="100000" selected>100 000</option>
+      <option value="500000">500 000</option>
+    </select>
+  </label>
+  <button id="run">Lancer la simulation</button>
+</div>
+
+<div id="status"></div>
+<div class="progress"><div class="progress-fill" id="progressFill"></div></div>
+
+<div id="results" style="display:none">
+
+  <h2 style="font-size:20px;color:#FFC93C;margin-bottom:14px">📊 Stats globales</h2>
+  <div class="grid" id="statsGrid"></div>
+
+  <div class="section">
+    <h2>🎯 Seuils clés</h2>
+    <div class="grid" id="thresholdsGrid"></div>
+  </div>
+
+  <div class="section">
+    <h2>📈 Distribution des scores</h2>
+    <div class="histogram" id="histogram"></div>
+  </div>
+
+  <div class="section">
+    <h2>🏆 Top 30 (records)</h2>
+    <table id="topTable"></table>
+  </div>
+
+  <div class="note" id="interpretation"></div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// CONSTANTS (mêmes que le jeu en prod)
+// ═══════════════════════════════════════════
+const METERS = 13;
+const SHORE = 650;
+const GY = 300, SY = 314;
+const GRAVITY = 0.176;
+const LAUNCH_SPD = 17.6;
+const VX_CAP = 50;
+const REAL_END_WX = 117260;
+const CRAB_WX = 130;
+const ARM_LEN = 60;
+const ARM_LO = 200 * Math.PI / 180;
+const ARM_HI = 108 * Math.PI / 180;
+const PIVOT_OX = -20, PIVOT_OY = -10;
+
+// FDPs (positions exactes du jeu)
+const FDP_DEFS = (() => {
+  const p1 = [340,470,560,680,800,950,1100,1270,1450,1670,1900,2200,2500,
+    2800,3100,3500,3900,4300,4700,5150,5600,6150,6700,7350,8000,8750,9500,
+    10250,11000,11500,12000,12450,12900,13300,13700];
+  const p2 = [];
+  for (let w = 14000; w < 77000; w += 800) p2.push(w);
+  p2.push(77000);
+  return p1.concat(p2);
+})();
+
+// Mouettes (positions du jeu, Y aléatoire entre 50 et 190)
+const GULL_WXS = [800, 2000, 4000, 7000, 11000, 16000, 22000, 30000, 40000, 52000, 60000, 64000];
+
+// ═══════════════════════════════════════════
+// SIMULATION D'UNE PARTIE
+// ═══════════════════════════════════════════
+function simulateGame(chargeP) {
+  // Charge clamp
+  chargeP = Math.max(0, Math.min(1, chargeP));
+  const armT = chargeP;
+  const armAngle = ARM_LO + (ARM_HI - ARM_LO) * chargeP;
+  const spd = LAUNCH_SPD * (0.5 + 0.5 * chargeP) * 2.5;
+
+  // Pivot et tip
+  const pivotX = CRAB_WX + PIVOT_OX;
+  const pivotY = GY + PIVOT_OY;
+  const M = {
+    wx: pivotX + Math.cos(armAngle) * ARM_LEN,
+    wy: pivotY + Math.sin(armAngle) * ARM_LEN,
+    vx: -Math.cos(armAngle) * spd,
+    vy: -Math.sin(armAngle) * spd
+  };
+
+  let combo = 0;
+  const hitFdps = new Set();
+  // Mouettes : positions Y aléatoires fixes (simplification)
+  const gullYs = GULL_WXS.map(() => 50 + Math.random() * 140);
+  const hitGulls = new Set();
+
+  let frames = 0;
+  const MAX_FRAMES = 8000;
+
+  while (frames < MAX_FRAMES) {
+    // Physique (timeScale ignoré : équivalent en distance totale)
+    M.vy += GRAVITY;
+    M.wx += M.vx;
+    M.wy += M.vy;
+    M.vx *= 0.9993;
+
+    // Collisions FDP
+    for (let i = 0; i < FDP_DEFS.length; i++) {
+      if (hitFdps.has(i)) continue;
+      const fwx = FDP_DEFS[i];
+      const fy = fwx >= SHORE ? SY - 22 : GY - 22;
+      if (Math.abs(M.wx - fwx) < 42 && Math.abs(M.wy - fy) < 28) {
+        hitFdps.add(i);
+        combo++;
+        const mult = combo >= 6 ? 1.5 : combo === 5 ? 1.4 : combo === 4 ? 1.3 : combo === 3 ? 1.2 : combo === 2 ? 1.1 : 1.0;
+        M.vy = Math.min(M.vy, -9 * mult) - Math.random() * 3;
+        M.vx = Math.max(M.vx * 1.1, 10) * mult + Math.random() * 4;
+        if (M.vx > VX_CAP) M.vx = VX_CAP;
+        break;
+      }
+    }
+
+    // Collisions mouettes
+    for (let i = 0; i < GULL_WXS.length; i++) {
+      if (hitGulls.has(i)) continue;
+      const dx = M.wx - GULL_WXS[i];
+      const dy = M.wy - gullYs[i];
+      if (dx * dx + dy * dy < 28 * 28) {
+        hitGulls.add(i);
+        M.vy = Math.min(M.vy, -7) - Math.random() * 2;
+        M.vx = Math.max(M.vx * 1.15, 12) + Math.random() * 3;
+        if (M.vx > VX_CAP) M.vx = VX_CAP;
+        break;
+      }
+    }
+
+    // Sol/mer
+    const inSea = M.wx >= SHORE;
+    const gy = inSea ? SY : GY;
+    if (M.wy >= gy - 8) {
+      M.wy = gy - 8;
+      const speed = Math.sqrt(M.vx * M.vx + M.vy * M.vy);
+      if (speed < 1.0) break;
+      combo = 0;
+      if (inSea) { M.vy *= -0.3; M.vx *= 0.65; }
+      else { M.vy *= -0.46; M.vx *= 0.76; }
+    }
+
+    if (M.wx >= REAL_END_WX) { M.wx = REAL_END_WX; break; }
+    if (M.wy > 480) break;
+
+    frames++;
+  }
+
+  return Math.max(0, Math.round((M.wx - CRAB_WX) / METERS));
+}
+
+// ═══════════════════════════════════════════
+// MODÈLE DE JOUEUR (distribution chargeP)
+// ═══════════════════════════════════════════
+function getChargeP(profile) {
+  if (profile === 'random') return Math.random();
+  if (profile === 'full') return 1.0;
+  if (profile === 'optimal') return 0.65 + (Math.random() - 0.5) * 0.1;
+  // 'varied' : mix réaliste
+  const r = Math.random();
+  if (r < 0.10) return Math.random() * 0.4;          // 10% : ratent timing
+  if (r < 0.50) return 0.4 + Math.random() * 0.4;    // 40% : OK mais pas optimal
+  if (r < 0.90) return 0.6 + Math.random() * 0.4;    // 40% : bon timing
+  return 0.95 + Math.random() * 0.05;                // 10% : presque max charge
+}
+
+// ═══════════════════════════════════════════
+// EXÉCUTION (par chunks pour ne pas freezer)
+// ═══════════════════════════════════════════
+const status = document.getElementById('status');
+const progressFill = document.getElementById('progressFill');
+const results = document.getElementById('results');
+const runBtn = document.getElementById('run');
+
+function runSimulation() {
+  const N = parseInt(document.getElementById('count').value, 10);
+  const profile = document.getElementById('profile').value;
+  const distances = new Array(N);
+  let i = 0;
+  const CHUNK = 5000;
+  const startT = performance.now();
+  runBtn.disabled = true;
+  results.style.display = 'none';
+
+  function step() {
+    const end = Math.min(i + CHUNK, N);
+    while (i < end) {
+      const c = getChargeP(profile);
+      distances[i] = simulateGame(c);
+      i++;
+    }
+    const pct = (i / N) * 100;
+    progressFill.style.width = pct + '%';
+    status.textContent = `Simulation en cours… ${i.toLocaleString()} / ${N.toLocaleString()} parties (${pct.toFixed(0)}%)`;
+    if (i < N) {
+      setTimeout(step, 0);
+    } else {
+      const elapsed = ((performance.now() - startT) / 1000).toFixed(2);
+      status.textContent = `✓ Simulation terminée en ${elapsed}s`;
+      progressFill.style.width = '100%';
+      analyze(distances, profile);
+      runBtn.disabled = false;
+    }
+  }
+  step();
+}
+
+function analyze(distances, profile) {
+  distances.sort((a, b) => b - a); // décroissant
+  const N = distances.length;
+  const max = distances[0];
+  const min = distances[N - 1];
+  const sum = distances.reduce((a, b) => a + b, 0);
+  const avg = Math.round(sum / N);
+  const median = distances[Math.floor(N / 2)];
+
+  const pct = (p) => distances[Math.floor(N * p / 100)];
+
+  // Stats principales
+  const statsHTML = [
+    ['Max', max + ' m', 'le record absolu'],
+    ['Médiane', median + ' m', '50% font moins'],
+    ['Moyenne', avg + ' m', 'moyenne brute'],
+    ['Top 1%', pct(1) + ' m', 'seuil top 1%'],
+    ['Top 10%', pct(10) + ' m', 'seuil top 10%'],
+    ['Top 25%', pct(25) + ' m', 'seuil top 25%'],
+    ['Bottom 25%', pct(75) + ' m', 'sous ce seuil = 25%'],
+    ['Min', min + ' m', 'le pire score']
+  ];
+  document.getElementById('statsGrid').innerHTML = statsHTML.map(([l, v, s]) =>
+    `<div class="card"><div class="label">${l}</div><div class="value ${v.length > 6 ? 'small' : ''}">${v}</div><div class="sub">${s}</div></div>`
+  ).join('');
+
+  // Seuils clés
+  const above = (m) => distances.filter(d => d >= m).length;
+  const a100 = above(100), a500 = above(500), a1000 = above(1000), a3000 = above(3000), a5000 = above(5000), a6010 = above(6010), a8000 = above(8000), a9020 = above(9020);
+  const fmtPct = (n) => (n / N * 100).toFixed(2) + '%';
+  const fmtBoth = (n) => `${n.toLocaleString()} <span style="color:#aaa;font-size:14px">(${fmtPct(n)})</span>`;
+  const thresholdsHTML = [
+    ['≥ 100m', fmtBoth(a100)],
+    ['≥ 500m', fmtBoth(a500)],
+    ['≥ 1000m', fmtBoth(a1000)],
+    ['≥ 3000m', fmtBoth(a3000)],
+    ['≥ 5000m', fmtBoth(a5000)],
+    ['≥ 6010m (squelettes)', fmtBoth(a6010)],
+    ['≥ 8000m (zone astrale loin)', fmtBoth(a8000)],
+    ['≥ 9020m (fin)', fmtBoth(a9020)]
+  ];
+  document.getElementById('thresholdsGrid').innerHTML = thresholdsHTML.map(([l, v]) =>
+    `<div class="card"><div class="label">${l}</div><div class="value small">${v}</div></div>`
+  ).join('');
+
+  // Histogramme
+  const buckets = [
+    [0, 50], [50, 100], [100, 300], [300, 500], [500, 1000],
+    [1000, 2000], [2000, 3000], [3000, 4000], [4000, 5000],
+    [5000, 6000], [6000, 7000], [7000, 8000], [8000, 9000], [9000, 9100]
+  ];
+  const counts = buckets.map(([lo, hi]) => distances.filter(d => d >= lo && d < hi).length);
+  const maxCount = Math.max(...counts);
+  document.getElementById('histogram').innerHTML = buckets.map(([lo, hi], idx) => {
+    const c = counts[idx];
+    const w = (c / maxCount) * 100;
+    const p = (c / N * 100).toFixed(1);
+    return `<div class="bar"><span class="label">${lo}-${hi}m</span><div class="fill"><div class="fill-inner" style="width:${w}%"></div></div><span class="count">${c.toLocaleString()} (${p}%)</span></div>`;
+  }).join('');
+
+  // Top 30
+  const top30 = distances.slice(0, 30);
+  const topHTML = '<thead><tr><th>#</th><th>Score</th></tr></thead><tbody>' +
+    top30.map((d, i) => {
+      const cls = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+      return `<tr class="${cls}"><td>${i + 1}</td><td class="score">${d.toLocaleString()} m</td></tr>`;
+    }).join('') + '</tbody>';
+  document.getElementById('topTable').innerHTML = topHTML;
+
+  // Interprétation
+  const profileName = {
+    varied: 'Variés (mix réaliste, 10% ratent timing, 40% bons, 10% max charge)',
+    random: 'Aléatoires (uniformes 0-100%)',
+    optimal: 'Optimaux (charge ~65-70%, presque parfaits)',
+    full: 'Charge max (toujours 100% — sub-optimal car angle trop haut)'
+  }[profile];
+  document.getElementById('interpretation').innerHTML = `
+    <p><strong>📋 Modèle utilisé</strong> : ${profileName}</p>
+    <p style="margin-top:8px"><strong>📊 À retenir</strong> : sur ${N.toLocaleString()} parties simulées, le record est <strong>${max} m</strong>. Personne n'atteint la fin du jeu (9020m) — le cap vx=50 fait son boulot. <strong>${a6010}</strong> joueurs (${fmtPct(a6010)}) atteignent les squelettes des champions à 6010m. </p>
+    <p style="margin-top:8px"><strong>⚠️ Limites du modèle</strong> : pas de visualisation du décor / collisions, mouvements de mouettes simplifiés (positions Y fixes), pas de timeScale (mais ça n'affecte pas la distance). Les vrais joueurs sont aussi influencés par leur ressenti, leur stratégie de combo, et la chance des mouettes.</p>
+  `;
+
+  results.style.display = 'block';
+}
+
+runBtn.addEventListener('click', runSimulation);
+
+// Auto-run au chargement
+window.addEventListener('load', () => setTimeout(runSimulation, 200));
+</script>
+
+</body>
+</html>

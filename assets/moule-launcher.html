@@ -33,27 +33,16 @@ input[type=text]::placeholder{color:#7c3f9e;}
 .lb-table tr.me td{color:#fff;background:#2a004a;}
 .rank-gold{color:#ffd700}.rank-silver{color:#c0c0c0}.rank-bronze{color:#cd7f32}
 .loader{font-size:6px;color:#7c3f9e;animation:blink .6s step-end infinite;}
-#btnMute{position:absolute;top:6px;right:6px;z-index:30;background:rgba(13,0,20,.75);border:1px solid #6b21a8;color:#f0abfc;cursor:pointer;padding:5px 6px;line-height:0;border-radius:2px;transition:background .15s;display:flex;align-items:center;justify-content:center;}
-#btnMute:hover{background:rgba(107,33,168,.5);}
-#btnMute svg{display:block;}
-#btnMute .xx{display:none;}
-#btnMute.muted .xx{display:inline;stroke:#ff5050;}
-#btnMute.muted .wv{display:none;}
-#btnMute.muted{color:#888;}
+#btnGiveUp{position:absolute;top:6px;right:6px;z-index:30;background:rgba(40,0,10,.85);border:1px solid #ff5050;color:#ff8080;font-family:'Press Start 2P',monospace;font-size:8px;letter-spacing:1px;cursor:pointer;padding:6px 9px;line-height:1;border-radius:2px;display:none;transition:background .15s;}
+#btnGiveUp.show{display:block;animation:btnPulse 1s infinite;}
+#btnGiveUp:hover{background:rgba(255,80,80,.25);color:#ff5050;}
+@keyframes btnPulse{50%{opacity:.7;border-color:#ffd060;}}
 </style>
 </head>
 <body>
 <div id="wrap">
   <canvas id="c" width="710" height="400"></canvas>
-  <button id="btnMute" type="button" aria-label="Couper le son" title="Son ON/OFF">
-    <svg viewBox="0 0 24 16" width="18" height="14" fill="currentColor" aria-hidden="true">
-      <path d="M0 5 H4 L9 1 V15 L4 11 H0 Z"/>
-      <path class="wv" d="M11.5 4.5 Q14.5 8 11.5 11.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-      <path class="wv" d="M14 2 Q18 8 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-      <line class="xx" x1="13" y1="4" x2="22" y2="13" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-      <line class="xx" x1="22" y1="4" x2="13" y2="13" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-    </svg>
-  </button>
+  <button id="btnGiveUp" type="button" aria-label="Abandonner et recommencer" title="Faire exploser la moule">× ABANDON</button>
   <div class="screen" id="sMenu">
     <h1>★ LA MOULE VOLANTE ★</h1>
     <p class="sub">MAINTIENS POUR CHARGER · RELÂCHE POUR LANCER</p>
@@ -61,7 +50,6 @@ input[type=text]::placeholder{color:#7c3f9e;}
     <input type="text" id="nameInput" maxlength="12" placeholder="TON PSEUDO" autocomplete="off" spellcheck="false">
     <button class="btn" id="btnPlay">▶ LANCER</button>
     <button class="btn-sm" id="btnLbMenu">★ SCORES</button>
-    <p class="sub" style="font-size:clamp(4px,1.1vw,6px);color:#ffd700;line-height:1.8;border-top:1px solid #6b21a8;padding-top:6px;margin-top:4px;">TOP 10 = BOISSON OFFERTE · 1ER = OPEN BAR<br>À RÉCUPÉRER SUR PLACE LE 8 AOÛT<br><span style="color:#7c3f9e;font-size:.85em">+18 ANS · DANS LA LIMITE DU RAISONNABLE</span></p>
   </div>
   <div class="screen hidden" id="sResult">
     <h1>★ RÉSULTAT ★</h1>
@@ -71,7 +59,6 @@ input[type=text]::placeholder{color:#7c3f9e;}
     <div id="topInstaBox" class="hidden" style="border-top:1px solid #ffd700;border-bottom:1px solid #ffd700;padding:8px 0;width:100%;display:flex;flex-direction:column;align-items:center;gap:6px;">
       <p class="sub" style="color:#ffd700;font-size:clamp(6px,1.6vw,9px);letter-spacing:1px;">★ TU ES DANS LE TOP 10 ★</p>
       <input type="text" id="instaInput" maxlength="30" placeholder="@TON_INSTA" autocomplete="off" spellcheck="false">
-      <p class="sub" style="font-size:clamp(4px,1vw,6px);color:#7c3f9e;letter-spacing:1px;">POUR QU'ON TE RECONNAISSE LE 8 AOÛT</p>
       <button class="btn-sm" id="btnConfirmInsta">CONFIRMER</button>
     </div>
     <button class="btn" id="btnReplay">▶ REJOUER</button>
@@ -208,9 +195,7 @@ var melIdx=0,cntIdx=0,bassIdx=0,drumIdx=0,arpIdx=0;
 var melT=0,cntT=0,bassT=0,drumT=0,arpT=0;
 
 var BASE_VOL=0.45;
-var muted=false;
-try{muted=localStorage.getItem('fdp_muted')==='1';}catch(e){}
-function getAC(){if(!ac){ac=new(window.AudioContext||window.webkitAudioContext)();masterGain=ac.createGain();masterGain.gain.value=muted?0:BASE_VOL;masterGain.connect(ac.destination);}return ac;}
+function getAC(){if(!ac){ac=new(window.AudioContext||window.webkitAudioContext)();masterGain=ac.createGain();masterGain.gain.value=BASE_VOL;masterGain.connect(ac.destination);}return ac;}
 
 var N={
   C2:65.4,A2:110,B2:123.5,
@@ -229,8 +214,9 @@ var slowMoEntryFlash=0;
 function setSlowMo(active){
   if(active===slowMoActive)return;
   slowMoActive=active;
-  timeScale=active?0.65:1; // ralenti modéré (était 0.5 trop lent)
-  BEAT=active?BASE_BEAT*0.5:BASE_BEAT; // musique 2x plus rapide
+  // Plus de slow mo réel : on garde uniquement les visuels météor + musique 2x
+  timeScale=1;
+  BEAT=active?BASE_BEAT*0.5:BASE_BEAT; // musique 2x plus rapide pendant le mode météor
   if(active)slowMoEntryFlash=18; // flash écran à l'activation
 }
 
@@ -343,10 +329,35 @@ var ctx=canvas.getContext('2d');
 var W=710,H=400;
 var bgT=0,gameT=0;
 
+// ══════ TEXTURE GRAIN (effet papier/CRT comme l'affiche) ══════
+var grainTex=(function(){
+  var g=document.createElement('canvas');
+  g.width=W;g.height=H;
+  var gx=g.getContext('2d');
+  var imd=gx.createImageData(W,H);
+  var d=imd.data;
+  for(var i=0;i<d.length;i+=4){
+    // Grain mixte gris + légères touches couleurs (comme un risographe / vieille TV)
+    var r=Math.random();
+    var v=Math.floor(r*180);
+    if(r<0.05){d[i]=180;d[i+1]=140;d[i+2]=200;}      // grain rose/violet (très rare)
+    else if(r<0.10){d[i]=200;d[i+1]=180;d[i+2]=100;} // grain jaune (très rare)
+    else{d[i]=v;d[i+1]=v;d[i+2]=v;}                  // gris dominant
+    d[i+3]=Math.floor(38+Math.random()*30); // alpha 38-68 = ~15% effectif avec overlay
+  }
+  gx.putImageData(imd,0,0);
+  return g;
+})();
+function drawGrain(){
+  ctx.globalCompositeOperation='overlay';
+  ctx.drawImage(grainTex,0,0);
+  ctx.globalCompositeOperation='source-over';
+}
+
 // ══════ WORLD ══════
 var METERS=13,SHORE=650,GY=300,SY=314;
 var GRAVITY=0.176,LAUNCH_SPD=17.6;
-var VX_CAP=50; // vitesse horizontale maximale (anti-décollage)
+var VX_CAP=60; // vitesse horizontale maximale (anti-décollage)
 var FINISH_WX=65130,CELEBRATE_WX=65130,WORLD_END=120000;
 var CELEBRATE_END_WX=78260; // fin de la zone célébration (panneau "MAX 6000m" hommage)
 var SQUELETTE_WX=78130; // squelettes des champions à 6010m
@@ -946,7 +957,7 @@ function updateGulls(){
   gulls.forEach(function(g){
     if(g.hit)return;
     var dx=M.wx-g.wx, dy=M.wy-g.y;
-    if(Math.sqrt(dx*dx+dy*dy)<28){
+    if(Math.sqrt(dx*dx+dy*dy)<35){
       g.hit=true;
       g.fallVx=(M.vx*.3+(Math.random()-.5)*3);
       g.fallVy=-7-Math.random()*4;
@@ -1175,6 +1186,8 @@ function resetAll(){
   M={wx:0,wy:0,vx:0,vy:0,ang:0,spin:0,dist:0};
   combo=0;shakeT=0;shakeStr=0;gullBoostT=0;
   fireParticles=[];
+  flightStartT=0;
+  var bg=document.getElementById('btnGiveUp');if(bg)bg.classList.remove('show');
   setSlowMo(false);
   resetFDPs();resetGulls();
 }
@@ -1197,14 +1210,17 @@ function updatePhysics(){
   if(M.wy>=gy-8){
     M.wy=gy-8;var spd=Math.sqrt(M.vx*M.vx+M.vy*M.vy);
     if(spd<1.0){phase='done';return;}
+    // Auto-explode si la moule rate son lancé (< 14m) — game over instantané pour relancer vite
+    var distNow=Math.max(0,Math.round((M.wx-CRAB_WX)/METERS));
+    if(distNow<14){phase='done';return;}
     combo=0; // reset combo au sol
     if(inSea){sfxSplash();M.vy*=-0.3;M.vx*=0.65;M.spin*=.5;}
     else{sfxBounce();M.vy*=-0.46;M.vx*=0.76;M.spin*=.55;}
   }
   fdps.forEach(function(m){
     if(m.hit)return;var fy=getFdpY(m);
-    // Hitbox élargie en X (42 au lieu de 30) — détection plus permissive en largeur
-    if(Math.abs(M.wx-m.wx)<42&&Math.abs(M.wy-fy)<28){
+    // Hitbox élargie en X (50) et Y (32) — plus de panache, moins de frustration
+    if(Math.abs(M.wx-m.wx)<50&&Math.abs(M.wy-fy)<32){
       m.hit=true;m.ep=0.01;sfxFDP();
       combo++;
       var mult=combo>=6?1.5:combo===5?1.4:combo===4?1.3:combo===3?1.2:combo===2?1.1:1.0;
@@ -1262,7 +1278,18 @@ function loop(ts){
     drawCrab(true);drawInstruction('RELACHE POUR LANCER !','#ffd700');
   }
   if(phase==='snap'){snapT++;armAngle+=(ARM_HI-0.3-armAngle)*0.4;drawCrab(false);drawMusselFlying(M.wx,M.wy,M.ang);if(snapT>6)phase='flying';}
-  if(phase==='flying'){updatePhysics();if(toSX(CRAB_WX)>-100)drawCrab(false);drawFireParticles();drawMusselFlying(M.wx,M.wy,M.ang);drawHUD(M.dist);}
+  if(phase==='flying'){
+    updatePhysics();
+    if(toSX(CRAB_WX)>-100)drawCrab(false);
+    drawFireParticles();
+    drawMusselFlying(M.wx,M.wy,M.ang);
+    drawHUD(M.dist);
+    // Affiche le bouton ABANDON après 5 sec de vol
+    if(Date.now()-flightStartT>5000){
+      var bg=document.getElementById('btnGiveUp');
+      if(bg)bg.classList.add('show');
+    }
+  }
   if(phase==='done'){
     if(toSX(CRAB_WX)>-100)drawCrab(false);
     drawMusselFlying(M.wx,M.wy,M.ang);
@@ -1270,7 +1297,9 @@ function loop(ts){
     // Instruction clignotante
     if(Math.floor(bgT*2)%2===0)drawInstruction('TAPE POUR VOIR TON SCORE','#ffd700');
   }
-  // Flash d'entrée mode météor (overlay full-screen)
+  // Texture grain (effet papier/CRT) — toujours appliquée
+  drawGrain();
+  // Flash d'entrée mode météor (overlay full-screen) — au-dessus du grain
   if(slowMoEntryFlash>0){
     slowMoEntryFlash--;
     var a=slowMoEntryFlash/18;
@@ -1326,7 +1355,7 @@ function onDown(){
   if(phase==='done'){showResult();return;}
   if(phase==='ready'||phase==='charging'){if(phase==='ready')armT=0;phase='charging';isDown=true;}
 }
-function onUp(){if(!isDown||gState!=='play')return;isDown=false;trackAction();if(phase==='charging'){var tip=getTipWorld(),lv=getLaunchVec();M.wx=tip.wx;M.wy=tip.wy;M.vx=lv.vx;M.vy=lv.vy;M.ang=0;M.spin=-0.08;M.dist=0;sfxLaunch();snapT=0;phase='snap';}}
+function onUp(){if(!isDown||gState!=='play')return;isDown=false;trackAction();if(phase==='charging'){var tip=getTipWorld(),lv=getLaunchVec();M.wx=tip.wx;M.wy=tip.wy;M.vx=lv.vx;M.vy=lv.vy;M.ang=0;M.spin=-0.08;M.dist=0;sfxLaunch();snapT=0;phase='snap';flightStartT=Date.now();}}
 canvas.addEventListener('touchstart',function(e){e.preventDefault();onDown();},{passive:false});
 canvas.addEventListener('touchend',function(e){e.preventDefault();onUp();},{passive:false});
 canvas.addEventListener('mousedown',function(e){e.preventDefault();onDown();});
@@ -1443,23 +1472,31 @@ function showLb(){
   });
 }
 
-// Bouton mute
+// Bouton abandon (apparait après 5 sec de vol)
+var flightStartT=0;
 (function(){
-  var b=document.getElementById('btnMute');
+  var b=document.getElementById('btnGiveUp');
   if(!b)return;
-  function applyState(){
-    if(muted)b.classList.add('muted');
-    else b.classList.remove('muted');
-    if(masterGain)masterGain.gain.value=muted?0:BASE_VOL;
-    b.setAttribute('aria-label',muted?'Activer le son':'Couper le son');
-  }
-  applyState();
-  b.onclick=function(e){
+  b.addEventListener('click',function(e){
     e.stopPropagation();
-    muted=!muted;
-    try{localStorage.setItem('fdp_muted',muted?'1':'0');}catch(err){}
-    applyState();
-  };
+    if(phase!=='flying'&&phase!=='snap')return;
+    // Petite explosion visuelle
+    for(var i=0;i<28;i++){
+      var ang=Math.random()*Math.PI*2;
+      var spd=2+Math.random()*5;
+      fireParticles.push({
+        wx:M.wx,wy:M.wy,
+        vx:Math.cos(ang)*spd,vy:Math.sin(ang)*spd,
+        life:1,sz:3+Math.random()*4,
+        col:Math.random()<.5?'#ff6020':Math.random()<.5?'#ffd060':'#ffec80',
+        type:'flame'
+      });
+    }
+    M.vx=0;M.vy=0;
+    phase='done';
+    b.classList.remove('show');
+    setTimeout(showResult,400);
+  });
 })();
 
 show(sMenu);
