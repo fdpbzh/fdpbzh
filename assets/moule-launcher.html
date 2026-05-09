@@ -33,11 +33,15 @@ input[type=text]::placeholder{color:#7c3f9e;}
 .lb-table tr.me td{color:#fff;background:#2a004a;}
 .rank-gold{color:#ffd700}.rank-silver{color:#c0c0c0}.rank-bronze{color:#cd7f32}
 .loader{font-size:6px;color:#7c3f9e;animation:blink .6s step-end infinite;}
+#btnMute{position:absolute;top:6px;right:6px;z-index:30;background:rgba(13,0,20,.75);border:1px solid #6b21a8;color:#f0abfc;font-family:'Press Start 2P',monospace;font-size:11px;cursor:pointer;padding:5px 8px;line-height:1;border-radius:2px;transition:opacity .15s;}
+#btnMute:hover{background:rgba(107,33,168,.5);}
+#btnMute.muted{opacity:.45;text-decoration:line-through;}
 </style>
 </head>
 <body>
 <div id="wrap">
   <canvas id="c" width="710" height="400"></canvas>
+  <button id="btnMute" type="button" aria-label="Couper le son" title="Son ON/OFF">♪</button>
   <div class="screen" id="sMenu">
     <h1>★ LA MOULE VOLANTE ★</h1>
     <p class="sub">MAINTIENS POUR CHARGER · RELÂCHE POUR LANCER</p>
@@ -75,7 +79,7 @@ input[type=text]::placeholder{color:#7c3f9e;}
 // ══════ SUPABASE ══════
 var SB_URL='https://nhsroymqvwrjflagzznz.supabase.co/rest/v1';
 var SB_KEY='sb_publishable_UH528FgC5FVbxNFYi9Odlg_jcPZuK4J';
-var MAX_SCORE=6020; // borne théorique (anti-triche)
+var MAX_SCORE=9020; // borne théorique (anti-triche) — étendue à 9020m
 var MIN_PLAY_MS=5000; // durée minimale d'une partie valide
 var MIN_ACTIONS=1;
 
@@ -191,7 +195,10 @@ var ac=null,masterGain=null,bgmPlaying=false,bgmTimer=null;
 var melIdx=0,cntIdx=0,bassIdx=0,drumIdx=0,arpIdx=0;
 var melT=0,cntT=0,bassT=0,drumT=0,arpT=0;
 
-function getAC(){if(!ac){ac=new(window.AudioContext||window.webkitAudioContext)();masterGain=ac.createGain();masterGain.gain.value=0.45;masterGain.connect(ac.destination);}return ac;}
+var BASE_VOL=0.45;
+var muted=false;
+try{muted=localStorage.getItem('fdp_muted')==='1';}catch(e){}
+function getAC(){if(!ac){ac=new(window.AudioContext||window.webkitAudioContext)();masterGain=ac.createGain();masterGain.gain.value=muted?0:BASE_VOL;masterGain.connect(ac.destination);}return ac;}
 
 var N={
   C2:65.4,A2:110,B2:123.5,
@@ -202,7 +209,16 @@ var N={
   Eb5:622.3,Gb5:740,Ab5:830.6,
   _:0
 };
-var BPM=168,BEAT=60/BPM;
+var BPM=168,BASE_BEAT=60/BPM,BEAT=BASE_BEAT;
+// === SLOW MO (combo x5+) ===
+var slowMoActive=false;
+var timeScale=1;
+function setSlowMo(active){
+  if(active===slowMoActive)return;
+  slowMoActive=active;
+  timeScale=active?0.5:1;
+  BEAT=active?BASE_BEAT*0.5:BASE_BEAT; // musique 2x plus rapide quand slow mo
+}
 
 var MELODY=[
   [N.E5,.5],[N.E5,.25],[N.E5,.25],[N.C5,.5],[N.E5,.5],
@@ -316,8 +332,12 @@ var bgT=0,gameT=0;
 // ══════ WORLD ══════
 var METERS=13,SHORE=650,GY=300,SY=314;
 var GRAVITY=0.176,LAUNCH_SPD=17.6;
-var FINISH_WX=65130,CELEBRATE_WX=65130,WORLD_END=80000;
-var REAL_END_WX=78260; // 65130 + 1000m*13
+var VX_CAP=50; // vitesse horizontale maximale (anti-décollage)
+var FINISH_WX=65130,CELEBRATE_WX=65130,WORLD_END=120000;
+var CELEBRATE_END_WX=78260; // fin de la zone célébration (panneau "MAX 6000m" hommage)
+var SQUELETTE_WX=78130; // squelettes des champions à 6010m
+var ASTRAL_START_WX=78000; // début zone astrale (~6000m)
+var REAL_END_WX=117260; // fin réelle du jeu : 9020m
 var camX=0;
 function toSX(wx){return wx-camX;}
 function px(cx,cy,x,y,w,h,col){ctx.fillStyle=col;ctx.fillRect(cx+x,cy+y,w,h);}
@@ -419,7 +439,48 @@ function drawMussel(cx,cy,sc){
   px(cx,cy,(s*.4|0), (-s*1.2)|0, Math.max(1,s*.4|0), Math.max(1,es*.6|0),'#0a0820');
 }
 function drawMusselFlying(wx2,sy,angle){
-  var sx=toSX(wx2);ctx.save();ctx.translate(sx,sy);ctx.rotate(angle);drawMussel(0,0,1);ctx.restore();
+  var sx=toSX(wx2);ctx.save();ctx.translate(sx,sy);ctx.rotate(angle);drawMussel(0,0,1);
+  // Halo de feu autour de la moule en slow mo
+  if(slowMoActive){
+    ctx.fillStyle='rgba(255,140,40,0.35)';
+    ctx.beginPath();ctx.arc(0,0,18+Math.sin(bgT*8)*3,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(255,220,80,0.4)';
+    ctx.beginPath();ctx.arc(0,0,10,0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();
+}
+
+// === PARTICULES FEU (en slow mo) ===
+var fireParticles=[];
+function spawnFire(){
+  for(var i=0;i<3;i++){
+    fireParticles.push({
+      wx:M.wx+(Math.random()-.5)*10,
+      wy:M.wy+(Math.random()-.5)*10,
+      vx:-M.vx*0.05+(Math.random()-.5)*1.5,
+      vy:-Math.random()*1.2-.5,
+      life:1,
+      sz:2+Math.random()*4,
+      col:Math.random()<.4?'#ffec80':Math.random()<.6?'#ff8c00':'#ff3030'
+    });
+  }
+}
+function updateFireParticles(){
+  for(var i=fireParticles.length-1;i>=0;i--){
+    var p=fireParticles[i];
+    p.wx+=p.vx;p.wy+=p.vy;p.vy+=0.06;p.life-=0.04;p.sz*=0.96;
+    if(p.life<=0||p.sz<.5)fireParticles.splice(i,1);
+  }
+}
+function drawFireParticles(){
+  fireParticles.forEach(function(p){
+    var sx=toSX(p.wx);
+    if(sx<-20||sx>W+20)return;
+    ctx.globalAlpha=Math.min(p.life,1);
+    ctx.fillStyle=p.col;
+    ctx.fillRect(sx-p.sz/2,p.wy-p.sz/2,p.sz,p.sz);
+  });
+  ctx.globalAlpha=1;
 }
 
 // ══════ DÉCOR SCÉNARISÉ ══════
@@ -435,9 +496,20 @@ function lerpColor(c1,c2,t2){
 }
 
 function getSkyPalette(dist){
-  if(dist<1000){var p=dist/1000;return{top:lerpColor('#2D0E5C','#0d0014',p),mid:lerpColor('#E91E8D','#180028',p),bot:lerpColor('#FF7AC0','#2a0040',p),sea:lerpColor('#FF4D9B','#150026',p),starA:0,sunsetP:1-p,dawnP:0};}
-  else if(dist<3500){return{top:'#0d0014',mid:'#180028',bot:'#2a0040',sea:'#150026',starA:1,sunsetP:0,dawnP:0};}
-  else{var p=(dist-3500)/1500;return{top:lerpColor('#0d0014','#0a1a3a',p),mid:lerpColor('#180028','#ff5070',p),bot:lerpColor('#2a0040','#ffa040',p),sea:lerpColor('#150026','#ff7050',p),starA:Math.max(0,1-p*2),sunsetP:0,dawnP:p};}
+  if(dist<1000){
+    // Coucher de soleil pink synthwave
+    var p=dist/1000;
+    return{top:lerpColor('#2D0E5C','#0d0014',p),mid:lerpColor('#E91E8D','#180028',p),bot:lerpColor('#FF7AC0','#2a0040',p),sea:lerpColor('#FF4D9B','#150026',p),starA:0,sunsetP:1-p,dawnP:0,astralP:0};
+  }
+  else if(dist<6000){
+    // Nuit étoilée (étendue jusqu'à 6000m)
+    return{top:'#0d0014',mid:'#180028',bot:'#2a0040',sea:'#150026',starA:1,sunsetP:0,dawnP:0,astralP:0};
+  }
+  else{
+    // Zone astrale — espace profond, plus sombre, étoiles colorées
+    var p=Math.min((dist-6000)/300,1); // transition courte de 300m
+    return{top:lerpColor('#0d0014','#020008',p),mid:lerpColor('#180028','#06001a',p),bot:lerpColor('#2a0040','#0a002a',p),sea:lerpColor('#150026','#04000c',p),starA:1,sunsetP:0,dawnP:0,astralP:p};
+  }
 }
 
 function drawCelestialPixel(dist,t2){
@@ -476,20 +548,66 @@ function drawCelestialPixel(dist,t2){
     ctx.fillRect(mx-ps,my+ps,ps*2,ps);ctx.fillRect(mx-ps*2,my-ps*2,ps,ps);ctx.fillRect(mx+ps,my-ps,ps,ps);
     ctx.globalAlpha=1;
   } else {
-    // Soleil levant
-    var p=(dist-3500)/1500;
-    var sx2=Math.round((W*.18+p*W*.08)/ps)*ps;
-    var sy2=Math.round((H*.88-p*H*.48)/ps)*ps;
-    var sr=Math.max(2,2+Math.round(p*6));
-    var gr=ctx.createRadialGradient(sx2,sy2,0,sx2,sy2,sr*ps*4);
-    gr.addColorStop(0,'rgba(255,200,80,'+p*.5+')');gr.addColorStop(.35,'rgba(255,100,40,'+p*.22+')');gr.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.fillStyle=gr;ctx.fillRect(sx2-sr*ps*4,sy2-sr*ps*4,sr*ps*8,sr*ps*8);
-    ctx.globalAlpha=Math.min(p*2,.95);
-    var cols2=['#ffe080','#ffc040','#ffaa20'];
-    for(var dy=-sr;dy<=sr;dy++)for(var dx=-sr;dx<=sr;dx++){if(dx*dx+dy*dy<=sr*sr){ctx.fillStyle=dx*dx+dy*dy<sr*.4*sr*.4?cols2[0]:dx*dx+dy*dy<sr*.75*sr*.75?cols2[1]:cols2[2];ctx.fillRect(sx2+dx*ps,sy2+dy*ps,ps,ps);}}
-    ctx.globalAlpha=1;
-    if(p>.3){ctx.fillStyle='rgba(255,210,60,'+Math.min((p-.3)/.7,.5)+')';[[0,-1],[1,-1],[-1,-1],[1,0],[-1,0]].forEach(function(rd){for(var ri=1;ri<=3;ri++)ctx.fillRect(sx2+(sr+ri)*ps*rd[0],sy2+(sr+ri)*ps*rd[1],ps,ps);});}
+    // Zone astrale — pas de soleil/lune, on dessine planètes et étoiles colorées plus loin
+    drawAstralBodies(dist,t2,ps);
   }
+}
+
+// === DÉCOR ASTRAL ===
+// Planètes positionnées dans le monde (avec parallax via leur wx)
+var ASTRAL_BODIES=[
+  {wx:84500,type:'saturn',sy:H*0.25,size:7},        // ~6500m : Saturne
+  {wx:95000,type:'gasgiant',sy:H*0.18,size:9},      // ~7300m : géante gazeuse rose
+  {wx:108000,type:'galaxy',sy:H*0.30,size:34}       // ~8300m : galaxie spirale
+];
+function drawAstralBodies(dist,t2,ps){
+  // Étoiles colorées supplémentaires en mode astral (sont déjà dessinées dans drawDecor)
+  // On dessine ici uniquement les planètes/galaxies au passage
+  ASTRAL_BODIES.forEach(function(b){
+    var sx=toSX(b.wx);
+    if(sx<-80||sx>W+80)return;
+    var sy=b.sy+Math.sin(t2*0.04+b.wx*0.0001)*4;
+    if(b.type==='saturn'){
+      // Boule jaune
+      var r=b.size*ps*.5;
+      ctx.fillStyle='#ffd070';ctx.beginPath();ctx.arc(sx,sy,r,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#e0a040';ctx.beginPath();ctx.arc(sx,sy,r*.6,0,Math.PI*2);ctx.fill();
+      // Anneaux
+      ctx.strokeStyle='#a87030';ctx.lineWidth=2;
+      ctx.beginPath();ctx.ellipse(sx,sy,r*2,r*.5,0,0,Math.PI*2);ctx.stroke();
+      ctx.strokeStyle='#c89058';ctx.lineWidth=1;
+      ctx.beginPath();ctx.ellipse(sx,sy,r*1.7,r*.4,0,0,Math.PI*2);ctx.stroke();
+    } else if(b.type==='gasgiant'){
+      // Géante rose avec bandes
+      var r=b.size*ps*.5;
+      ctx.fillStyle='#ff80c0';ctx.beginPath();ctx.arc(sx,sy,r,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='rgba(192,38,211,.6)';
+      for(var i=0;i<3;i++){
+        var by=sy-r*.4+i*r*.4;
+        ctx.fillRect(sx-r*.95,by,r*1.9,2);
+      }
+      ctx.fillStyle='rgba(255,160,200,.7)';
+      ctx.beginPath();ctx.arc(sx-r*.3,sy-r*.3,r*.3,0,Math.PI*2);ctx.fill();
+    } else if(b.type==='galaxy'){
+      // Galaxie spirale (200 points en spirale)
+      var rot=t2*0.03;
+      ctx.globalAlpha=.85;
+      for(var arm=0;arm<2;arm++){
+        for(var i=0;i<70;i++){
+          var ang=i*0.3+rot+arm*Math.PI;
+          var rad=i*0.45;
+          var alpha=Math.max(.1,1-i/70);
+          ctx.fillStyle=arm===0?'rgba(240,171,252,'+alpha+')':'rgba(180,200,255,'+alpha+')';
+          var sz=i<10?2:1;
+          ctx.fillRect(sx+Math.cos(ang)*rad-sz/2,sy+Math.sin(ang)*rad-sz/2,sz,sz);
+        }
+      }
+      // Cœur lumineux
+      ctx.fillStyle='rgba(255,240,255,.8)';
+      ctx.beginPath();ctx.arc(sx,sy,3,0,Math.PI*2);ctx.fill();
+      ctx.globalAlpha=1;
+    }
+  });
 }
 
 function drawDecor(dist,t2){
@@ -731,10 +849,62 @@ function updateGulls(){
       gullBoostT=25;
       M.vy=Math.min(M.vy,-7)-Math.random()*2;
       M.vx=Math.max(M.vx*1.15,12)+Math.random()*3;
+      if(M.vx>VX_CAP)M.vx=VX_CAP; // cap vitesse aussi sur boost mouette
       M.spin-=0.15;
       shakeStr=4;shakeT=10;
     }
   });
+}
+
+// === SQUELETTE DE MOULE (hommage aux champions) ===
+function drawMussSkeleton(cx,cy,name){
+  var s=6;
+  // Coquille en blanc cassé / gris clair
+  px(cx,cy,-s,-s*5,s*2,s,'#e0e0e8');
+  px(cx,cy,-(s*1.5|0),-s*4,s*3,s,'#e8e8f0');
+  px(cx,cy,-(s*1.5|0),-s*3,s*3,s,'#e0e0e8');
+  px(cx,cy,-(s*1.5|0),-s*2,s*3,s,'#d8d8e0');
+  px(cx,cy,-s,-s,s*2,s,'#e0e0e8');
+  px(cx,cy,-(s*.5|0),0,s,s,'#d0d0d8');
+  // Côtes (lignes horizontales sombres pour effet squelette)
+  px(cx,cy,-(s*1.2|0),-s*4,s*2.4,1,'#5a5a6a');
+  px(cx,cy,-(s*1.2|0),-s*3,s*2.4,1,'#5a5a6a');
+  px(cx,cy,-(s*1.2|0),-s*2,s*2.4,1,'#5a5a6a');
+  px(cx,cy,-(s*1.2|0),-s,s*2.4,1,'#5a5a6a');
+  // Yeux X
+  ctx.fillStyle='#000';
+  ctx.font='bold 7px monospace';
+  ctx.fillText('×',cx-4,cy-s*3+2);
+  ctx.fillText('×',cx+1,cy-s*3+2);
+  // Petite croix au sol (tombe)
+  ctx.fillStyle='#5a3a10';
+  ctx.fillRect(cx-1,cy+s*0.5,2,s*1.2);
+  ctx.fillRect(cx-3,cy+s*0.8,6,2);
+  // Panneau pseudo
+  var pw=Math.max(36,name.length*5+8);
+  ctx.fillStyle='#0a0018';ctx.fillRect(cx-pw/2,cy+s*1.8,pw,9);
+  ctx.strokeStyle='#ffd700';ctx.lineWidth=1;ctx.strokeRect(cx-pw/2,cy+s*1.8,pw,9);
+  ctx.fillStyle='#ffd700';
+  ctx.font='bold 5px "Press Start 2P"';
+  ctx.textAlign='center';
+  ctx.fillText(name,cx,cy+s*1.8+6);
+  ctx.textAlign='left';
+}
+
+function drawSquelettesHommage(){
+  var sx=toSX(SQUELETTE_WX);
+  if(sx<-150||sx>W+150)return;
+  drawMussSkeleton(sx-30,GY-2,'PLOUPLOU');
+  drawMussSkeleton(sx+30,GY-2,'SEBITCH');
+  // Petit panneau "★ HOMMAGE ★" au-dessus
+  ctx.fillStyle='rgba(255,215,0,.8)';
+  ctx.font='bold 6px "Press Start 2P"';
+  ctx.textAlign='center';
+  ctx.fillText('★ HOMMAGE ★',sx,GY-60);
+  ctx.fillStyle='rgba(240,171,252,.6)';
+  ctx.font='4px "Press Start 2P"';
+  ctx.fillText('CHAMPIONS 2026',sx,GY-50);
+  ctx.textAlign='left';
 }
 
 function drawDanceCrab(cx,cy,t2){
@@ -797,9 +967,12 @@ var DANCE_CRABS=[
 function drawFinish(){
   var sx=toSX(FINISH_WX);
 
-  // ══ ZONE CÉLÉBRATION (après le panneau) ══
+  // ══ SQUELETTES DES CHAMPIONS (à 6010m) ══
+  drawSquelettesHommage();
+
+  // ══ ZONE CÉLÉBRATION (entre FINISH et CELEBRATE_END_WX, pas REAL_END) ══
   var celSX=toSX(CELEBRATE_WX);
-  var endSX=toSX(REAL_END_WX);
+  var endSX=toSX(CELEBRATE_END_WX);
   if(endSX>0&&celSX<W){
     // Fond spécial — dégradé festif
     var grad=ctx.createLinearGradient(Math.max(0,celSX),0,Math.min(W,endSX),0);
@@ -808,9 +981,11 @@ function drawFinish(){
     grad.addColorStop(1,'rgba(192,38,211,.25)');
     ctx.fillStyle=grad;ctx.fillRect(Math.max(0,celSX),0,Math.min(W,endSX)-Math.max(0,celSX),H);
 
-    // Banderoles au sol
+    // Banderoles au sol (dans la zone célébration uniquement, ~5010m à 6020m)
     for(var b=0;b<20;b++){
-      var bx=toSX(CELEBRATE_WX+b*700);
+      var bwx=CELEBRATE_WX+b*700;
+      if(bwx>CELEBRATE_END_WX)break;
+      var bx=toSX(bwx);
       if(bx<-10||bx>W+10)continue;
       ctx.fillStyle=b%2===0?'rgba(255,215,0,.3)':'rgba(192,38,211,.3)';
       ctx.fillRect(bx,GY,8,H-GY);
@@ -826,23 +1001,25 @@ function drawFinish(){
       ctx.globalAlpha=1;
     });
 
-    // Crabes dansants
+    // Crabes dansants (limités à la zone célébration)
     DANCE_CRABS.forEach(function(dc){
-      var cx2=toSX(CELEBRATE_WX+dc.ox);
+      var dwx=CELEBRATE_WX+dc.ox;
+      if(dwx>CELEBRATE_END_WX)return;
+      var cx2=toSX(dwx);
       if(cx2<-40||cx2>W+40)return;
       drawDanceCrab(cx2,GY,bgT+dc.phase);
     });
 
-    // Panneau final de la zone (à REAL_END_WX)
-    var esx=toSX(REAL_END_WX);
+    // Panneau "RECORD 2026" à la fin de la zone célébration
+    var esx=toSX(CELEBRATE_END_WX);
     if(esx>-80&&esx<W+20){
       ctx.fillStyle='#5a3a10';ctx.fillRect(esx-3,GY-60,6,60);
       ctx.fillStyle='#1e0038';ctx.fillRect(esx-40,GY-98,80,38);
       ctx.strokeStyle='#ffd700';ctx.lineWidth=2;ctx.strokeRect(esx-40,GY-98,80,38);
       for(var i=0;i<8;i++){ctx.fillStyle=i%2===0?'#ffd700':'#c026d3';ctx.fillRect(esx-40+i*10,GY-98,10,4);}
-      ctx.font='bold 11px monospace';ctx.textAlign='center';
+      ctx.font='bold 9px monospace';ctx.textAlign='center';
       ctx.fillStyle='#ffd700';ctx.shadowColor='#c026d3';ctx.shadowBlur=8;
-      ctx.fillText('MAX',esx,GY-74);ctx.shadowBlur=0;ctx.textAlign='left';
+      ctx.fillText('RECORD 2026',esx,GY-74);ctx.shadowBlur=0;ctx.textAlign='left';
     }
   }
 
@@ -876,11 +1053,25 @@ function resetAll(){
   phase='ready';armAngle=ARM_LO;armT=0;snapT=0;isDown=false;camX=0;gameT=0;
   M={wx:0,wy:0,vx:0,vy:0,ang:0,spin:0,dist:0};
   combo=0;shakeT=0;shakeStr=0;gullBoostT=0;
+  fireParticles=[];
+  setSlowMo(false);
   resetFDPs();resetGulls();
 }
 
 function updatePhysics(){
-  M.vy+=GRAVITY;M.wx+=M.vx;M.wy+=M.vy;M.ang+=M.spin;M.spin*=.976;M.vx*=.9993;
+  // timeScale = 1 normal, 0.5 en slow mo (combo x5+)
+  M.vy+=GRAVITY*timeScale;
+  M.wx+=M.vx*timeScale;
+  M.wy+=M.vy*timeScale;
+  M.ang+=M.spin*timeScale;
+  M.spin*=Math.pow(.976,timeScale);
+  M.vx*=Math.pow(.9993,timeScale);
+  // Active/désactive le slow mo selon le combo
+  if(combo>=5&&!slowMoActive)setSlowMo(true);
+  else if(combo<5&&slowMoActive)setSlowMo(false);
+  // Spawn flammes en slow mo
+  if(slowMoActive)spawnFire();
+  updateFireParticles();
   var inSea=M.wx>=SHORE,gy=inSea?SY:GY;
   if(M.wy>=gy-8){
     M.wy=gy-8;var spd=Math.sqrt(M.vx*M.vx+M.vy*M.vy);
@@ -891,12 +1082,15 @@ function updatePhysics(){
   }
   fdps.forEach(function(m){
     if(m.hit)return;var fy=getFdpY(m);
-    if(Math.abs(M.wx-m.wx)<30&&Math.abs(M.wy-fy)<28){
+    // Hitbox élargie en X (42 au lieu de 30) — détection plus permissive en largeur
+    if(Math.abs(M.wx-m.wx)<42&&Math.abs(M.wy-fy)<28){
       m.hit=true;m.ep=0.01;sfxFDP();
       combo++;
       var mult=combo>=6?1.5:combo===5?1.4:combo===4?1.3:combo===3?1.2:combo===2?1.1:1.0;
       M.vy=Math.min(M.vy,-9*mult)-Math.random()*3;
       M.vx=Math.max(M.vx*1.1,10)*mult+Math.random()*4;
+      // Cap vitesse horizontale — empêche le décollage absurde
+      if(M.vx>VX_CAP)M.vx=VX_CAP;
       M.spin=-(0.1+Math.random()*.12);
       shakeStr=Math.min(combo,6)*2;shakeT=12;
     }
@@ -942,7 +1136,7 @@ function loop(ts){
     drawCrab(true);drawInstruction('RELACHE POUR LANCER !','#ffd700');
   }
   if(phase==='snap'){snapT++;armAngle+=(ARM_HI-0.3-armAngle)*0.4;drawCrab(false);drawMusselFlying(M.wx,M.wy,M.ang);if(snapT>6)phase='flying';}
-  if(phase==='flying'){updatePhysics();if(toSX(CRAB_WX)>-100)drawCrab(false);drawMusselFlying(M.wx,M.wy,M.ang);drawHUD(M.dist);}
+  if(phase==='flying'){updatePhysics();if(toSX(CRAB_WX)>-100)drawCrab(false);drawFireParticles();drawMusselFlying(M.wx,M.wy,M.ang);drawHUD(M.dist);}
   if(phase==='done'){
     if(toSX(CRAB_WX)>-100)drawCrab(false);
     drawMusselFlying(M.wx,M.wy,M.ang);
@@ -1013,7 +1207,11 @@ function getComment(d){
   if(d<2000)return 'LEGENDAIRE !!';
   if(d<4000)return 'LA MOULE EST EN MER !!';
   if(d<5000)return 'EN IRLANDE !!';
-  return '🦀 ZONE DE GLOIRE !! 🦀';
+  if(d<6000)return '★ ZONE DE GLOIRE ★';
+  if(d<6010)return 'HOMMAGE A NOS CHAMPIONS';
+  if(d<7000)return 'TU AS DEPASSE PLOUPLOU & SEBITCH !!!';
+  if(d<8500)return 'LA MOULE EST EN ORBITE !!!';
+  return 'CONQUERANT DE L\'ESPACE !!!';
 }
 function showResult(){
   if(M.dist>sessionRecord)sessionRecord=M.dist;
@@ -1107,6 +1305,25 @@ function showLb(){
     document.getElementById('lbContent').innerHTML='<p class="sub">Erreur de chargement</p>';
   });
 }
+
+// Bouton mute
+(function(){
+  var b=document.getElementById('btnMute');
+  if(!b)return;
+  function applyState(){
+    if(muted)b.classList.add('muted');
+    else b.classList.remove('muted');
+    if(masterGain)masterGain.gain.value=muted?0:BASE_VOL;
+    b.setAttribute('aria-label',muted?'Activer le son':'Couper le son');
+  }
+  applyState();
+  b.onclick=function(e){
+    e.stopPropagation();
+    muted=!muted;
+    try{localStorage.setItem('fdp_muted',muted?'1':'0');}catch(err){}
+    applyState();
+  };
+})();
 
 show(sMenu);
 loadCount();
