@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Moodboard — Carousel Insta FDP</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+@font-face{
+  font-family:'DK Longreach';
+  src:url('../DK%20Longreach.otf') format('opentype');
+  font-display:swap;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Manrope',sans-serif;background:#0a0014;color:#fff;padding:30px 20px;line-height:1.5;min-height:100vh}
+.back{position:fixed;top:18px;left:18px;background:#222;color:#FFC93C;padding:8px 16px;border-radius:99px;text-decoration:none;font-size:13px;font-weight:700;z-index:50}
+h1{font-size:28px;font-weight:800;margin-bottom:6px}
+.lead{color:#aaa;font-size:14px;max-width:680px;margin-bottom:30px}
+
+/* Filtre SVG pour recolorer le logo en jaune */
+.svg-defs{position:absolute;width:0;height:0;overflow:hidden}
+
+/* Layout des slides */
+.slides{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;max-width:1400px}
+.slide-wrap{display:flex;flex-direction:column;gap:10px}
+.slide-meta{font-size:12px;color:#888;font-family:monospace;display:flex;justify-content:space-between;align-items:center}
+.slide-meta .num{color:#FFC93C;font-weight:700;font-size:14px}
+
+/* Le slide lui-même : carré 1:1 */
+.slide{
+  position:relative;
+  width:100%;
+  aspect-ratio:1/1;
+  background:#0F0628;
+  border-radius:14px;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:8%;
+  isolation:isolate;
+  box-shadow:0 8px 30px rgba(0,0,0,.4);
+}
+
+/* Background ciel commun */
+.bg-sky{
+  position:absolute;
+  inset:0;
+  background-image:url('../assets/ciel.png');
+  background-size:cover;
+  background-position:center;
+  z-index:0;
+}
+.bg-sky::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(180deg,rgba(15,6,40,.4),rgba(15,6,40,.7));
+}
+.bg-violet{position:absolute;inset:0;background:linear-gradient(135deg,#1F0B40 0%,#3a1860 50%,#1F0B40 100%);z-index:0}
+
+.slide > *{position:relative;z-index:2}
+
+/* Slide 1 — HOOK */
+.s1 .big-title{
+  font-family:'DK Longreach',sans-serif;
+  color:#FFC93C;
+  font-size:clamp(28px,7.5vw,80px);
+  line-height:.95;
+  letter-spacing:1px;
+  text-shadow:0 4px 30px rgba(255,201,60,.3);
+}
+.s1 .moule-icon{
+  width:35%;
+  aspect-ratio:1733/2600;
+  background-image:url('../assets/moules.png');
+  background-size:contain;
+  background-repeat:no-repeat;
+  background-position:center;
+  margin:14px 0;
+  filter:drop-shadow(0 8px 20px rgba(0,0,0,.6));
+}
+.s1 .url{
+  font-size:clamp(14px,3vw,28px);
+  font-weight:800;
+  color:#fff;
+  letter-spacing:2px;
+  margin-top:8px;
+  background:rgba(255,201,60,.15);
+  padding:8px 18px;
+  border:2px solid #FFC93C;
+  border-radius:99px;
+}
+
+/* Slide 2 — PITCH */
+.s2 .quote{
+  font-family:'DK Longreach',sans-serif;
+  color:#FFC93C;
+  font-size:clamp(20px,5vw,46px);
+  line-height:1.1;
+  letter-spacing:.5px;
+}
+.s2 .quote em{font-style:normal;color:#fff}
+.s2 .url{
+  margin-top:24px;
+  font-family:'DK Longreach',sans-serif;
+  color:#FFC93C;
+  font-size:clamp(20px,4vw,36px);
+  letter-spacing:2px;
+}
+.s2 .sub{
+  font-size:clamp(11px,2vw,15px);
+  color:rgba(255,255,255,.7);
+  letter-spacing:2px;
+  margin-top:6px;
+  text-transform:uppercase;
+}
+
+/* Slide 3 — AFFICHE */
+.s3{padding:0}
+.s3 .affiche{
+  width:100%;
+  height:100%;
+  background-image:url('../Affiche%20VFestival2.png');
+  background-size:cover;
+  background-position:center;
+}
+.s3 .caption{
+  position:absolute;
+  bottom:0;
+  left:0;
+  right:0;
+  padding:18px;
+  background:linear-gradient(180deg,transparent,rgba(15,6,40,.95));
+  color:#FFC93C;
+  font-size:clamp(12px,2.4vw,18px);
+  font-weight:800;
+  letter-spacing:1px;
+  text-shadow:0 2px 8px rgba(0,0,0,.8);
+}
+
+/* Slide 4 — LOTS */
+.s4 .top10{
+  font-family:'DK Longreach',sans-serif;
+  color:#fff;
+  font-size:clamp(20px,5vw,42px);
+  letter-spacing:1px;
+  margin-bottom:6px;
+}
+.s4 .top10 b{color:#FFC93C}
+.s4 .first{
+  font-family:'DK Longreach',sans-serif;
+  color:#FFC93C;
+  font-size:clamp(28px,7.5vw,72px);
+  line-height:1;
+  letter-spacing:2px;
+  margin:14px 0;
+  text-shadow:0 4px 25px rgba(255,201,60,.4);
+}
+.s4 .first .openbar{display:block;font-size:1.2em;margin-top:4px}
+.s4 .when{
+  font-size:clamp(11px,2vw,16px);
+  color:rgba(255,255,255,.75);
+  letter-spacing:2px;
+  text-transform:uppercase;
+  margin-top:14px;
+  font-style:italic;
+}
+
+/* Slide 5 — CTA */
+.s5 .logo-fdp{
+  width:55%;
+  aspect-ratio:2600/1315;
+  background-color:#FFC93C;
+  -webkit-mask:url('../assets/Logo-fdp.png') no-repeat center / contain;
+  mask:url('../assets/Logo-fdp.png') no-repeat center / contain;
+  margin-bottom:14px;
+  filter:drop-shadow(0 4px 20px rgba(255,201,60,.4));
+}
+.s5 .url{
+  font-family:'DK Longreach',sans-serif;
+  color:#fff;
+  font-size:clamp(24px,5.5vw,52px);
+  letter-spacing:3px;
+  margin-bottom:14px;
+}
+.s5 .stats{
+  font-size:clamp(12px,2.5vw,18px);
+  color:rgba(255,255,255,.85);
+  font-weight:700;
+  letter-spacing:1px;
+  margin-bottom:6px;
+}
+.s5 .hash{
+  font-size:clamp(11px,2vw,14px);
+  color:#FFC93C;
+  font-weight:700;
+  letter-spacing:1px;
+}
+
+.note{margin-top:30px;padding:18px 22px;background:#19191c;border-radius:10px;border:1px solid #2a2a30;font-size:13px;color:#aaa;max-width:780px}
+.note strong{color:#FFC93C}
+.note h3{color:#fff;font-size:16px;margin-bottom:8px}
+
+.caption-box{margin-top:14px;padding:18px 20px;background:#15001f;border:1px solid #2a0040;border-radius:10px;font-size:12px;line-height:1.7;color:#ccc;white-space:pre-wrap;font-family:monospace}
+
+.copy-btn{display:inline-block;margin-top:8px;background:#FFC93C;color:#0a0014;padding:6px 12px;border-radius:6px;font-size:11px;font-weight:700;border:0;cursor:pointer}
+.copy-btn:hover{background:#FFD95A}
+</style>
+</head>
+<body>
+
+<a href="../index.html" class="back">← Retour</a>
+
+<svg class="svg-defs">
+  <defs>
+    <filter id="recolor-yellow">
+      <feFlood flood-color="#FFC93C"/>
+      <feComposite in2="SourceGraphic" operator="in"/>
+    </filter>
+  </defs>
+</svg>
+
+<h1>📸 Moodboard — Carousel Insta FDP</h1>
+<p class="lead">5 slides au format Instagram (1:1, 1080×1080 px). Sers-toi de ces visuels comme référence pour designer dans ton outil. Tu peux faire un <strong>clic droit → Enregistrer l'image</strong> sur n'importe quelle slide pour la récupérer.</p>
+
+<div class="slides">
+
+  <!-- SLIDE 1 — HOOK -->
+  <div class="slide-wrap">
+    <div class="slide-meta"><span class="num">SLIDE 1</span><span>HOOK · le slide qui arrête le scroll</span></div>
+    <div class="slide s1">
+      <div class="bg-sky"></div>
+      <h2 class="big-title">LANCE<br>TA MOULE</h2>
+      <div class="moule-icon"></div>
+      <div class="url">fdp.bzh</div>
+    </div>
+  </div>
+
+  <!-- SLIDE 2 — PITCH -->
+  <div class="slide-wrap">
+    <div class="slide-meta"><span class="num">SLIDE 2</span><span>PITCH · le concept en 1 phrase</span></div>
+    <div class="slide s2">
+      <div class="bg-sky"></div>
+      <p class="quote">Et si tu pouvais <em>t'entraîner au lancer de moule</em> depuis ton canapé ?</p>
+      <div class="url">fdp.bzh</div>
+      <div class="sub">★ La Moule Volante ★</div>
+    </div>
+  </div>
+
+  <!-- SLIDE 3 — AFFICHE -->
+  <div class="slide-wrap">
+    <div class="slide-meta"><span class="num">SLIDE 3</span><span>L'AFFICHE · l'événement</span></div>
+    <div class="slide s3">
+      <div class="affiche"></div>
+      <div class="caption">Le 8 août, on s'y croise pour de vrai 🌅</div>
+    </div>
+  </div>
+
+  <!-- SLIDE 4 — LOTS -->
+  <div class="slide-wrap">
+    <div class="slide-meta"><span class="num">SLIDE 4</span><span>LES LOTS · l'argument fort</span></div>
+    <div class="slide s4">
+      <div class="bg-violet"></div>
+      <p class="top10">TOP 10 = <b>boisson offerte</b></p>
+      <p class="first">1<sup>er</sup> = <span class="openbar">OPEN BAR</span></p>
+      <p class="when">à récupérer le 8 août sur place</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 5 — CTA -->
+  <div class="slide-wrap">
+    <div class="slide-meta"><span class="num">SLIDE 5</span><span>CTA · le call to action final</span></div>
+    <div class="slide s5">
+      <div class="bg-sky"></div>
+      <div class="logo-fdp"></div>
+      <div class="url">fdp.bzh</div>
+      <div class="stats">★ Déjà 6000+ parties jouées ★</div>
+      <div class="hash">#FDP2026 · #PorsPoulhan</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="note">
+  <h3>💡 Tips de prod</h3>
+  <p>• <strong>Format final</strong> : exporte chaque slide en <strong>1080×1080 px</strong> (carré). Insta accepte aussi le <strong>1080×1350 px</strong> (4:5 vertical) qui occupe plus de place dans le feed = plus d'engagement.</p>
+  <p style="margin-top:6px">• <strong>Police</strong> : utilise <strong>DK Longreach</strong> pour les titres (déjà sur ton ordi). Manrope ou Inter pour le corps de texte.</p>
+  <p style="margin-top:6px">• <strong>Hiérarchie</strong> : en général, slide 1 = visuel ultra simple + 1 phrase. Plus tu vas loin dans le carousel, plus tu peux mettre d'info.</p>
+  <p style="margin-top:6px">• <strong>Contraste</strong> : sur Insta beaucoup voient en mode sombre/clair selon leur OS. Évite les textes pâles sur fond pâle.</p>
+  <p style="margin-top:6px">• <strong>Cohérence</strong> : garde la même palette (violet sombre + jaune doré + blanc) sur les 5 slides. C'est ça qui fait reconnaître ta marque.</p>
+</div>
+
+<div class="note">
+  <h3>📝 La caption à coller dans Insta</h3>
+  <div class="caption-box" id="caption">🦪 LA MOULE VOLANTE est en ligne !
+
+Le championnat officiel du lancer de moule, version pixel.
+Bats le record et viens défendre ta place le 8 août à Pors-Poulhan.
+
+→ Top 10 : boisson offerte le jour J
+→ 1er : OPEN BAR toute la soirée
+
+C'est gratuit, c'est sur fdp.bzh, ça défoule.
+
+Le jeu se joue avec le son 🔊
+Tu te crois fort·e ? Mets ton pseudo Insta dans le top 10, on te reconnaît ✌️
+
+📍 Pors-Poulhan, samedi 8 août 2026
+🎸 KLEM H · BYE BYE PANKE · DJUNGLE
+
+#FDP #FêteDuPort #PorsPoulhan #Bretagne #CapSizun #MouleVolante #Plouhinec #Audierne #BzhKemp #JeuxBretons #FestivalBretagne</div>
+    <button class="copy-btn" onclick="
+      var t=document.getElementById('caption').textContent;
+      navigator.clipboard.writeText(t);
+      this.textContent='✓ COPIÉ !';
+      var that=this;setTimeout(function(){that.textContent='📋 Copier la caption';},1500);
+    ">📋 Copier la caption</button>
+</div>
+
+<div class="note">
+  <h3>🎬 Pour le Reel (en bonus)</h3>
+  <p><strong>Format</strong> : 9:16 vertical, 1080×1920 px, 15-30 secondes</p>
+  <p style="margin-top:6px"><strong>Structure suggérée</strong> :</p>
+  <p>0-2s : un plan d'une main qui prend un téléphone</p>
+  <p>2-3s : zoom sur l'écran qui montre la home fdp.bzh</p>
+  <p>3-15s : <strong>screen recording du gameplay</strong> (idéalement avec une partie qui combo bien)</p>
+  <p>15-22s : carton final "★ LA MOULE VOLANTE ★ fdp.bzh"</p>
+  <p style="margin-top:8px"><strong>Comment screen-recorder</strong> :</p>
+  <p>• <strong>iPhone</strong> : Centre de contrôle (slide depuis coin haut-droit) → bouton ⏺️ enregistrement écran</p>
+  <p>• <strong>Android</strong> : capture d'écran longue, ou fonction "Screen Record" dans les paramètres rapides</p>
+  <p style="margin-top:8px"><strong>Musique</strong> : prends un son tendance Insta (l'algo favorise les sons populaires). Recherche "chiptune" ou "8-bit" dans la bibliothèque audio Insta.</p>
+</div>
+
+<div class="note" style="background:#1f0a14;border-color:#7a1a40">
+  <h3>🚀 Boost organique : checklist du jour J</h3>
+  <p>☐ <strong>Heure du post</strong> : mardi-jeudi 18h-20h</p>
+  <p>☐ <strong>Géolocalise</strong> "Pors-Poulhan" sur le post</p>
+  <p>☐ <strong>Tag</strong> @KLEMH @ByeByePanke @Djungle (s'ils ont des comptes)</p>
+  <p>☐ <strong>Demande aux bénévoles</strong> de liker + commenter dans la 1ère heure</p>
+  <p>☐ <strong>Repartage</strong> dans une story dès le post publié</p>
+  <p>☐ <strong>Highlight permanent</strong> : crée une highlight "🦪 Le jeu" sur ton profil</p>
+  <p>☐ <strong>Pin</strong> : épingle le post en haut de ton feed</p>
+  <p>☐ <strong>Cross-poste</strong> sur Facebook (case "partager sur FB" en publiant)</p>
+  <p>☐ Le lendemain : <strong>story</strong> "vous êtes X joueurs, le record est à Yom, qui le bat ?"</p>
+</div>
+
+</body>
+</html>
