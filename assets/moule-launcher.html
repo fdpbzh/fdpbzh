@@ -107,18 +107,18 @@ function loadScores(){
     .catch(function(){return[];});
 }
 
-// Charge le top 1 (champion actuel) pour afficher son squelette en jeu
-var topScore=null; // {name, score, wx}
+// Charge le top 3 pour afficher leurs squelettes en jeu
+var topScores=[]; // [{name, score, wx}, ...]
+var topScore=null; // alias pour le 1er (utilisé par checkBeatTop)
 function loadTopScore(){
-  return fetch(SB_URL+'/scores?select=name,score&order=score.desc&limit=1',{headers:sbHeaders()})
+  return fetch(SB_URL+'/scores?select=name,score&order=score.desc&limit=3',{headers:sbHeaders()})
     .then(function(r){return r.json();})
     .then(function(data){
-      if(data&&data[0]){
-        topScore={
-          name:data[0].name,
-          score:data[0].score,
-          wx:data[0].score*METERS+CRAB_WX
-        };
+      if(data&&data.length){
+        topScores=data.map(function(d){
+          return{name:d.name,score:d.score,wx:d.score*METERS+CRAB_WX};
+        });
+        topScore=topScores[0]; // pour le check de "record battu"
       }
     })
     .catch(function(){});
@@ -233,21 +233,33 @@ function setSlowMo(active){
   if(active)slowMoEntryFlash=18; // flash écran à l'activation
 }
 
+// Mélodie originale FDP — composée pour le jeu (A mineur / C majeur, esprit "vague océanique")
+// 100% originale, aucune référence à un thème existant
 var MELODY=[
-  [N.E5,.5],[N.E5,.25],[N.E5,.25],[N.C5,.5],[N.E5,.5],
-  [N.G5,1],[N._,.5],[N.G4,.5],
-  [N.C5,.75],[N._,.25],[N.G4,.5],[N._,.5],
-  [N.E4,.75],[N._,.25],[N.A4,.5],[N.B4,.5],
-  [N.Bb4,.25],[N.A4,.5],[N.G4,.34],[N.E5,.33],[N.G5,.33],
-  [N.A5,.5],[N.F5,.25],[N.G5,.25],[N._,.25],[N.E5,.5],[N._,.25],
-  [N.C5,.25],[N.D5,.25],[N.B4,.5],[N._,.5],
-  [N._,1],
-  [N.G5,.25],[N.Gb5,.25],[N.F5,.25],[N.Eb5,.5],[N._,.25],
-  [N.E5,.5],[N._,.25],[N.Ab4,.25],[N.A4,.25],[N.C5,.5],
-  [N._,.25],[N.A4,.25],[N.C5,.25],[N.D5,.5],
-  [N.G5,.25],[N.Gb5,.25],[N.F5,.25],[N.Eb5,.5],[N._,.25],
-  [N.E5,.5],[N._,.25],[N.C5,.25],[N._,.25],[N.C5,.25],[N.C5,.5],
-  [N._,1],
+  // Phrase A : ondulation introductive (vagues qui montent)
+  [N.A4,.5],[N.C5,.5],[N.E5,.5],[N.D5,.5],
+  [N.A4,.5],[N.C5,.5],[N.E5,.5],[N.F5,.5],
+  // Phrase B : descente (vagues qui retombent)
+  [N.G5,.5],[N.E5,.5],[N.D5,.5],[N.C5,.5],
+  [N.A4,.5],[N.C5,.5],[N.D5,.5],[N.E5,.5],
+  // Phrase C : gamme ascendante puis descendante
+  [N.C5,.25],[N.D5,.25],[N.E5,.25],[N.F5,.25],[N.G5,.5],[N.A5,.5],
+  [N.G5,.25],[N.F5,.25],[N.E5,.25],[N.D5,.25],[N.C5,.5],[N.E5,.5],
+  // Phrase D : climax
+  [N.A5,.5],[N.G5,.5],[N.E5,.5],[N.C5,.5],
+  [N.D5,.5],[N.E5,.5],[N.G5,1],
+  // Phrase E : variation rythmique
+  [N.E5,.25],[N.D5,.25],[N.C5,.25],[N.D5,.25],[N.E5,.5],[N.G5,.5],
+  [N.A5,.25],[N.G5,.25],[N.F5,.25],[N.E5,.25],[N.D5,.5],[N.C5,.5],
+  // Phrase F : reprise du motif
+  [N.C5,.5],[N.E5,.5],[N.G5,.5],[N.A5,.5],
+  [N.G5,.5],[N.E5,.5],[N.D5,.5],[N.C5,.5],
+  // Phrase G : ascension finale
+  [N.G4,.25],[N.A4,.25],[N.C5,.5],[N.E5,.5],[N.A5,.5],
+  [N.G5,.25],[N.E5,.25],[N.D5,.25],[N.C5,.25],[N.A4,.5],
+  // Phrase H : outro
+  [N._,.5],[N.E5,.5],[N.D5,.5],[N.C5,.5],
+  [N.A4,1],[N._,1],
 ];
 var COUNTER=[
   [N.C4,2],[N.G3,2],[N.E4,1],[N.C4,1],[N.G3,2],
@@ -373,8 +385,9 @@ var GRAVITY=0.176,LAUNCH_SPD=17.6;
 var VX_CAP=70; // vitesse horizontale maximale (anti-décollage)
 var FINISH_WX=65130,CELEBRATE_WX=65130,WORLD_END=120000;
 var CELEBRATE_END_WX=78260; // fin de la zone célébration (panneau "MAX 6000m" hommage)
-var SQUELETTE_WX=78130; // squelettes des champions à 6010m
+var SQUELETTE_WX=78130; // position des squelettes top 3 (~6010m)
 var ASTRAL_START_WX=78000; // début zone astrale (~6000m)
+var CRABS_DANCE_WX=79000; // crabes dansants juste après les squelettes (~6080m)
 var REAL_END_WX=117260; // fin réelle du jeu : 9020m
 var camX=0;
 function toSX(wx){return wx-camX;}
@@ -1005,36 +1018,25 @@ function drawMussSkeleton(cx,cy,name){
 }
 
 function drawSquelettesHommage(){
-  var sx=toSX(SQUELETTE_WX);
-  if(sx>=-150&&sx<=W+150){
-    drawMussSkeleton(sx-30,GY-2,'PLOUPLOU');
-    drawMussSkeleton(sx+30,GY-2,'SEBITCH');
-    ctx.fillStyle='rgba(255,215,0,.8)';
-    ctx.font='bold 6px "Press Start 2P"';
+  // Squelettes des 3 meilleurs scores actuels (chargés depuis Supabase)
+  if(!topScores||!topScores.length)return;
+  var rankLabels=['♛ 1er ♛','★ 2e ★','★ 3e ★'];
+  var rankColors=['rgba(255,215,0,.95)','rgba(220,220,220,.95)','rgba(220,140,80,.95)'];
+  topScores.forEach(function(t,i){
+    var tsx=toSX(t.wx);
+    if(tsx<-150||tsx>W+150)return;
+    drawMussSkeleton(tsx,GY-2,t.name);
+    // Couronne + rang
+    ctx.fillStyle=rankColors[i]||'rgba(180,180,180,.8)';
+    ctx.font='bold 7px "Press Start 2P"';
     ctx.textAlign='center';
-    ctx.fillText('★ HOMMAGE ★',sx,GY-60);
-    ctx.fillStyle='rgba(240,171,252,.6)';
-    ctx.font='4px "Press Start 2P"';
-    ctx.fillText('CHAMPIONS 2026',sx,GY-50);
+    ctx.fillText(rankLabels[i]||(i+1)+'e',tsx,GY-62);
+    // Score en mètres
+    ctx.fillStyle='rgba(255,255,150,.7)';
+    ctx.font='5px "Press Start 2P"';
+    ctx.fillText(t.score+' M',tsx,GY-50);
     ctx.textAlign='left';
-  }
-
-  // Squelette du champion en cours (top score actuel)
-  if(topScore&&topScore.score>0){
-    var tsx=toSX(topScore.wx);
-    if(tsx>=-150&&tsx<=W+150){
-      drawMussSkeleton(tsx,GY-2,topScore.name);
-      // Couronne + label "RECORD"
-      ctx.fillStyle='rgba(255,215,0,.95)';
-      ctx.font='bold 7px "Press Start 2P"';
-      ctx.textAlign='center';
-      ctx.fillText('♛ RECORD ♛',tsx,GY-62);
-      ctx.fillStyle='rgba(255,255,150,.7)';
-      ctx.font='5px "Press Start 2P"';
-      ctx.fillText(topScore.score+' M',tsx,GY-50);
-      ctx.textAlign='left';
-    }
-  }
+  });
 }
 
 function drawDanceCrab(cx,cy,t2){
@@ -1131,10 +1133,9 @@ function drawFinish(){
       ctx.globalAlpha=1;
     });
 
-    // Crabes dansants (limités à la zone célébration)
+    // Crabes dansants déplacés après 6000m (au-delà des squelettes top 3)
     DANCE_CRABS.forEach(function(dc){
-      var dwx=CELEBRATE_WX+dc.ox;
-      if(dwx>CELEBRATE_END_WX)return;
+      var dwx=CRABS_DANCE_WX+dc.ox;
       var cx2=toSX(dwx);
       if(cx2<-40||cx2>W+40)return;
       drawDanceCrab(cx2,GY,bgT+dc.phase);
@@ -1153,24 +1154,7 @@ function drawFinish(){
     }
   }
 
-  // ══ PANNEAU FIN (entrée de la zone) ══
-  if(sx<-120||sx>W+20)return;
-  // Crabe dansant à droite du panneau
-  drawDanceCrab(sx+55,GY,bgT);
-  // Poteau
-  ctx.fillStyle='#4a2e08';ctx.fillRect(sx-3,GY-80,6,80);
-  ctx.fillStyle='#2e1a04';ctx.fillRect(sx-3,GY-80,2,80);
-  // Panneau petit
-  var pw=80,ph2=38,py2=GY-80-ph2;
-  ctx.fillStyle='#0a0018';ctx.fillRect(sx-pw/2+2,py2+2,pw,ph2);
-  ctx.fillStyle='#1e0038';ctx.fillRect(sx-pw/2,py2,pw,ph2);
-  ctx.strokeStyle='#ffd700';ctx.lineWidth=2;ctx.strokeRect(sx-pw/2,py2,pw,ph2);
-  ctx.strokeStyle='#c026d3';ctx.lineWidth=1;ctx.strokeRect(sx-pw/2+3,py2+3,pw-6,ph2-6);
-  for(var i=0;i<8;i++){ctx.fillStyle=i%2===0?'#ffd700':'#c026d3';ctx.fillRect(sx-pw/2+i*10,py2,10,4);}
-  ctx.font='bold 16px monospace';ctx.textAlign='center';
-  ctx.fillStyle='#ffd700';ctx.shadowColor='#c026d3';ctx.shadowBlur=6;
-  ctx.fillText('FIN',sx,py2+26);ctx.shadowBlur=0;ctx.textAlign='left';
-  for(var r=0;r<4;r++)for(var c=0;c<3;c++){ctx.fillStyle=(r+c)%2===0?'#fff':'#111';ctx.fillRect(sx+3+c*5,GY-80+r*5,5,5);}
+  // (panneau FIN retiré pour simplifier la zone)
 }
 
 // ══════ GAME STATE ══════
