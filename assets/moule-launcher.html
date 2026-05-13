@@ -388,7 +388,7 @@ var FINISH_WX=65130,CELEBRATE_WX=65130,WORLD_END=120000;
 var CELEBRATE_END_WX=78260; // fin de la zone célébration (panneau "MAX 6000m" hommage)
 var SQUELETTE_WX=78130; // position des squelettes top 3 (~6010m)
 var ASTRAL_START_WX=78000; // début zone astrale (~6000m)
-var CRABS_DANCE_WX=79000; // crabes dansants juste après les squelettes (~6080m)
+var CRABS_DANCE_WX=87150; // crabes dansants entre 6700m et 7100m (déplacés pour rester atteignables)
 var REAL_END_WX=117260; // fin réelle du jeu : 9020m
 var camX=0;
 function toSX(wx){return wx-camX;}
@@ -610,8 +610,9 @@ function drawFireParticles(){
 }
 
 // ══════ DÉCOR SCÉNARISÉ ══════
+var CLOUD_LOOP=3500; // boucle nuages : reapparaissent après 3500 wx de défilement parallaxe
 var CLOUDS=[];
-for(var ci=0;ci<24;ci++)CLOUDS.push({x:Math.random()*WORLD_END,y:15+Math.random()*70,spd:.07+Math.random()*.06,w:55+Math.random()*90,h:12+Math.random()*16});
+for(var ci=0;ci<24;ci++)CLOUDS.push({x:Math.random()*CLOUD_LOOP,y:15+Math.random()*70,spd:0.005+Math.random()*0.015,w:55+Math.random()*90,h:12+Math.random()*16});
 var BUOYS=[{x:900,ph:0},{x:1800,ph:1.4},{x:2900,ph:2.1},{x:4100,ph:.8},{x:5600,ph:1.7},{x:7200,ph:1.1},{x:9000,ph:.5},{x:11000,ph:2.0},{x:13000,ph:1.3},{x:20000,ph:.7},{x:30000,ph:1.8},{x:45000,ph:.4},{x:60000,ph:2.2}];
 var STARS=[];for(var si=0;si<60;si++)STARS.push({x:Math.random()*W,y:Math.random()*H*.55,ph:Math.random()*Math.PI*2,sz:Math.random()<.2?2:1});
 
@@ -682,9 +683,9 @@ function drawCelestialPixel(dist,t2){
 // === DÉCOR ASTRAL ===
 // Planètes positionnées dans le monde (avec parallax via leur wx)
 var ASTRAL_BODIES=[
-  {wx:84500,type:'saturn',sy:H*0.25,size:7},        // ~6500m : Saturne
-  {wx:95000,type:'gasgiant',sy:H*0.18,size:9},      // ~7300m : géante gazeuse rose
-  {wx:108000,type:'galaxy',sy:H*0.30,size:34}       // ~8300m : galaxie spirale
+  {wx:80730, type:'saturn',  sy:H*0.25, size:7},   // ~6200m : Saturne (atteint dès l'entrée astrale)
+  {wx:86730, type:'gasgiant',sy:H*0.18, size:9},   // ~6660m : géante gazeuse rose
+  {wx:92930, type:'galaxy',  sy:H*0.30, size:34}   // ~7140m : galaxie spirale (juste avant fin atteinte)
 ];
 function drawAstralBodies(dist,t2,ps){
   // Étoiles colorées supplémentaires en mode astral (sont déjà dessinées dans drawDecor)
@@ -736,11 +737,452 @@ function drawAstralBodies(dist,t2,ps){
   });
 }
 
+// ══════ DÉCORS BONUS (validés mai 2026, purement visuels — zéro physique) ══════
+
+// 1) PHARE de Pors-Poulhan — PREMIER PLAN, 4x plus gros (s=16 vs s=4)
+//    Toit large +30%, position sur la falaise, parallaxe 1.0 (défile avec le monde)
+function drawLighthouse(){
+  var LX=400;
+  var sx=toSX(LX);
+  if(sx<-200||sx>W+200)return; // visibilité élargie : sprite occupe ~125 px de large
+  var cx=sx,cy=GY-2,s=16;
+  // Palette mauve synthwave (au lieu du rouge — cohérent avec l'ambiance nuit)
+  var roofMauve='#9024b8',roofDark='#5c1880',roofLight='#c040d8';
+  var wallWhite='#ede5d4',wallShade='#bcb4a0';
+  var trimGrey='#5e5e5e';
+  var grassGreen='#3d5a1a',grassDark='#2a3f12';
+  var rockGrey='#6a5d50',rockDark='#4a3f35';
+  // FALAISE / ROCHE sous le phare
+  px(cx,cy,-s*7,-s*0.5,s*14,s*1.5,rockGrey);
+  px(cx,cy,-s*6,s,s*12,s*0.7,rockDark);
+  // Herbe verte au sommet de la falaise
+  for(var i=0;i<6;i++){
+    var hx=-s*5.5+i*s*2;
+    px(cx,cy,hx,-s*0.8,s*1.5,s*0.4,grassGreen);
+  }
+  px(cx,cy,-s*5,-s*0.7,s*10,s*0.25,grassDark);
+  // CORPS BLANC (6s × 7s)
+  px(cx,cy,-s*3,-s*8,s*6,s*7,wallWhite);
+  px(cx,cy,s*2,-s*8,s,s*7,wallShade); // ombre côté droit
+  px(cx,cy,-s*3.5,-s*1,s*7,s*0.5,trimGrey); // trim sol
+  // TOIT MAUVE — partie large EN HAUT à 7.8s (= base 6s × 1.30 → exactement +30%)
+  px(cx,cy,-s*3,-s*9,s*6,s,roofMauve);       // bas étroit (6s)
+  px(cx,cy,-s*3.9,-s*10,s*7.8,s,roofMauve);  // haut large (7.8s, +30% vs base)
+  // Reflets / ombres effet 3D
+  px(cx,cy,-s*3,-s*9,s*0.6,s,roofLight);
+  px(cx,cy,-s*3.9,-s*10,s*0.6,s,roofLight);
+  px(cx,cy,s*2.5,-s*9,s*0.5,s,roofDark);
+  px(cx,cy,s*3.2,-s*10,s*0.7,s,roofDark);
+  px(cx,cy,-s*3.9,-s*9.2,s*7.8,s*0.25,roofDark); // liseré sombre sous l'overhang
+  // Halo lumineux qui clignote (lanterne) — palette plus chaude pour contraster le mauve
+  if(Math.sin(bgT*0.5)>0.3){
+    var grad=ctx.createRadialGradient(cx,cy-s*10,0,cx,cy-s*10,s*6);
+    grad.addColorStop(0,'rgba(255,220,140,0.45)');
+    grad.addColorStop(0.5,'rgba(255,180,200,0.20)');
+    grad.addColorStop(1,'rgba(255,160,200,0)');
+    ctx.fillStyle=grad;
+    ctx.beginPath();ctx.arc(cx,cy-s*10,s*6,0,Math.PI*2);ctx.fill();
+  }
+}
+
+// 2) VOILIERS — 3 sur la mer, légère oscillation
+var SAILBOATS=[
+  {wx:7150, sz:1.0, ph:0.3},   // ~540m
+  {wx:23900,sz:0.85,ph:1.1},   // ~1827m
+  {wx:41900,sz:1.1, ph:2.4}    // ~3213m
+];
+function drawSailboats(dist,t2){
+  SAILBOATS.forEach(function(b){
+    var sx=toSX(b.wx);
+    if(sx<-30||sx>W+30)return;
+    var sy=SY+Math.sin(t2*0.04+b.ph)*1.5-2;
+    var s=b.sz;
+    // Couleur selon zone
+    var hull='#1a1a3a',sail='#e8dcc8';
+    if(dist>1000){hull='#0d0d1f';sail='#a090a8';}
+    if(dist>3500){hull='#0a0820';sail='#807088';}
+    // Coque (trapèze)
+    ctx.fillStyle=hull;
+    ctx.fillRect(sx-6*s,sy,12*s,2*s);
+    ctx.fillRect(sx-5*s,sy+2*s,10*s,1*s);
+    // Mât
+    ctx.fillRect(sx,sy-12*s,1,12*s);
+    // Voile principale (triangle pixel)
+    ctx.fillStyle=sail;
+    for(var i=0;i<12*s;i++){
+      var w=Math.max(1,Math.round((12*s-i)*0.55));
+      ctx.fillRect(sx+1,sy-12*s+i,w,1);
+    }
+    // Voile avant (foc)
+    for(var i=0;i<7*s;i++){
+      var w=Math.max(1,Math.round((7*s-i)*0.5));
+      ctx.fillRect(sx-w,sy-7*s+i,w,1);
+    }
+    // Reflet sur l'eau
+    ctx.fillStyle='rgba(255,255,255,0.08)';
+    ctx.fillRect(sx-5*s,sy+3*s,10*s,1);
+  });
+}
+
+// 3) POISSONS SAUTEURS — pool aléatoire sur toute la mer
+var FISH_POOL=[];
+(function initFish(){
+  for(var i=0;i<32;i++){
+    FISH_POOL.push({
+      wx:SHORE+200+Math.random()*76000,
+      ph:Math.random()*Math.PI*2,
+      cs:0.015+Math.random()*0.012,
+      sz:Math.random()<0.25?2:1
+    });
+  }
+})();
+function drawJumpingFish(t2){
+  FISH_POOL.forEach(function(f){
+    var sx=toSX(f.wx);
+    if(sx<-20||sx>W+20)return;
+    // Cycle complet 2π : 0→π = en l'air (parabole), π→2π = sous l'eau (invisible)
+    var cycle=(t2*f.cs+f.ph)%(Math.PI*2);
+    if(cycle>Math.PI)return;
+    var p=cycle/Math.PI;
+    var arc=4*p*(1-p);
+    var jy=SY-arc*22-3;
+    var s=f.sz;
+    var dir=p<0.5?1:-1;
+    // Corps argenté
+    ctx.fillStyle='#cfe0ec';
+    ctx.fillRect(sx-2*s,jy,4*s,2*s);
+    // Queue (orientée selon montée/descente)
+    ctx.fillStyle='#9fb8c8';
+    ctx.fillRect(sx-3*s*dir,jy+s,1*s,1*s);
+    // Reflet
+    if(p>0.15&&p<0.85){
+      ctx.fillStyle='rgba(255,255,255,0.6)';
+      ctx.fillRect(sx,jy,1,1);
+    }
+  });
+}
+
+// 4) ÉTOILE FILANTE — zone nuit (1000-6000m), rare (~1/3 partie)
+var shootingStar=null;
+var shootingStarTimer=99999;
+function resetShootingStar(){
+  shootingStar=null;
+  // 1 chance sur 3 d'avoir une étoile filante cette partie
+  if(Math.random()<0.33){
+    shootingStarTimer=400+Math.random()*1500;
+  } else {
+    shootingStarTimer=99999;
+  }
+}
+function updateShootingStar(dist){
+  if(dist<1000||dist>6000){
+    if(shootingStar&&shootingStar.t>shootingStar.life)shootingStar=null;
+    return;
+  }
+  if(shootingStar){
+    shootingStar.t++;
+    if(shootingStar.t>shootingStar.life){
+      shootingStar=null;
+      shootingStarTimer=99999; // une seule par partie
+    }
+  } else if(shootingStarTimer<99999){
+    shootingStarTimer--;
+    if(shootingStarTimer<=0){
+      shootingStar={
+        x:Math.random()*W*0.6,
+        y:20+Math.random()*H*0.30,
+        vx:4+Math.random()*2,
+        vy:1.0+Math.random()*0.7,
+        t:0,
+        life:55
+      };
+    }
+  }
+}
+function drawShootingStar(){
+  if(!shootingStar)return;
+  var s=shootingStar;
+  var cx=s.x+s.vx*s.t,cy=s.y+s.vy*s.t;
+  var fade=Math.max(0,1-s.t/s.life);
+  // Traînée
+  for(var i=0;i<14;i++){
+    var tx=cx-s.vx*i,ty=cy-s.vy*i;
+    var a=Math.max(0,1-i/14)*fade;
+    ctx.fillStyle='rgba(255,255,255,'+a+')';
+    var sz=i<3?2:1;
+    ctx.fillRect(tx,ty,sz,sz);
+  }
+  // Tête lumineuse
+  ctx.fillStyle='rgba(255,240,200,'+fade+')';
+  ctx.fillRect(cx-1,cy-1,3,3);
+  ctx.fillStyle='rgba(255,200,120,'+(fade*0.6)+')';
+  ctx.fillRect(cx-2,cy,5,1);
+  ctx.fillRect(cx,cy-2,1,5);
+}
+
+// 6) PROFONDEUR — couches de silhouettes lointaines en parallaxe
+//    3 couches : montagnes lointaines (lent, hautes) → collines (médian) → avant-plan (rapide, bas)
+function drawMountainLayer(camOff,amp,elev,color){
+  // Polygone étendu jusqu'à y=H pour cacher soleil/lune qui descendent sous l'horizon.
+  // La mer/plage (dessinées après) couvrent l'extension below SY, donc visuellement
+  // on ne voit que la silhouette au-dessus de l'horizon — mais elle MASQUE le soleil.
+  ctx.fillStyle=color;
+  ctx.beginPath();
+  ctx.moveTo(-5,H);
+  ctx.lineTo(-5,SY);
+  for(var x=-5;x<=W+5;x+=4){
+    var n=Math.sin((x+camOff)*0.0110)*0.45
+         +Math.sin((x+camOff)*0.0270+1.3)*0.28
+         +Math.sin((x+camOff)*0.0520)*0.15;
+    n=Math.max(0,n+0.5);
+    ctx.lineTo(x,SY-elev-n*amp);
+  }
+  ctx.lineTo(W+5,SY);
+  ctx.lineTo(W+5,H);
+  ctx.closePath();
+  ctx.fill();
+}
+function drawMountains(dist){
+  // Couleurs selon zone (sunset / nuit / astral)
+  var c1,c2,c3;
+  if(dist<1000){
+    // Coucher de soleil : silhouettes violettes
+    c1='rgba(50,12,90,0.42)';   // loin (plus pâle)
+    c2='rgba(72,20,108,0.58)';
+    c3='rgba(95,30,120,0.70)';  // proche (plus dense)
+  } else if(dist<6000){
+    // Nuit : silhouettes très sombres
+    c1='rgba(14,8,30,0.55)';
+    c2='rgba(26,14,46,0.72)';
+    c3='rgba(42,22,60,0.80)';
+  } else {
+    // Astral : presque noires (renforce vide cosmique)
+    c1='rgba(8,5,20,0.65)';
+    c2='rgba(16,9,28,0.78)';
+    c3='rgba(24,14,38,0.85)';
+  }
+  // Couche 1 : très lointaine, hautes montagnes, parallaxe lent
+  drawMountainLayer(camX*0.09,        72, 18, c1);
+  // Couche 2 : collines médianes
+  drawMountainLayer(camX*0.20 + 437,  42, 8,  c2);
+  // Couche 3 : avant-plan bas, parallaxe rapide
+  drawMountainLayer(camX*0.38 + 813,  24, 0,  c3);
+}
+
+// 7) AURORE BORÉALE — zone astrale (6000m+)
+function drawAurora(t2,astralP){
+  if(astralP<=0)return;
+  var colors=[
+    {c:'80,255,160',a:0.20},
+    {c:'120,200,255',a:0.16},
+    {c:'200,150,255',a:0.13}
+  ];
+  ctx.globalAlpha=astralP;
+  for(var band=0;band<3;band++){
+    var col=colors[band];
+    var yBase=35+band*20;
+    var grad=ctx.createLinearGradient(0,yBase-6,0,yBase+30);
+    grad.addColorStop(0,'rgba('+col.c+',0)');
+    grad.addColorStop(0.45,'rgba('+col.c+','+col.a+')');
+    grad.addColorStop(1,'rgba('+col.c+',0)');
+    ctx.fillStyle=grad;
+    ctx.beginPath();
+    ctx.moveTo(0,yBase);
+    for(var x=0;x<=W;x+=6){
+      var wave=Math.sin((x*0.011)+t2*0.018+band*1.7)*14
+              +Math.sin((x*0.026)+t2*0.011+band*0.7)*7;
+      ctx.lineTo(x,yBase+wave);
+    }
+    for(var x=W;x>=0;x-=6){
+      var wave2=Math.sin((x*0.011)+t2*0.018+band*1.7)*14
+              +Math.sin((x*0.026)+t2*0.011+band*0.7)*7;
+      ctx.lineTo(x,yBase+wave2+22+band*4);
+    }
+    ctx.closePath();ctx.fill();
+  }
+  ctx.globalAlpha=1;
+}
+
+// 8) STARDUST — particules colorées dérivantes en zone astrale
+var STARDUST=[];
+(function initStardust(){
+  var colors=['#f0abfc','#80c0ff','#ffd700','#fff','#ff80c0','#a0ff80'];
+  for(var sd=0;sd<55;sd++){
+    STARDUST.push({
+      x:Math.random()*W,
+      y:Math.random()*H*0.72,
+      vx:-0.25-Math.random()*0.55,
+      vy:-0.08+Math.random()*0.16,
+      sz:Math.random()<0.25?2:1,
+      color:colors[Math.floor(Math.random()*colors.length)],
+      ph:Math.random()*Math.PI*2,
+      twk:0.04+Math.random()*0.05
+    });
+  }
+})();
+function drawStardust(t2,astralP){
+  if(astralP<=0)return;
+  STARDUST.forEach(function(p){
+    p.x+=p.vx;p.y+=p.vy;
+    if(p.x<-5){p.x=W+5;p.y=Math.random()*H*0.72;}
+    if(p.y<-5)p.y=H*0.72;
+    if(p.y>H*0.72)p.y=-5;
+    var twk=0.4+0.6*Math.abs(Math.sin(t2*p.twk+p.ph));
+    ctx.globalAlpha=astralP*twk;
+    ctx.fillStyle=p.color;
+    ctx.fillRect(p.x,p.y,p.sz,p.sz);
+  });
+  ctx.globalAlpha=1;
+}
+
+// 9) OYATS — touffes d'herbe de dune sur la plage au début
+var OYATS=[
+  {wx:60, h:9, ph:0.0,  sw:1.0},
+  {wx:135,h:7, ph:1.2,  sw:0.7},
+  {wx:215,h:11,ph:0.5,  sw:1.2},
+  {wx:285,h:8, ph:2.1,  sw:0.9},
+  {wx:355,h:10,ph:1.7,  sw:1.1},
+  {wx:485,h:7, ph:0.3,  sw:0.8},
+  {wx:545,h:9, ph:1.5,  sw:1.0},
+  {wx:605,h:8, ph:2.4,  sw:0.9}
+];
+function drawOyats(dist,t2){
+  // Atténuation couleur selon zone (devient plus sombres la nuit)
+  var bladeMid=dist<1000?'#3d5a1a':dist<3500?'#1f3010':'#162208';
+  var bladeDark=dist<1000?'#2a3f12':dist<3500?'#15200a':'#0b1404';
+  OYATS.forEach(function(o){
+    var sx=toSX(o.wx);
+    if(sx<-10||sx>W+10)return;
+    var sway=Math.sin(t2*0.05+o.ph)*1.8*o.sw;
+    // Base (petite touffe sombre)
+    ctx.fillStyle=bladeDark;
+    ctx.fillRect(sx-1,GY-1,3,2);
+    // 4 brins qui s'éventaillent en hauteur, balancent au vent
+    for(var b=0;b<4;b++){
+      var bx=sx-1+b;
+      var bh=o.h-Math.abs(b-1.5);
+      var swayX=Math.round(sway*(0.4+b*0.2));
+      ctx.fillStyle=b===0||b===3?bladeDark:bladeMid;
+      ctx.fillRect(bx+swayX,GY-bh,1,bh);
+    }
+  });
+}
+
+// 10) VAGUES AVANT-PLAN — silhouettes animées au ras du bas, parallaxe > 1
+function drawForegroundWaves(dist,t2){
+  // Limite à la zone mer (après SHORE), sinon ça flotte au-dessus de la plage
+  var seaStart=Math.max(0,toSX(SHORE));
+  if(seaStart>=W)return;
+  // Couleurs OR pour matcher l'affiche FDP — reflets dorés sur l'eau (au lieu de silhouettes sombres)
+  var c1,c2,c3;
+  if(dist<1000){
+    // Coucher : or chaud teinté coral
+    c1='rgba(255,200,100,0.45)'; c2='rgba(255,180,70,0.65)'; c3='rgba(255,201,60,0.86)';
+  } else if(dist<6000){
+    // Nuit : or vif et saturé (effet néon doré sur mer noire — comme l'affiche)
+    c1='rgba(255,200,90,0.48)';  c2='rgba(255,205,60,0.68)'; c3='rgba(255,220,80,0.90)';
+  } else {
+    // Astral : or atténué et un peu plus froid
+    c1='rgba(220,180,90,0.36)';  c2='rgba(240,200,90,0.55)'; c3='rgba(255,210,90,0.75)';
+  }
+  // 3 couches de vagues, plus elles sont devant plus elles bougent vite (parallaxe x1.3 → x1.75)
+  var layers=[
+    {p:1.30, by:H-22, amp:6, fr:0.024, tspd:0.058, ph:0.0, col:c1},
+    {p:1.50, by:H-12, amp:7, fr:0.030, tspd:0.045, ph:1.4, col:c2},
+    {p:1.75, by:H-4,  amp:9, fr:0.038, tspd:0.052, ph:2.5, col:c3}
+  ];
+  layers.forEach(function(L){
+    var off=camX*L.p;
+    ctx.fillStyle=L.col;
+    ctx.beginPath();
+    ctx.moveTo(seaStart-5,H);
+    ctx.lineTo(seaStart-5,L.by);
+    for(var x=seaStart-5;x<=W+5;x+=4){
+      var y=L.by+Math.sin((x+off)*L.fr+t2*L.tspd+L.ph)*L.amp
+                +Math.sin((x+off)*L.fr*2.3+t2*L.tspd*1.3)*L.amp*0.35;
+      ctx.lineTo(x,y);
+    }
+    ctx.lineTo(W+5,L.by);
+    ctx.lineTo(W+5,H);
+    ctx.closePath();ctx.fill();
+  });
+}
+
+// 11) SURFEURS — petits sprites sur la crête des vagues avant-plan
+var SURFERS=[
+  // Plus de surfeurs + planches en couleurs qui contrastent avec l'or
+  {wx:3200,  pose:0, board:'#ffffff', wetsuit:'#1a1a3a'},
+  {wx:8600,  pose:1, board:'#f0abfc', wetsuit:'#080a28'},
+  {wx:14800, pose:0, board:'#ff4d9b', wetsuit:'#0a0428'},
+  {wx:21500, pose:1, board:'#80c0ff', wetsuit:'#08182a'},
+  {wx:28300, pose:0, board:'#ffffff', wetsuit:'#1c0a4a'},
+  {wx:35200, pose:1, board:'#c026d3', wetsuit:'#0a0828'},
+  {wx:42800, pose:0, board:'#ff80c0', wetsuit:'#2a0838'},
+  {wx:50500, pose:1, board:'#ffffff', wetsuit:'#100828'},
+  {wx:58200, pose:0, board:'#80c0ff', wetsuit:'#0c1428'},
+  {wx:65500, pose:1, board:'#ff4d9b', wetsuit:'#1a0830'}
+];
+function drawSurferSprite(pose,boardCol,wetsuitCol){
+  // Planche (un peu plus longue pour la visibilité)
+  ctx.fillStyle=boardCol;
+  ctx.fillRect(-8,0,16,3);
+  // Pointe avant (forme effilée)
+  ctx.fillRect(-9,1,1,1);ctx.fillRect(8,1,1,1);
+  // Ombre sous la planche
+  ctx.fillStyle='rgba(0,0,0,0.4)';
+  ctx.fillRect(-7,3,14,1);
+  // Jambes
+  ctx.fillStyle=wetsuitCol;
+  ctx.fillRect(-2,-5,4,5);
+  // Torse
+  ctx.fillRect(-3,-9,6,4);
+  // Bras (poses différentes, plus écartés pour bien voir)
+  if(pose===0){
+    ctx.fillRect(-5,-8,2,2);ctx.fillRect(3,-7,2,2);
+  } else {
+    ctx.fillRect(-6,-7,3,2);ctx.fillRect(3,-9,3,2);
+  }
+  // Tête
+  ctx.fillStyle='#d4a370';
+  ctx.fillRect(-2,-12,4,3);
+  // Cheveux/casquette pour personnalité
+  ctx.fillStyle=wetsuitCol;
+  ctx.fillRect(-2,-12,4,1);
+}
+function drawSurfers(dist,t2){
+  // Restreint à la zone mer (comme les vagues)
+  var seaStart=Math.max(0,toSX(SHORE));
+  if(seaStart>=W)return;
+  // Surfeurs accrochés à la couche 1 des vagues avant-plan (parallaxe 1.30)
+  var P=1.30, BY=H-22, AMP=6, FR=0.024, TSPD=0.058, PH=0.0;
+  SURFERS.forEach(function(s){
+    var parX=s.wx-camX*P;
+    if(parX<-10||parX>W+10)return;
+    if(parX<seaStart-5)return;
+    // Y et inclinaison selon la vague en ce point
+    var off=camX*P;
+    var wy=BY+Math.sin((parX+off)*FR+t2*TSPD+PH)*AMP
+              +Math.sin((parX+off)*FR*2.3+t2*TSPD*1.3)*AMP*0.35;
+    // Tangente de la vague pour l'inclinaison
+    var slope=Math.cos((parX+off)*FR+t2*TSPD+PH)*AMP*FR
+             +Math.cos((parX+off)*FR*2.3+t2*TSPD*1.3)*AMP*0.35*FR*2.3;
+    var ang=Math.atan(slope);
+    ctx.save();
+    ctx.translate(parX,wy-3); // légèrement plus haut au-dessus de la crête, plus visible
+    ctx.rotate(ang);
+    drawSurferSprite(s.pose,s.board,s.wetsuit);
+    ctx.restore();
+  });
+}
+
 function drawDecor(dist,t2){
   var pal=getSkyPalette(dist);
   var sky=ctx.createLinearGradient(0,0,0,H);
   sky.addColorStop(0,pal.top);sky.addColorStop(.55,pal.mid);sky.addColorStop(1,pal.bot);
   ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+
+  // AURORE BORÉALE (derrière les étoiles/astres, uniquement zone astrale)
+  drawAurora(t2,pal.astralP);
 
   drawCelestialPixel(dist,t2);
 
@@ -752,12 +1194,25 @@ function drawDecor(dist,t2){
     });
   }
 
-  // Nuages (couleur selon zone)
+  // STARDUST (poussière d'étoiles dérivante, zone astrale uniquement)
+  drawStardust(t2,pal.astralP);
+
+  // ÉTOILE FILANTE (au-dessus des étoiles fixes, sous les nuages)
+  drawShootingStar();
+
+  // MONTAGNES LOINTAINES — 3 couches parallaxes pour donner profondeur
+  drawMountains(dist);
+
+  // Nuages — parallaxe lent (0.30) + boucle courte = arrière-plan qui défile doucement
+  var CP=0.30;
   CLOUDS.forEach(function(cl){
-    var sx=toSX(cl.x);if(sx<-cl.w||sx>W+10)return;
+    var rawSx=cl.x-camX*CP;
+    var sx=((rawSx%CLOUD_LOOP)+CLOUD_LOOP)%CLOUD_LOOP;
+    if(sx>W+100)sx-=CLOUD_LOOP;
+    if(sx<-cl.w||sx>W+10){cl.x-=cl.spd;if(cl.x<0)cl.x+=CLOUD_LOOP;return;}
     var cc=dist<1000?'rgba(180,40,120,.4)':dist>3500?'rgba(160,80,120,.32)':'rgba(65,10,105,.44)';
     ctx.fillStyle=cc;ctx.fillRect(sx,cl.y,cl.w,cl.h);ctx.fillRect(sx+cl.w*.2,cl.y-cl.h*.38,cl.w*.6,cl.h*.48);
-    cl.x-=cl.spd;if(toSX(cl.x)<-cl.w)cl.x+=WORLD_END;
+    cl.x-=cl.spd;if(cl.x<0)cl.x+=CLOUD_LOOP;
   });
 
   // Mer
@@ -770,6 +1225,10 @@ function drawDecor(dist,t2){
     for(var x=toSX(SHORE);x<=W+8;x+=5)ctx.lineTo(x,SY+l*7+Math.sin((x+camX)*.014+t2*.035+l*1.4)*4);
     ctx.lineTo(W,H);ctx.lineTo(toSX(SHORE),H);ctx.closePath();ctx.fill();
   }
+
+  // VOILIERS (sur l'horizon, derrière bouées) + POISSONS SAUTEURS
+  drawSailboats(dist,t2);
+  drawJumpingFish(t2);
 
   // Bouées
   BUOYS.forEach(function(b){
@@ -786,6 +1245,17 @@ function drawDecor(dist,t2){
   var bG=ctx.createLinearGradient(0,GY,0,H);bG.addColorStop(0,beachCol);bG.addColorStop(1,'rgba(8,4,18,1)');
   ctx.fillStyle=bG;ctx.fillRect(0,GY,toSX(SHORE)+4,H-GY);
   ctx.fillStyle=dist<1000?'#5a1a4a':'#360e5a';ctx.fillRect(toSX(SHORE)-5,GY,10,H-GY);
+
+  // OYATS — touffes d'herbe de dune sur la plage du début
+  drawOyats(dist,t2);
+
+  // PHARE de Pors-Poulhan (sur la falaise, après que plage soit dessinée)
+  drawLighthouse();
+
+  // VAGUES AVANT-PLAN + SURFEURS — les éléments les plus proches du joueur
+  // Dessinés EN DERNIER pour passer devant tout le reste (lighthouse compris si chevauchement)
+  drawForegroundWaves(dist,t2);
+  drawSurfers(dist,t2);
 }
 
 // ══════ FDP LOGOS ══════
@@ -1174,6 +1644,7 @@ function resetAll(){
   flightStartT=0;
   setSlowMo(false);
   resetFDPs();resetGulls();
+  resetShootingStar();
 }
 
 function updatePhysics(){
@@ -1219,7 +1690,19 @@ function updatePhysics(){
     }
   });
   updateGulls();
-  var tc=M.wx-W*.28;if(tc>camX)camX+=(tc-camX)*.1;if(camX<0)camX=0;
+  // CAMERA — smoothing adaptatif à la vitesse + clamp dur pour empêcher la moule de sortir à droite
+  // Quand la moule va vite (combo x5+ ou boost mouette), la caméra doit la suivre plus agressivement
+  var spd=Math.abs(M.vx);
+  // Target X : on regarde plus loin devant quand on va vite (anticipation)
+  var anchor=spd>40?0.40:spd>25?0.34:0.28;
+  var tc=M.wx-W*anchor;
+  // Lerp factor : plus rapide à la suivre quand la vitesse monte
+  var lerp=spd>40?0.22:spd>25?0.16:0.10;
+  if(tc>camX)camX+=(tc-camX)*lerp;
+  // Clamp dur : la moule ne doit jamais dépasser 78% de l'écran à droite
+  var mScreenX=M.wx-camX;
+  if(mScreenX>W*0.78)camX=M.wx-W*0.78;
+  if(camX<0)camX=0;
   if(M.wx>=REAL_END_WX||M.wy>H+80){if(M.wx>REAL_END_WX)M.wx=REAL_END_WX;phase='done';}
   M.dist=Math.max(0,Math.round((M.wx-CRAB_WX)/METERS));
 }
@@ -1230,6 +1713,9 @@ function loop(ts){
   bgT=ts*.001;
   if(gState==='play')gameT++;
   var dist=Math.max(0,Math.round((M.wx-CRAB_WX)/METERS));
+
+  // Update étoile filante (zone nuit uniquement, ne dépend pas de la physique)
+  if(gState==='play')updateShootingStar(dist);
 
   // Shake
   var sx=0,sy=0;

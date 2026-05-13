@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Phare de Pors-Poulhan — pixel art preview</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#0a0014;color:#fff;padding:30px 22px;line-height:1.5;min-height:100vh}
+h1{font-size:24px;font-weight:800;margin-bottom:6px}
+.lead{color:#aaa;font-size:14px;max-width:680px;margin-bottom:24px}
+.back{position:fixed;top:18px;left:18px;background:#222;color:#FFC93C;padding:8px 16px;border-radius:99px;text-decoration:none;font-size:13px;font-weight:700;z-index:50}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;max-width:1200px;margin-bottom:24px}
+.card{background:#15001f;border:1px solid #2a0040;border-radius:10px;overflow:hidden}
+.card canvas{width:100%;display:block;image-rendering:pixelated;background:transparent}
+.card .info{padding:12px 16px;font-size:12px;color:#aaa}
+.card .info .num{color:#FFC93C;font-weight:700;font-size:14px;display:block;margin-bottom:4px}
+
+/* Comparaison côte à côte */
+.compare{background:#15001f;border-radius:14px;padding:20px;border:1px solid #2a0040;margin-bottom:18px}
+.compare h3{color:#FFC93C;margin-bottom:14px;font-size:16px}
+.compare-row{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.compare canvas{image-rendering:pixelated;background:linear-gradient(180deg,#4a7090 0%,#7090a0 60%,#3a5060 100%);border-radius:8px}
+.compare .note-real{flex:1;min-width:200px;font-size:13px;color:#aaa;line-height:1.7}
+.compare .note-real strong{color:#fff}
+
+.bigcard{background:#15001f;border-radius:14px;padding:24px;border:1px solid #2a0040;margin-bottom:18px}
+.bigcard h3{color:#FFC93C;margin-bottom:14px;font-size:16px}
+.bigcard canvas{display:block;margin:0 auto;image-rendering:pixelated;border-radius:6px}
+
+.note{padding:18px 22px;background:#19191c;border-radius:10px;border:1px solid #2a2a30;font-size:13px;color:#aaa;max-width:780px}
+.note strong{color:#FFC93C}
+</style>
+</head>
+<body>
+
+<a href="../index.html" class="back">← Retour</a>
+
+<h1>🏯 Phare de Pors-Poulhan — pixel art (v3 final ✅ INTÉGRÉ)</h1>
+<p class="lead">Version validée : <strong>toit rouge inversé</strong> (large en haut, étroit en bas), <strong>sans fenêtre</strong>, sur cliff/herbe. Intégré dans le jeu à wx=400 (~20m du départ).</p>
+
+<!-- Tailles de comparaison -->
+<div class="grid">
+  <div class="card">
+    <canvas id="c-s3" width="100" height="110"></canvas>
+    <div class="info"><span class="num">Taille S</span>s=3 (24×33 px) · taille discrète, plus en arrière-plan</div>
+  </div>
+  <div class="card">
+    <canvas id="c-s4" width="100" height="120"></canvas>
+    <div class="info"><span class="num">Taille M ★ recommandée</span>s=4 (32×44 px) · taille équilibrée, lisible</div>
+  </div>
+  <div class="card">
+    <canvas id="c-s5" width="120" height="140"></canvas>
+    <div class="info"><span class="num">Taille L</span>s=5 (40×55 px) · monumental, peut-être trop gros</div>
+  </div>
+</div>
+
+<!-- Sur fond de jeu (avec ciel + plage + mer) -->
+<div class="bigcard">
+  <h3>🌅 Aperçu en contexte (ciel + plage + mer du jeu)</h3>
+  <canvas id="c-context" width="500" height="200"></canvas>
+  <p style="margin-top:10px;color:#aaa;font-size:12px;text-align:center">Position approximative dans le jeu : ~25m après la zone de lancement, côté plage</p>
+</div>
+
+<!-- Détail des éléments -->
+<div class="compare">
+  <h3>🎨 Détails capturés depuis ta photo</h3>
+  <div class="compare-row">
+    <canvas id="c-detail" width="160" height="180"></canvas>
+    <div class="note-real">
+      <p>✅ <strong>Corps blanc crème</strong> (#ede5d4), plus haut que large, avec ombre douce à droite</p>
+      <p>✅ <strong>Toit rouge vif INVERSÉ</strong> (#c83020) : partie large EN HAUT (7s), étroite EN BAS (6s) contre le mur</p>
+      <p>✅ <strong>Highlight + ombre</strong> sur le toit pour effet 3D doux</p>
+      <p>✅ <strong>Pas de fenêtre visible</strong></p>
+      <p>✅ <strong>Halo lumineux</strong> intermittent au sommet (la lanterne s'allume)</p>
+      <p>✅ <strong>Falaise rocheuse</strong> grise avec touches d'<strong>herbe verte</strong> au sommet</p>
+    </div>
+  </div>
+</div>
+
+<div class="note">
+  <p>👍 <strong>Si tu valides</strong> : je place le phare à wx=400 (~21m) dans le jeu, juste après la zone de lancement. Le joueur le voit en pleine pince au moment du lancer. Pixel art statique avec halo qui clignote subtilement.</p>
+  <p style="margin-top:8px">🛠️ <strong>Si tu veux ajuster</strong> : taille différente, couleurs (plus/moins saturées), position, sans halo, sans cliff, avec porte… dis-moi.</p>
+  <p style="margin-top:8px">⚠️ <strong>Rappel</strong> : décor purement visuel, aucun impact sur la physique ni le scoring. Top 10 actuel intact.</p>
+</div>
+
+<script>
+// === Fonction utilitaire (même que dans le jeu) ===
+function px(ctx,cx,cy,x,y,w,h,col){ctx.fillStyle=col;ctx.fillRect(cx+x,cy+y,w,h);}
+
+// === Dessin du phare (v2 : toit plat, sans fenêtre) ===
+function drawLighthouse(ctx,cx,cy,s){
+  s=s||4;
+  // Palette extraite de la photo
+  var roofRed='#c83020';
+  var roofDark='#902010';
+  var roofLight='#e85440';
+  var wallWhite='#ede5d4';
+  var wallShade='#bcb4a0';
+  var trimGrey='#5e5e5e';
+  var grassGreen='#3d5a1a';
+  var grassDark='#2a3f12';
+  var rockGrey='#6a5d50';
+  var rockDark='#4a3f35';
+
+  // FALAISE / ROCHE — sous le phare
+  px(ctx,cx,cy,-s*7,-s*0.5,s*14,s*1.5,rockGrey);
+  px(ctx,cx,cy,-s*6,s,s*12,s*0.7,rockDark);
+  // Herbe verte sur le rocher
+  for(var i=0;i<6;i++){
+    var hx=-s*5.5+i*s*2;
+    px(ctx,cx,cy,hx,-s*0.8,s*1.5,s*0.4,grassGreen);
+  }
+  px(ctx,cx,cy,-s*5,-s*0.7,s*10,s*0.25,grassDark);
+
+  // CORPS PRINCIPAL (mur blanc, plus haut que large maintenant)
+  // 6s wide × 7s tall (proportions plus verticales)
+  px(ctx,cx,cy,-s*3,-s*8,s*6,s*7,wallWhite);
+  // Ombre côté droit
+  px(ctx,cx,cy,s*2,-s*8,s,s*7,wallShade);
+  // Trim bas (entre corps et roche)
+  px(ctx,cx,cy,-s*3.5,-s*1,s*7,s*0.5,trimGrey);
+
+  // TOIT ROUGE PLAT — inversé : partie large EN HAUT, étroite contre le mur
+  // Niveau bas : étroit (aligné sur le mur)
+  px(ctx,cx,cy,-s*3,-s*9,s*6,s,roofRed);
+  // Niveau haut : large (déborde, le "chapeau")
+  px(ctx,cx,cy,-s*3.5,-s*10,s*7,s,roofRed);
+  // Reflet/highlight côté gauche
+  px(ctx,cx,cy,-s*3,-s*9,s*0.5,s,roofLight);
+  px(ctx,cx,cy,-s*3.5,-s*10,s*0.5,s,roofLight);
+  // Ombre côté droit (effet 3D)
+  px(ctx,cx,cy,s*2.5,-s*9,s*0.5,s,roofDark);
+  px(ctx,cx,cy,s*2.5,-s*10,s,s,roofDark);
+  // Liseré sombre sous l'overhang (qui déborde maintenant)
+  px(ctx,cx,cy,-s*3.5,-s*9.2,s*7,s*0.2,roofDark);
+
+  // Halo lumineux subtil au sommet (lanterne intégrée, clignote)
+  var t=Date.now()/1000;
+  if(Math.sin(t*0.5)>0.3){
+    var grad=ctx.createRadialGradient(cx,cy-s*10,0,cx,cy-s*10,s*5);
+    grad.addColorStop(0,'rgba(255,220,100,0.35)');
+    grad.addColorStop(0.5,'rgba(255,180,60,0.15)');
+    grad.addColorStop(1,'rgba(255,180,60,0)');
+    ctx.fillStyle=grad;
+    ctx.beginPath();ctx.arc(cx,cy-s*10,s*5,0,Math.PI*2);ctx.fill();
+  }
+}
+
+// === Render des canvas ===
+function render(){
+  // Tailles individuelles
+  var configs=[
+    {id:'c-s3',s:3,cx:50,cy:90},
+    {id:'c-s4',s:4,cx:50,cy:110},
+    {id:'c-s5',s:5,cx:60,cy:135}
+  ];
+  configs.forEach(function(c){
+    var canvas=document.getElementById(c.id);
+    var ctx=canvas.getContext('2d');
+    ctx.imageSmoothingEnabled=false;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    drawLighthouse(ctx,c.cx,c.cy,c.s);
+  });
+
+  // Context (avec ciel/plage/mer)
+  var canvasCtx=document.getElementById('c-context');
+  var cctx=canvasCtx.getContext('2d');
+  cctx.imageSmoothingEnabled=false;
+  // Ciel
+  var sky=cctx.createLinearGradient(0,0,0,200);
+  sky.addColorStop(0,'#2D0E5C');
+  sky.addColorStop(0.6,'#E91E8D');
+  sky.addColorStop(1,'#FF7AC0');
+  cctx.fillStyle=sky;cctx.fillRect(0,0,500,150);
+  // Mer
+  var sea=cctx.createLinearGradient(0,150,0,200);
+  sea.addColorStop(0,'#FF4D9B');
+  sea.addColorStop(1,'#1a0526');
+  cctx.fillStyle=sea;cctx.fillRect(250,150,250,50);
+  // Plage (sable sombre)
+  cctx.fillStyle='#1F1052';
+  cctx.fillRect(0,150,250,50);
+  // Soleil couchant
+  cctx.fillStyle='#FFEC80';
+  cctx.beginPath();cctx.arc(380,130,8,0,Math.PI*2);cctx.fill();
+  // Étoiles
+  cctx.fillStyle='#fff';
+  for(var i=0;i<25;i++){
+    cctx.fillRect(Math.random()*500,Math.random()*80,1,1);
+  }
+  // Phare à gauche
+  drawLighthouse(cctx,170,150,4);
+
+  // Détail
+  var canvasD=document.getElementById('c-detail');
+  var dctx=canvasD.getContext('2d');
+  dctx.imageSmoothingEnabled=false;
+  dctx.fillStyle='#15001f';dctx.fillRect(0,0,160,180);
+  drawLighthouse(dctx,80,160,5);
+}
+
+render();
+// Anime le halo (clignote)
+setInterval(render,200);
+</script>
+
+</body>
+</html>
