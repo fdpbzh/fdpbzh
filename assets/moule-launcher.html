@@ -221,6 +221,26 @@ var N={
   _:0
 };
 var BPM=168,BASE_BEAT=60/BPM,BEAT=BASE_BEAT;
+// === MÉTÉO ALÉATOIRE (1 partie sur 5) ===
+var weather='normal'; // 'normal' | 'storm' | 'fog' | 'aurora_intense'
+var stormFlashT=0;
+function pickWeather(){
+  if(Math.random()<0.20){
+    weather=['storm','fog','aurora_intense'][Math.floor(Math.random()*3)];
+  } else {
+    weather='normal';
+  }
+  stormFlashT=0;
+}
+
+// === COMBO FLASHES & DISTORTION (x6/x7/x8) ===
+var comboFlash=0;       // alpha actuel du flash
+var comboFlashPeak=0;   // intensité du flash (0-1)
+function triggerComboFlash(intensity){
+  comboFlash=1.0;
+  comboFlashPeak=intensity;
+}
+
 // === MÉTÉOR MODE (combo x5+) ===
 var slowMoActive=false;
 var timeScale=1;
@@ -348,6 +368,32 @@ function sfxSplash(){oscNote(100,ac.currentTime,.16,'sawtooth',.11);oscNote(70,a
 function sfxFDP(){[523,659,784,1047,784,1319].forEach(function(f,i){oscNote(f,ac.currentTime+i*.07,.09,'square',.16);});}
 function sfxGull(){oscNote(800,ac.currentTime,.08,'square',.08);oscNote(600,ac.currentTime+.05,.1,'sawtooth',.06);}
 function sfxCharge(){oscNote(80,ac.currentTime,.05,'sawtooth',.04);}
+// Explosion sourde (combo x6+) — boum basse fréquence + crack
+function sfxExplosion(){
+  if(!ac)return;
+  var t=ac.currentTime;
+  oscNote(55,t,0.45,'sine',0.42);
+  oscNote(90,t,0.35,'sawtooth',0.32);
+  oscNote(180,t+0.02,0.10,'square',0.22);
+  noiseHit(t,0.55,110,0.42);
+  noiseHit(t+0.05,0.30,320,0.22);
+}
+// Entrée météore (combo x7+) — rugissement basse + sifflement descendant
+function sfxMeteor(){
+  if(!ac)return;
+  var t=ac.currentTime;
+  // Rugissement basse fréquence soutenu
+  noiseHit(t,1.4,80,0.38);
+  noiseHit(t+0.05,1.3,200,0.22);
+  // Sifflement descendant style atmosphère qui chauffe
+  for(var i=0;i<14;i++){
+    var f=1600-i*95;
+    oscNote(f,t+i*0.07,0.14,'sawtooth',0.07);
+  }
+  // Impact final
+  oscNote(42,t+0.95,0.45,'sine',0.32);
+  noiseHit(t+0.95,0.55,140,0.30);
+}
 
 // ══════ CANVAS ══════
 var canvas=document.getElementById('c');
@@ -739,18 +785,20 @@ function drawAstralBodies(dist,t2,ps){
 
 // ══════ DÉCORS BONUS (validés mai 2026, purement visuels — zéro physique) ══════
 
-// 1) PHARE de Pors-Poulhan — PREMIER PLAN, s=12 (3x vs original s=4)
+// 1) PHARE de Pors-Poulhan — À GAUCHE DU CRABE (CRAB_WX=130), partiellement coupé
 //    Toit du haut élargi à 9s (+15% vs version précédente à 7.8s)
 //    Lumière ROUGE (signature visuelle d'un phare maritime breton)
 function drawLighthouse(){
-  var LX=400;
+  var LX=-30; // à gauche du crabe — assumé partiellement coupé au lancement
+
   var sx=toSX(LX);
   if(sx<-160||sx>W+160)return;
   var cx=sx,cy=GY-2,s=12;
   var roofMauve='#9024b8',roofDark='#5c1880',roofLight='#c040d8';
   var wallWhite='#ede5d4',wallShade='#bcb4a0';
   var trimGrey='#5e5e5e';
-  var grassGreen='#3d5a1a',grassDark='#2a3f12';
+  // Herbe/touffes au sommet de la falaise en ambre (pas de vert dans le jeu)
+  var grassGreen='#a07840',grassDark='#6a4a20';
   var rockGrey='#6a5d50',rockDark='#4a3f35';
   // FALAISE / ROCHE sous le phare
   px(cx,cy,-s*7,-s*0.5,s*14,s*1.5,rockGrey);
@@ -971,16 +1019,21 @@ function drawMountains(dist){
   drawMountainLayer(camX*0.38 + 813,  24, 0,  c3);
 }
 
-// 7) AURORE BORÉALE — zone astrale (6000m+)
+// 7) AURORE BORÉALE — zone astrale (6000m+). Boost si météo aurora_intense
 function drawAurora(t2,astralP){
   if(astralP<=0)return;
+  var boost=(weather==='aurora_intense')?1.8:1.0;
   var colors=[
-    {c:'80,255,160',a:0.20},
-    {c:'120,200,255',a:0.16},
-    {c:'200,150,255',a:0.13}
+    {c:'255,140,200',a:0.20*boost},  // rose vif (remplace le vert)
+    {c:'120,200,255',a:0.16*boost},  // bleu lavande
+    {c:'200,150,255',a:0.13*boost}   // violet
   ];
+  // En mode intense, on ajoute une 4e bande rose saturée
+  if(weather==='aurora_intense'){
+    colors.push({c:'255,180,220',a:0.18}); // rose clair pétillant
+  }
   ctx.globalAlpha=astralP;
-  for(var band=0;band<3;band++){
+  for(var band=0;band<colors.length;band++){
     var col=colors[band];
     var yBase=35+band*20;
     var grad=ctx.createLinearGradient(0,yBase-6,0,yBase+30);
@@ -1003,6 +1056,55 @@ function drawAurora(t2,astralP){
     ctx.closePath();ctx.fill();
   }
   ctx.globalAlpha=1;
+}
+
+// 7b) MÉTÉO — orage (éclairs + dimming) ou brouillard (voile blanc)
+function drawWeatherEffects(dist){
+  if(weather==='storm' && dist>=1000 && dist<6000){
+    // Voile sombre permanent (assombrissement orage)
+    ctx.fillStyle='rgba(0,0,30,0.18)';
+    ctx.fillRect(0,0,W,H);
+    // Éclair aléatoire : ~0.4% par frame = ~1 toutes les 4 sec à 60fps
+    if(stormFlashT<=0 && Math.random()<0.004){
+      stormFlashT=12;
+    }
+    if(stormFlashT>0){
+      var a=(stormFlashT/12);
+      // Flash blanc-bleu (palette éclair)
+      ctx.fillStyle='rgba(220,230,255,'+(a*0.75)+')';
+      ctx.fillRect(0,0,W,H);
+      // Petit zigzag de foudre dessiné aléatoirement en haut
+      if(stormFlashT>=8){
+        ctx.strokeStyle='rgba(255,255,255,'+a+')';
+        ctx.lineWidth=2;
+        ctx.beginPath();
+        var sx=Math.random()*W*0.7+W*0.15;
+        ctx.moveTo(sx,0);
+        var py=0;
+        while(py<H*0.5){
+          py+=20+Math.random()*20;
+          sx+=(Math.random()-0.5)*40;
+          ctx.lineTo(sx,py);
+        }
+        ctx.stroke();
+      }
+      stormFlashT--;
+    }
+  }
+  else if(weather==='fog' && dist<1000){
+    // Voile blanc-gris en zone départ, fade out à mesure que le joueur avance
+    var fogA=0.45*(1-dist/1000);
+    ctx.fillStyle='rgba(200,210,225,'+fogA+')';
+    ctx.fillRect(0,0,W,H);
+    // Bandes plus denses qui dérivent (effet bancs de brouillard)
+    ctx.fillStyle='rgba(220,225,235,'+(fogA*0.35)+')';
+    for(var b=0;b<3;b++){
+      var yy=80+b*100+Math.sin(bgT*0.3+b)*8;
+      var xx=(b*120-bgT*8)%W;
+      ctx.fillRect(xx,yy,W*0.7,18);
+      ctx.fillRect(xx-W,yy,W*0.7,18);
+    }
+  }
 }
 
 // 8) STARDUST — particules colorées dérivantes en zone astrale
@@ -1049,9 +1151,9 @@ var OYATS=[
   {wx:605,h:8, ph:2.4,  sw:0.9}
 ];
 function drawOyats(dist,t2){
-  // Atténuation couleur selon zone (devient plus sombres la nuit)
-  var bladeMid=dist<1000?'#3d5a1a':dist<3500?'#1f3010':'#162208';
-  var bladeDark=dist<1000?'#2a3f12':dist<3500?'#15200a':'#0b1404';
+  // Palette ambre/sable (oyats secs des dunes bretonnes — pas de vert)
+  var bladeMid=dist<1000?'#b48c4c':dist<3500?'#6b5230':'#3a2c1a';
+  var bladeDark=dist<1000?'#7a5a2a':dist<3500?'#3f3018':'#1c1408';
   OYATS.forEach(function(o){
     var sx=toSX(o.wx);
     if(sx<-10||sx>W+10)return;
@@ -1333,6 +1435,9 @@ function drawDecor(dist,t2){
   drawForegroundWaves(dist,t2);
   drawBreakingWaves(dist,t2);
   drawSurfers(dist,t2);
+
+  // MÉTÉO ALÉATOIRE — overlay environnemental (orage / brouillard)
+  drawWeatherEffects(dist);
 }
 
 // ══════ FDP LOGOS ══════
@@ -1454,13 +1559,6 @@ function drawFDPs(){
       lookY=M.wy;
     }
     drawSmallCrab(sx,visualY,6,prox,lookX,lookY);
-    // Flèche indicatrice — suit le visuel
-    ctx.fillStyle='rgba(255,215,0,.5)';
-    ctx.beginPath();
-    ctx.moveTo(sx,visualY-30);
-    ctx.lineTo(sx-5,visualY-22);
-    ctx.lineTo(sx+5,visualY-22);
-    ctx.closePath();ctx.fill();
   });
 }
 
@@ -1801,6 +1899,8 @@ function resetAll(){
   setSlowMo(false);
   resetFDPs();resetGulls();
   resetShootingStar();
+  pickWeather();
+  comboFlash=0;comboFlashPeak=0;stormFlashT=0;
 }
 
 function updatePhysics(){
@@ -1836,6 +1936,19 @@ function updatePhysics(){
     if(Math.abs(M.wx-m.wx)<50&&Math.abs(M.wy-fy)<38){
       m.hit=true;m.ep=0.01;sfxFDP();
       combo++;
+      // Flashes & sons spéciaux aux paliers x6 / x7 / x8+
+      if(combo===6){
+        triggerComboFlash(0.55);
+        sfxExplosion();
+      } else if(combo===7){
+        triggerComboFlash(0.85);
+        sfxExplosion();
+        sfxMeteor();
+      } else if(combo>=8){
+        triggerComboFlash(1.0);
+        sfxExplosion();
+        sfxMeteor();
+      }
       var mult=combo>=6?1.5:combo===5?1.4:combo===4?1.3:combo===3?1.2:combo===2?1.1:1.0;
       M.vy=Math.min(M.vy,-9*mult)-Math.random()*3;
       M.vx=Math.max(M.vx*1.1,10)*mult+Math.random()*4;
@@ -1927,6 +2040,31 @@ function loop(ts){
       ctx.fillStyle='rgba(255,255,200,'+(pulse*0.4)+')';
       ctx.fillRect(0,0,W,H);
     }
+  }
+  // DISTORTION + COLOR SHIFT — actifs à partir de combo x7 (entrée météore)
+  if(combo>=7&&phase==='flying'){
+    var dInt=Math.min((combo-6)*0.5,1.0); // 0.5 à x7, 1.0 à x8+
+    // Chromatic aberration : couches cyan/magenta offset (RGB split)
+    var ofx=2+Math.sin(bgT*30)*1.2;
+    ctx.fillStyle='rgba(80,180,255,'+(dInt*0.11)+')';
+    ctx.fillRect(-ofx,0,W,H);
+    ctx.fillStyle='rgba(255,80,200,'+(dInt*0.11)+')';
+    ctx.fillRect(ofx,0,W,H);
+    // Color shift global : voile violet saturé
+    ctx.fillStyle='rgba(180,80,220,'+(dInt*0.09)+')';
+    ctx.fillRect(0,0,W,H);
+    // Scanlines CRT (effet écran tube qui pète)
+    ctx.fillStyle='rgba(0,0,0,'+(dInt*0.16)+')';
+    for(var sl=0;sl<H;sl+=4){
+      ctx.fillRect(0,sl,W,1);
+    }
+  }
+  // FLASH COMBO (x6/x7/x8) — au-dessus de tout, décroît en ~17 frames
+  if(comboFlash>0){
+    ctx.fillStyle='rgba(255,255,255,'+(comboFlash*comboFlashPeak)+')';
+    ctx.fillRect(0,0,W,H);
+    comboFlash-=0.06;
+    if(comboFlash<0)comboFlash=0;
   }
   // Texture grain (effet papier/CRT) — toujours appliquée
   drawGrain();
