@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Petits crabes — pixel art preview</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#0a0014;color:#fff;padding:30px 22px;line-height:1.5;min-height:100vh}
+h1{font-size:24px;font-weight:800;margin-bottom:6px}
+.lead{color:#aaa;font-size:14px;max-width:760px;margin-bottom:24px}
+.back{position:fixed;top:18px;left:18px;background:#222;color:#FFC93C;padding:8px 16px;border-radius:99px;text-decoration:none;font-size:13px;font-weight:700;z-index:50}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;max-width:1200px;margin-bottom:24px}
+.card{background:#15001f;border:1px solid #2a0040;border-radius:10px;overflow:hidden;padding-bottom:14px}
+.card canvas{width:100%;display:block;image-rendering:pixelated;background:transparent}
+.card .info{padding:12px 16px;font-size:12px;color:#aaa}
+.card .info .num{color:#FFC93C;font-weight:700;font-size:14px;display:block;margin-bottom:4px}
+
+.bigcard{background:#15001f;border-radius:14px;padding:24px;border:1px solid #2a0040;margin-bottom:18px}
+.bigcard h3{color:#FFC93C;margin-bottom:14px;font-size:16px}
+.bigcard canvas{display:block;margin:0 auto;image-rendering:pixelated;border-radius:6px}
+
+.hitbox-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+.hitbox-grid p{font-size:13px;color:#aaa;line-height:1.7}
+.hitbox-grid strong{color:#fff}
+
+.note{padding:18px 22px;background:#19191c;border-radius:10px;border:1px solid #2a2a30;font-size:13px;color:#aaa;max-width:780px}
+.note strong{color:#FFC93C}
+</style>
+</head>
+<body>
+
+<a href="../index.html" class="back">← Retour</a>
+
+<h1>🦀 Petit crabe — remplacement des mines FDP</h1>
+<p class="lead">Design "crabe parachutiste" — silhouette compacte, lisible à haute vitesse. <strong>La hitbox 50×38 reste INTOUCHÉE</strong>, le sprite tient confortablement dedans (~28-36 px). Rotation comme les FDPs actuels.</p>
+
+<!-- Tailles -->
+<div class="grid">
+  <div class="card">
+    <canvas id="c-s2" width="120" height="120"></canvas>
+    <div class="info"><span class="num">Taille S — s=2</span>~20×16 px · sprite très compact</div>
+  </div>
+  <div class="card">
+    <canvas id="c-s3" width="140" height="140"></canvas>
+    <div class="info"><span class="num">Taille M — s=3 ★ recommandé</span>~30×24 px · taille équilibrée, lisible</div>
+  </div>
+  <div class="card">
+    <canvas id="c-s4" width="160" height="160"></canvas>
+    <div class="info"><span class="num">Taille L — s=4</span>~40×32 px · pourrait excéder le bord de la hitbox</div>
+  </div>
+</div>
+
+<!-- Hitbox visualization -->
+<div class="bigcard">
+  <h3>📏 Crabe (s=3) avec la hitbox FDP en superposition</h3>
+  <canvas id="c-hitbox" width="280" height="180"></canvas>
+  <div class="hitbox-grid" style="margin-top:14px">
+    <p>✅ <strong>Hitbox 50×38</strong> = rectangle pointillé jaune<br>
+    ✅ <strong>Crabe (s=3)</strong> ≈ 30×24 px<br>
+    ✅ Le crabe tient avec marge dans la hitbox</p>
+    <p>📐 La détection de collision se fait sur le centre du sprite vs centre de la moule. Le rectangle 50×38 ne change pas. Seul le visuel change.</p>
+  </div>
+</div>
+
+<!-- Animation -->
+<div class="bigcard">
+  <h3>🎬 Animation — rotation + pulse + hit</h3>
+  <canvas id="c-anim" width="700" height="160"></canvas>
+  <p style="color:#aaa;font-size:12px;text-align:center;margin-top:8px">3 crabes en rotation (comme les FDPs actuels), pulse alterné, et démo "hit" → explosion → disparition</p>
+</div>
+
+<!-- Sur fond synthwave -->
+<div class="bigcard">
+  <h3>🌌 Aperçu sur fond synthwave (comme dans le jeu)</h3>
+  <canvas id="c-context" width="700" height="220"></canvas>
+  <p style="color:#aaa;font-size:12px;text-align:center;margin-top:8px">3 crabes éparpillés sur fond ciel + mer, comme tu les verrais pendant le vol</p>
+</div>
+
+<div class="note">
+  <p>👍 <strong>Si tu valides</strong> : je remplace `drawFDPLogo` et `drawFDPExplosion` par `drawSmallCrab` et `drawCrabHit`. Tous les paramètres de gameplay (hitbox, score, combo, multiplicateurs) restent rigoureusement identiques. Top 10 intact.</p>
+  <p style="margin-top:8px">🛠️ <strong>Si tu veux ajuster</strong> : taille, couleurs (plus ou moins rouge), pinces plus grosses, yeux différents… dis-moi.</p>
+  <p style="margin-top:8px">❌ <strong>Si tu n'aimes pas</strong> : on revient aux FDPs, ou tu choisis une autre proposition (vinyles, bouées, étoiles de mer, triskel).</p>
+</div>
+
+<script>
+function px(ctx,cx,cy,x,y,w,h,col){ctx.fillStyle=col;ctx.fillRect(cx+x,cy+y,w,h);}
+
+// ═══ DESSIN DU PETIT CRABE ═══
+function drawSmallCrab(ctx,cx,cy,rot,pulse,s){
+  s=s||3;
+  ctx.save();
+  ctx.translate(cx,cy);
+  ctx.rotate(rot||0);
+
+  // Pulse aura (halo rouge subtil quand fermé)
+  if(pulse){
+    ctx.fillStyle='rgba(255,80,40,0.20)';
+    ctx.beginPath();ctx.arc(0,0,s*7,0,Math.PI*2);ctx.fill();
+  }
+
+  // PATTES (3 par côté, fines)
+  ctx.fillStyle='#902010';
+  // Pattes gauche
+  px(ctx,0,0,-s*4.5,-s*1,s,s*1.5);
+  px(ctx,0,0,-s*4,s*0.3,s,s*1.5);
+  px(ctx,0,0,-s*4.5,s*1.5,s,s*1.2);
+  // Pattes droite
+  px(ctx,0,0,s*3.5,-s*1,s,s*1.5);
+  px(ctx,0,0,s*3,s*0.3,s,s*1.5);
+  px(ctx,0,0,s*3.5,s*1.5,s,s*1.2);
+
+  // PINCES (vers le haut, mini-Y pour effet alerte)
+  ctx.fillStyle='#a02808';
+  // Bras gauche
+  px(ctx,0,0,-s*3.5,-s*2.5,s*0.8,s);
+  px(ctx,0,0,-s*4,-s*3.5,s*1.5,s);
+  // Pince gauche (deux mandibules)
+  ctx.fillStyle='#c82810';
+  px(ctx,0,0,-s*4.2,-s*4.3,s*1.8,s*0.8);
+  px(ctx,0,0,-s*4.2,-s*3,s*1.8,s*0.4);
+  // Bras droit
+  ctx.fillStyle='#a02808';
+  px(ctx,0,0,s*2.7,-s*2.5,s*0.8,s);
+  px(ctx,0,0,s*2.5,-s*3.5,s*1.5,s);
+  // Pince droite
+  ctx.fillStyle='#c82810';
+  px(ctx,0,0,s*2.4,-s*4.3,s*1.8,s*0.8);
+  px(ctx,0,0,s*2.4,-s*3,s*1.8,s*0.4);
+
+  // CORPS principal (carapace bombée)
+  // Couche basse (ombre)
+  ctx.fillStyle='#902010';
+  px(ctx,0,0,-s*2.5,s*1,s*5,s);
+  // Couche médian
+  ctx.fillStyle='#b02010';
+  px(ctx,0,0,-s*3,-s*0.5,s*6,s*1.7);
+  // Carapace bombée (forme arrondie)
+  ctx.fillStyle='#c82010';
+  px(ctx,0,0,-s*2.5,-s*1.5,s*5,s*1.2);
+  // Top arrondi
+  ctx.fillStyle='#e03020';
+  px(ctx,0,0,-s*2,-s*2,s*4,s*0.7);
+  // Highlight central
+  ctx.fillStyle='#ff5530';
+  px(ctx,0,0,-s,-s*2,s*2,s*0.5);
+
+  // YEUX (sur tiges, comme le crabe-lanceur)
+  // Tiges
+  ctx.fillStyle='#902010';
+  px(ctx,0,0,-s*1.3,-s*2.8,s*0.5,s*0.8);
+  px(ctx,0,0,s*0.8,-s*2.8,s*0.5,s*0.8);
+  // Yeux noirs
+  ctx.fillStyle='#0a0a0a';
+  px(ctx,0,0,-s*1.6,-s*3.5,s*1,s*1);
+  px(ctx,0,0,s*0.6,-s*3.5,s*1,s*1);
+  // Reflets blancs
+  ctx.fillStyle='#fff';
+  px(ctx,0,0,-s*1.4,-s*3.3,s*0.4,s*0.4);
+  px(ctx,0,0,s*0.8,-s*3.3,s*0.4,s*0.4);
+
+  ctx.restore();
+}
+
+// ═══ EXPLOSION (quand frappé) ═══
+function drawCrabHit(ctx,cx,cy,ep){
+  var prog=Math.min(ep/1.4,1);
+  // Particules rouges qui giclent
+  [{r:prog*60,cols:['#ff5530','#c82010','#fff','#ffd700'],n:12,sz:(1-prog)*10+1},
+   {r:prog*38,cols:['#ff8c00','#e03020'],n:8,sz:(1-prog)*7+1},
+   {r:prog*20,cols:['#fff','#ffd700'],n:5,sz:(1-prog)*4+1}
+  ].forEach(function(rg){
+    if(rg.sz<.5)return;
+    for(var i=0;i<rg.n;i++){
+      var a=i/rg.n*Math.PI*2+ep*.4;
+      ctx.fillStyle=rg.cols[i%rg.cols.length];
+      ctx.fillRect(cx+Math.cos(a)*rg.r-rg.sz/2,cy+Math.sin(a)*rg.r-rg.sz/2,rg.sz,rg.sz);
+    }
+  });
+  // Texte "CRAC !" qui flotte (au lieu de "FDP !")
+  if(prog<.65){
+    ctx.font='8px "Press Start 2P",monospace';
+    ctx.fillStyle='rgba(255,80,40,'+(.65-prog)*2+')';
+    ctx.textAlign='center';
+    ctx.fillText('CRAC !',cx,cy-prog*42);
+    ctx.textAlign='left';
+  }
+}
+
+// ═══ RENDER ═══
+var rotTime=0;
+function render(){
+  rotTime+=0.05;
+
+  // Tailles
+  [['c-s2',2,60,80],['c-s3',3,70,90],['c-s4',4,80,100]].forEach(function(c){
+    var canvas=document.getElementById(c[0]);
+    var ctx=canvas.getContext('2d');
+    ctx.imageSmoothingEnabled=false;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    drawSmallCrab(ctx,c[2],c[3],rotTime*0.5,true,c[1]);
+  });
+
+  // Hitbox demo
+  var hbCanvas=document.getElementById('c-hitbox');
+  var hbCtx=hbCanvas.getContext('2d');
+  hbCtx.imageSmoothingEnabled=false;
+  hbCtx.clearRect(0,0,280,180);
+  // Fond
+  hbCtx.fillStyle='#0a0014';hbCtx.fillRect(0,0,280,180);
+  // Hitbox jaune pointillé (50 wide × 38 tall, centré à 140,90)
+  hbCtx.strokeStyle='#FFC93C';hbCtx.lineWidth=2;
+  hbCtx.setLineDash([4,4]);
+  hbCtx.strokeRect(140-50,90-38,100,76);
+  hbCtx.setLineDash([]);
+  // Label
+  hbCtx.font='10px monospace';hbCtx.fillStyle='#FFC93C';
+  hbCtx.fillText('Hitbox 50×38 (inchangée)',140-48,90-44);
+  // Crabe au centre
+  drawSmallCrab(hbCtx,140,90,rotTime*0.4,true,3);
+
+  // Animation row
+  var animCanvas=document.getElementById('c-anim');
+  var aCtx=animCanvas.getContext('2d');
+  aCtx.imageSmoothingEnabled=false;
+  aCtx.clearRect(0,0,700,160);
+  // Fond dégradé synthwave
+  var grad=aCtx.createLinearGradient(0,0,0,160);
+  grad.addColorStop(0,'#2D0E5C');grad.addColorStop(1,'#180028');
+  aCtx.fillStyle=grad;aCtx.fillRect(0,0,700,160);
+  // Crabe normal (rotation continue)
+  drawSmallCrab(aCtx,120,80,rotTime,Math.floor(rotTime*1.8)%2===0,3);
+  // Crabe pulse alterné
+  drawSmallCrab(aCtx,300,80,rotTime*0.7,Math.floor(rotTime*2.4)%2===0,3);
+  // Crabe explose en boucle
+  var hitCycle=(rotTime*0.3)%2;
+  if(hitCycle<1.4){
+    drawCrabHit(aCtx,500,80,hitCycle);
+  } else {
+    drawSmallCrab(aCtx,500,80,0,false,3);
+  }
+  // Labels
+  aCtx.font='9px monospace';aCtx.fillStyle='#aaa';
+  aCtx.textAlign='center';
+  aCtx.fillText('normal (rotation)',120,140);
+  aCtx.fillText('pulse alterné',300,140);
+  aCtx.fillText('hit → explosion → respawn',500,140);
+  aCtx.textAlign='left';
+
+  // Context (avec mer + ciel)
+  var ctxC=document.getElementById('c-context');
+  var cctx=ctxC.getContext('2d');
+  cctx.imageSmoothingEnabled=false;
+  // Ciel synthwave
+  var sky=cctx.createLinearGradient(0,0,0,220);
+  sky.addColorStop(0,'#0d0014');sky.addColorStop(.55,'#180028');sky.addColorStop(1,'#2a0040');
+  cctx.fillStyle=sky;cctx.fillRect(0,0,700,160);
+  // Mer
+  var sea=cctx.createLinearGradient(0,160,0,220);
+  sea.addColorStop(0,'#150026');sea.addColorStop(1,'#05000c');
+  cctx.fillStyle=sea;cctx.fillRect(0,160,700,60);
+  // Étoiles
+  cctx.fillStyle='rgba(240,171,252,.5)';
+  for(var i=0;i<40;i++){
+    cctx.fillRect((i*173+47)%700,(i*97+13)%120,1,1);
+  }
+  // Vagues or
+  cctx.fillStyle='rgba(255,205,60,0.6)';
+  cctx.beginPath();
+  cctx.moveTo(0,200);
+  for(var x=0;x<=700;x+=4){
+    cctx.lineTo(x,200+Math.sin((x+rotTime*30)*0.025)*5);
+  }
+  cctx.lineTo(700,220);cctx.lineTo(0,220);cctx.closePath();cctx.fill();
+  // 3 crabes
+  drawSmallCrab(cctx,150,90,rotTime*0.5,true,3);
+  drawSmallCrab(cctx,360,110,rotTime*0.3,false,3);
+  drawSmallCrab(cctx,560,80,rotTime*0.7,true,3);
+}
+
+render();
+setInterval(render,33);
+</script>
+
+</body>
+</html>

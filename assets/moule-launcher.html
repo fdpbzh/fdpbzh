@@ -739,14 +739,14 @@ function drawAstralBodies(dist,t2,ps){
 
 // ══════ DÉCORS BONUS (validés mai 2026, purement visuels — zéro physique) ══════
 
-// 1) PHARE de Pors-Poulhan — PREMIER PLAN, 4x plus gros (s=16 vs s=4)
-//    Toit large +30%, position sur la falaise, parallaxe 1.0 (défile avec le monde)
+// 1) PHARE de Pors-Poulhan — PREMIER PLAN, s=12 (3x vs original s=4)
+//    Toit du haut élargi à 9s (+15% vs version précédente à 7.8s)
+//    Lumière ROUGE (signature visuelle d'un phare maritime breton)
 function drawLighthouse(){
   var LX=400;
   var sx=toSX(LX);
-  if(sx<-200||sx>W+200)return; // visibilité élargie : sprite occupe ~125 px de large
-  var cx=sx,cy=GY-2,s=16;
-  // Palette mauve synthwave (au lieu du rouge — cohérent avec l'ambiance nuit)
+  if(sx<-160||sx>W+160)return;
+  var cx=sx,cy=GY-2,s=12;
   var roofMauve='#9024b8',roofDark='#5c1880',roofLight='#c040d8';
   var wallWhite='#ede5d4',wallShade='#bcb4a0';
   var trimGrey='#5e5e5e';
@@ -765,23 +765,25 @@ function drawLighthouse(){
   px(cx,cy,-s*3,-s*8,s*6,s*7,wallWhite);
   px(cx,cy,s*2,-s*8,s,s*7,wallShade); // ombre côté droit
   px(cx,cy,-s*3.5,-s*1,s*7,s*0.5,trimGrey); // trim sol
-  // TOIT MAUVE — partie large EN HAUT à 7.8s (= base 6s × 1.30 → exactement +30%)
-  px(cx,cy,-s*3,-s*9,s*6,s,roofMauve);       // bas étroit (6s)
-  px(cx,cy,-s*3.9,-s*10,s*7.8,s,roofMauve);  // haut large (7.8s, +30% vs base)
+  // TOIT MAUVE — 2 rectangles
+  // Rectangle BAS : 6s wide (collé sur le mur)
+  px(cx,cy,-s*3,-s*9,s*6,s,roofMauve);
+  // Rectangle HAUT : 8.1s wide × 1.2s tall (-10% width, +20% height vs version précédente)
+  px(cx,cy,-s*4.05,-s*10.2,s*8.1,s*1.2,roofMauve);
   // Reflets / ombres effet 3D
   px(cx,cy,-s*3,-s*9,s*0.6,s,roofLight);
-  px(cx,cy,-s*3.9,-s*10,s*0.6,s,roofLight);
+  px(cx,cy,-s*4.05,-s*10.2,s*0.7,s*1.2,roofLight);
   px(cx,cy,s*2.5,-s*9,s*0.5,s,roofDark);
-  px(cx,cy,s*3.2,-s*10,s*0.7,s,roofDark);
-  px(cx,cy,-s*3.9,-s*9.2,s*7.8,s*0.25,roofDark); // liseré sombre sous l'overhang
-  // Halo lumineux qui clignote (lanterne) — palette plus chaude pour contraster le mauve
+  px(cx,cy,s*3.35,-s*10.2,s*0.7,s*1.2,roofDark);
+  px(cx,cy,-s*4.05,-s*9.2,s*8.1,s*0.25,roofDark); // liseré sombre au rim du toit
+  // Halo lumineux ROUGE — c'est un phare maritime, pas un lampadaire
   if(Math.sin(bgT*0.5)>0.3){
-    var grad=ctx.createRadialGradient(cx,cy-s*10,0,cx,cy-s*10,s*6);
-    grad.addColorStop(0,'rgba(255,220,140,0.45)');
-    grad.addColorStop(0.5,'rgba(255,180,200,0.20)');
-    grad.addColorStop(1,'rgba(255,160,200,0)');
+    var grad=ctx.createRadialGradient(cx,cy-s*10,0,cx,cy-s*10,s*7);
+    grad.addColorStop(0,'rgba(255,70,70,0.60)');
+    grad.addColorStop(0.45,'rgba(220,30,50,0.28)');
+    grad.addColorStop(1,'rgba(180,10,30,0)');
     ctx.fillStyle=grad;
-    ctx.beginPath();ctx.arc(cx,cy-s*10,s*6,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(cx,cy-s*10,s*7,0,Math.PI*2);ctx.fill();
   }
 }
 
@@ -1068,38 +1070,40 @@ function drawOyats(dist,t2){
   });
 }
 
-// 10) VAGUES AVANT-PLAN — silhouettes animées au ras du bas, parallaxe > 1
+// 10) VAGUES AVANT-PLAN — courbes lisses dorées (version d'origine)
+// Config extraite pour que les vagues qui déferlent puissent réutiliser fgWaveY
+var FG_WAVE_LAYERS=[
+  {p:1.30, by:0, amp:6, fr:0.024, tspd:0.058, ph:0.0, BS:5},
+  {p:1.50, by:0, amp:7, fr:0.030, tspd:0.045, ph:1.4, BS:5},
+  {p:1.75, by:0, amp:9, fr:0.038, tspd:0.052, ph:2.5, BS:5}
+];
+function fgWaveY(L,x,off,t2){
+  return L.by+Math.sin((x+off)*L.fr+t2*L.tspd+L.ph)*L.amp
+             +Math.sin((x+off)*L.fr*2.3+t2*L.tspd*1.3)*L.amp*0.35;
+}
 function drawForegroundWaves(dist,t2){
-  // Limite à la zone mer (après SHORE), sinon ça flotte au-dessus de la plage
   var seaStart=Math.max(0,toSX(SHORE));
   if(seaStart>=W)return;
-  // Couleurs OR pour matcher l'affiche FDP — reflets dorés sur l'eau (au lieu de silhouettes sombres)
-  var c1,c2,c3;
+  FG_WAVE_LAYERS[0].by=H-22;
+  FG_WAVE_LAYERS[1].by=H-12;
+  FG_WAVE_LAYERS[2].by=H-4;
+  // Couleurs OR pour matcher l'affiche FDP
+  var cols;
   if(dist<1000){
-    // Coucher : or chaud teinté coral
-    c1='rgba(255,200,100,0.45)'; c2='rgba(255,180,70,0.65)'; c3='rgba(255,201,60,0.86)';
+    cols=['rgba(255,200,100,0.45)','rgba(255,180,70,0.65)','rgba(255,201,60,0.86)'];
   } else if(dist<6000){
-    // Nuit : or vif et saturé (effet néon doré sur mer noire — comme l'affiche)
-    c1='rgba(255,200,90,0.48)';  c2='rgba(255,205,60,0.68)'; c3='rgba(255,220,80,0.90)';
+    cols=['rgba(255,200,90,0.48)','rgba(255,205,60,0.68)','rgba(255,220,80,0.90)'];
   } else {
-    // Astral : or atténué et un peu plus froid
-    c1='rgba(220,180,90,0.36)';  c2='rgba(240,200,90,0.55)'; c3='rgba(255,210,90,0.75)';
+    cols=['rgba(220,180,90,0.36)','rgba(240,200,90,0.55)','rgba(255,210,90,0.75)'];
   }
-  // 3 couches de vagues, plus elles sont devant plus elles bougent vite (parallaxe x1.3 → x1.75)
-  var layers=[
-    {p:1.30, by:H-22, amp:6, fr:0.024, tspd:0.058, ph:0.0, col:c1},
-    {p:1.50, by:H-12, amp:7, fr:0.030, tspd:0.045, ph:1.4, col:c2},
-    {p:1.75, by:H-4,  amp:9, fr:0.038, tspd:0.052, ph:2.5, col:c3}
-  ];
-  layers.forEach(function(L){
+  FG_WAVE_LAYERS.forEach(function(L,idx){
     var off=camX*L.p;
-    ctx.fillStyle=L.col;
+    ctx.fillStyle=cols[idx];
     ctx.beginPath();
     ctx.moveTo(seaStart-5,H);
     ctx.lineTo(seaStart-5,L.by);
     for(var x=seaStart-5;x<=W+5;x+=4){
-      var y=L.by+Math.sin((x+off)*L.fr+t2*L.tspd+L.ph)*L.amp
-                +Math.sin((x+off)*L.fr*2.3+t2*L.tspd*1.3)*L.amp*0.35;
+      var y=fgWaveY(L,x,off,t2);
       ctx.lineTo(x,y);
     }
     ctx.lineTo(W+5,L.by);
@@ -1108,7 +1112,80 @@ function drawForegroundWaves(dist,t2){
   });
 }
 
-// 11) SURFEURS — petits sprites sur la crête des vagues avant-plan
+// 11) VAGUES QUI DÉFERLENT — pixel art chunky avec curl + spray
+//     Cyclent par phases : formation (montée mousse) → break (curl max + projections) → dissipation
+var WAVE_BREAKS=[];
+(function initWaveBreaks(){
+  // 7 spots de déferlement répartis sur la mer, chacun avec son cycle propre
+  var spots=[3500, 9800, 17200, 26500, 36800, 48200, 60500];
+  spots.forEach(function(wx,i){
+    WAVE_BREAKS.push({
+      wx:wx+Math.random()*1500,
+      cs:0.012+Math.random()*0.010,   // vitesse du cycle (lente : ~5-9s par cycle)
+      ph:Math.random()*Math.PI*2      // phase initiale décalée pour pas tous synchros
+    });
+  });
+})();
+function drawBreakingWaves(dist,t2){
+  var seaStart=Math.max(0,toSX(SHORE));
+  if(seaStart>=W)return;
+  // Les déferlements sont sur la couche avant-plan (la plus proche du joueur)
+  var L=FG_WAVE_LAYERS[2];
+  var off=camX*L.p;
+  WAVE_BREAKS.forEach(function(wb){
+    var sx=wb.wx-camX*L.p;
+    if(sx<-30||sx>W+30)return;
+    if(sx<seaStart-10)return;
+    // Cycle complet 0→2π, normalisé à [0,1]
+    var cycle=((t2*wb.cs+wb.ph)%(Math.PI*2))/(Math.PI*2);
+    // Y du déferlement = top de la vague à cette position
+    var rawY=fgWaveY(L,sx,off,t2);
+    var BS=L.BS;
+    var wy=Math.floor(rawY/BS)*BS;
+    drawBreakingPattern(sx,wy,cycle,BS);
+  });
+}
+function drawBreakingPattern(cx,cy,p,BS){
+  // Patterns pixel-art selon la phase du cycle
+  if(p<0.25){
+    // FORMATION — petite crête de mousse qui monte
+    var a=p/0.25;
+    ctx.fillStyle='rgba(255,255,255,'+a*0.85+')';
+    ctx.fillRect(cx-BS,cy-BS,BS*2,BS);
+    if(p>0.12){ctx.fillRect(cx-BS*0.5,cy-BS*2,BS,BS);}
+  } else if(p<0.50){
+    // BREAK — curl maximum + spray pixel-art
+    var bp=(p-0.25)/0.25;
+    ctx.fillStyle='#ffffff';
+    // Curl principal (forme tube qui s'effondre)
+    ctx.fillRect(cx-BS*2, cy-BS*2,    BS*4, BS);
+    ctx.fillRect(cx-BS*2.5,cy-BS,     BS*5, BS);
+    ctx.fillRect(cx-BS*3, cy,         BS*6, BS);
+    ctx.fillRect(cx-BS*2, cy+BS,      BS*4, BS);
+    // Spray (particules qui jaillissent)
+    var spray='rgba(255,255,255,'+(1-bp*0.4)+')';
+    ctx.fillStyle=spray;
+    ctx.fillRect(cx-BS*4, cy-BS*3-bp*BS*2, BS, BS);
+    ctx.fillRect(cx-BS*2, cy-BS*4-bp*BS*2, BS, BS);
+    ctx.fillRect(cx+BS,   cy-BS*3-bp*BS*3, BS, BS);
+    ctx.fillRect(cx+BS*3, cy-BS*2-bp*BS*2, BS, BS);
+    ctx.fillRect(cx-BS*5, cy-BS-bp*BS,     1,  1);
+    ctx.fillRect(cx+BS*4, cy-BS-bp*BS,     1,  1);
+  } else if(p<0.78){
+    // DISSIPATION — mousse qui s'étale et fade
+    var a=1-(p-0.50)/0.28;
+    ctx.fillStyle='rgba(255,255,255,'+a+')';
+    ctx.fillRect(cx-BS*3, cy,    BS*6, BS);
+    ctx.fillRect(cx-BS*2, cy-BS, BS*4, BS);
+    // Traînées latérales
+    ctx.fillStyle='rgba(255,255,255,'+a*0.6+')';
+    ctx.fillRect(cx-BS*5, cy+BS, BS*2, 1);
+    ctx.fillRect(cx+BS*3, cy+BS, BS*2, 1);
+  }
+  // p ∈ [0.78, 1.0] : rien, pause avant nouveau cycle
+}
+
+// 12) SURFEURS — petits sprites sur la crête des vagues avant-plan
 var SURFERS=[
   // Plus de surfeurs + planches en couleurs qui contrastent avec l'or
   {wx:3200,  pose:0, board:'#ffffff', wetsuit:'#1a1a3a'},
@@ -1252,9 +1329,9 @@ function drawDecor(dist,t2){
   // PHARE de Pors-Poulhan (sur la falaise, après que plage soit dessinée)
   drawLighthouse();
 
-  // VAGUES AVANT-PLAN + SURFEURS — les éléments les plus proches du joueur
-  // Dessinés EN DERNIER pour passer devant tout le reste (lighthouse compris si chevauchement)
+  // VAGUES AVANT-PLAN + DÉFERLEMENTS + SURFEURS — les éléments les plus proches du joueur
   drawForegroundWaves(dist,t2);
+  drawBreakingWaves(dist,t2);
   drawSurfers(dist,t2);
 }
 
@@ -1273,38 +1350,117 @@ var fdps=[];
 function resetFDPs(){fdps=FDP_DEFS.map(function(d){return{wx:d.wx,onSea:d.wx>=SHORE,hit:false,ep:0,rot:0};});}
 function getFdpY(f){return f.onSea?SY-22+Math.sin(bgT*.05+f.wx*.008)*4:GY-22;}
 
-function drawFDPLogo(cx,cy,rot,pulse){
-  ctx.save();ctx.translate(cx,cy);ctx.rotate(rot);
-  ctx.fillStyle='#28004a';
-  for(var i=0;i<8;i++){ctx.save();ctx.rotate(i*Math.PI/4);ctx.fillRect(-3,-22,6,12);ctx.restore();}
-  ctx.fillStyle='#1e0035';ctx.beginPath();ctx.arc(0,0,16,0,Math.PI*2);ctx.fill();
-  ctx.strokeStyle='#c026d3';ctx.lineWidth=4;ctx.beginPath();ctx.arc(0,0,16,0,Math.PI*2);ctx.stroke();
-  if(pulse){ctx.fillStyle='rgba(192,38,211,.18)';ctx.beginPath();ctx.arc(0,0,28,0,Math.PI*2);ctx.fill();}
-  ctx.restore();
-  var s=3,os=cx-s*4;
-  ctx.fillStyle='#ffd700';
-  ctx.fillRect(os,cy-s*3,s,s*5);ctx.fillRect(os,cy-s*3,s*2,s);ctx.fillRect(os,cy-s,s*2,s);os+=s*3;
-  ctx.fillRect(os,cy-s*3,s,s*5);ctx.fillRect(os,cy-s*3,s*2,s);ctx.fillRect(os,cy+s*2,s*2,s);ctx.fillRect(os+s*2,cy-s*2,s,s*4);os+=s*3;
-  ctx.fillRect(os,cy-s*3,s,s*5);ctx.fillRect(os,cy-s*3,s*2,s);ctx.fillRect(os,cy-s,s*2,s);ctx.fillRect(os+s*2,cy-s*2,s,s*2);
+// ══════ PETIT CRABE (remplace drawFDPLogo + drawFDPExplosion) ══════
+// HITBOX 50×38 INCHANGÉE — uniquement le visuel change.
+// prox: 0 = moule loin (statique), 1 = moule juste à côté (pinces ouvertes + tremblement)
+// lookX, lookY (en coord écran) : position de la moule, les yeux la suivent
+function drawSmallCrab(cx,cy,s,prox,lookX,lookY){
+  s=s||5;
+  prox=prox||0;
+  // Tremblement + ouverture des pinces (s'accélère à l'approche)
+  var freq=0.8+prox*5;
+  var twitch=Math.sin(bgT*freq*8)*(0.3+prox*1.4);
+  var open=prox*s*0.7;
+  // Frémissement des pattes — visible surtout à courte distance
+  var legJ=Math.sin(bgT*18+cx*0.3)*prox*1.1;
+  // Direction du regard (pupilles suivent la moule si fournie)
+  var lookDx=0, lookDy=0;
+  if(lookX!==undefined){
+    var ddx=lookX-cx, ddy=lookY-cy;
+    var dd=Math.sqrt(ddx*ddx+ddy*ddy);
+    if(dd>1){
+      var mag=0.7+prox*0.5; // les pupilles bougent plus à l'approche
+      lookDx=(ddx/dd)*mag;
+      lookDy=(ddy/dd)*mag;
+    }
+  }
+  // PATTES — bougent en opposition gauche/droite quand prox élevé (effet course en place)
+  // Gauche
+  px(cx,cy,-s*4.5,-s*1+legJ*0.6,s,s*1.5,'#902010');
+  px(cx,cy,-s*4,s*0.3+legJ,s,s*1.5,'#902010');
+  px(cx,cy,-s*4.5,s*1.5-legJ*0.4,s,s*1.2,'#902010');
+  // Droite (opposition)
+  px(cx,cy,s*3.5,-s*1-legJ*0.6,s,s*1.5,'#902010');
+  px(cx,cy,s*3,s*0.3-legJ,s,s*1.5,'#902010');
+  px(cx,cy,s*3.5,s*1.5+legJ*0.4,s,s*1.2,'#902010');
+  // PINCES — bras stables, mandibules ANIMÉES
+  // Gauche
+  px(cx,cy,-s*3.5,-s*2.5,s*0.8,s,'#a02808');
+  px(cx,cy,-s*4,-s*3.5,s*1.5,s,'#a02808');
+  px(cx,cy,-s*4.2,-s*4.3-open+twitch,s*1.8,s*0.8,'#c82810');
+  px(cx,cy,-s*4.2,-s*3+open*0.4-twitch,s*1.8,s*0.4,'#c82810');
+  // Droite (phase opposée)
+  px(cx,cy,s*2.7,-s*2.5,s*0.8,s,'#a02808');
+  px(cx,cy,s*2.5,-s*3.5,s*1.5,s,'#a02808');
+  px(cx,cy,s*2.4,-s*4.3-open-twitch,s*1.8,s*0.8,'#c82810');
+  px(cx,cy,s*2.4,-s*3+open*0.4+twitch,s*1.8,s*0.4,'#c82810');
+  // CORPS (carapace bombée avec gradient de teintes)
+  px(cx,cy,-s*2.5,s*1,s*5,s,'#902010');
+  px(cx,cy,-s*3,-s*0.5,s*6,s*1.7,'#b02010');
+  px(cx,cy,-s*2.5,-s*1.5,s*5,s*1.2,'#c82010');
+  px(cx,cy,-s*2,-s*2,s*4,s*0.7,'#e03020');
+  px(cx,cy,-s,-s*2,s*2,s*0.5,'#ff5530');
+  // YEUX — tiges (statiques)
+  px(cx,cy,-s*1.3,-s*2.8,s*0.5,s*0.8,'#902010');
+  px(cx,cy,s*0.8,-s*2.8,s*0.5,s*0.8,'#902010');
+  // CLIGNEMENT — uniquement quand prox > 0.4, accélère avec prox (panique)
+  var eyesClosed=false;
+  if(prox>0.4){
+    var blinkRate=3+prox*6; // 3-9 Hz selon stress
+    var blinkPhase=(bgT*blinkRate+cx*0.01)%1;
+    eyesClosed=blinkPhase<0.16; // yeux fermés pendant 16% du cycle
+  }
+  if(eyesClosed){
+    // Yeux fermés : 2 fentes horizontales (style "><")
+    px(cx,cy,-s*1.6,-s*3.15,s,s*0.3,'#0a0a0a');
+    px(cx,cy,s*0.6,-s*3.15,s,s*0.3,'#0a0a0a');
+  } else {
+    // Yeux ouverts : globes noirs + pupilles qui suivent la moule
+    px(cx,cy,-s*1.6,-s*3.5,s,s,'#0a0a0a');
+    px(cx,cy,s*0.6,-s*3.5,s,s,'#0a0a0a');
+    px(cx+lookDx,cy+lookDy,-s*1.4,-s*3.3,s*0.4,s*0.4,'#fff');
+    px(cx+lookDx,cy+lookDy,s*0.8,-s*3.3,s*0.4,s*0.4,'#fff');
+  }
 }
 
-function drawFDPExplosion(cx,cy,ep){
+function drawCrabHit(cx,cy,ep){
   var prog=Math.min(ep/1.4,1);
-  [{r:prog*70,cols:['#ffd700','#ff8c00','#fff','#ffd700'],n:14,sz:(1-prog)*12+1},
-   {r:prog*44,cols:['#c026d3','#f0abfc','#fff'],n:9,sz:(1-prog)*8+1},
+  // Particules rouges/oranges/blanches qui giclent (palette crabe)
+  [{r:prog*70,cols:['#ff5530','#c82010','#fff','#ffd700'],n:14,sz:(1-prog)*12+1},
+   {r:prog*44,cols:['#ff8c00','#e03020','#fff'],n:9,sz:(1-prog)*8+1},
    {r:prog*22,cols:['#fff','#ffd700'],n:6,sz:(1-prog)*5+1}
   ].forEach(function(rg){if(rg.sz<.5)return;for(var i=0;i<rg.n;i++){var a=i/rg.n*Math.PI*2+ep*.4;ctx.fillStyle=rg.cols[i%rg.cols.length];ctx.fillRect(cx+Math.cos(a)*rg.r-rg.sz/2,cy+Math.sin(a)*rg.r-rg.sz/2,rg.sz,rg.sz);}});
-  if(prog<.65){ctx.font='8px "Press Start 2P"';ctx.fillStyle='rgba(255,215,0,'+(.65-prog)*2+')';ctx.textAlign='center';ctx.fillText('FDP !',cx,cy-prog*42);ctx.textAlign='left';}
+  // Texte d'impact (combo)
+  if(prog<.65){ctx.font='8px "Press Start 2P"';ctx.fillStyle='rgba(255,80,40,'+(.65-prog)*2+')';ctx.textAlign='center';ctx.fillText('CRAC !',cx,cy-prog*42);ctx.textAlign='left';}
 }
 
 function drawFDPs(){
   fdps.forEach(function(m){
     var sx=toSX(m.wx);if(sx<-50||sx>W+50)return;
-    var fy=getFdpY(m);m.rot+=0.018;
-    if(m.ep>0){drawFDPExplosion(sx,fy,m.ep);if(m.ep<1.6)m.ep+=.048;return;}
+    var fy=getFdpY(m); // CENTRE HITBOX — inchangé
+    // Décalage visuel : crabe 6 px plus bas pour que les pattes (s=6) touchent le sol/la mer
+    var visualY=fy+6;
+    if(m.ep>0){drawCrabHit(sx,visualY,m.ep);if(m.ep<1.6)m.ep+=.048;return;}
     if(m.hit)return;
-    drawFDPLogo(sx,fy,m.rot,Math.floor(bgT*1.8+m.wx*.01)%2===0);
-    ctx.fillStyle='rgba(255,215,0,.5)';ctx.beginPath();ctx.moveTo(sx,fy-30);ctx.lineTo(sx-5,fy-22);ctx.lineTo(sx+5,fy-22);ctx.closePath();ctx.fill();
+    // Proximité (basée sur fy = centre hitbox)
+    var prox=0, lookX, lookY;
+    if(gState==='play'&&phase==='flying'){
+      var dx=M.wx-m.wx, dy=M.wy-fy;
+      var d=Math.sqrt(dx*dx+dy*dy);
+      prox=Math.max(0,1-d/220);
+      prox=prox*prox;
+      // Position écran de la moule pour le regard des crabes
+      lookX=M.wx-camX;
+      lookY=M.wy;
+    }
+    drawSmallCrab(sx,visualY,6,prox,lookX,lookY);
+    // Flèche indicatrice — suit le visuel
+    ctx.fillStyle='rgba(255,215,0,.5)';
+    ctx.beginPath();
+    ctx.moveTo(sx,visualY-30);
+    ctx.lineTo(sx-5,visualY-22);
+    ctx.lineTo(sx+5,visualY-22);
+    ctx.closePath();ctx.fill();
   });
 }
 
