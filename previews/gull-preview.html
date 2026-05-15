@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Mouette agressive — pixel art preview</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#0a0014;color:#fff;padding:30px 22px;line-height:1.5;min-height:100vh}
+h1{font-size:24px;font-weight:800;margin-bottom:6px}
+.lead{color:#aaa;font-size:14px;max-width:760px;margin-bottom:24px}
+.back{position:fixed;top:18px;left:18px;background:#222;color:#FFC93C;padding:8px 16px;border-radius:99px;text-decoration:none;font-size:13px;font-weight:700;z-index:50}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;max-width:1200px;margin-bottom:24px}
+.card{background:#15001f;border:1px solid #2a0040;border-radius:10px;overflow:hidden;padding-bottom:14px}
+.card canvas{width:100%;display:block;image-rendering:pixelated;background:linear-gradient(180deg,#4a7090 0%,#7090a0 60%,#8b4513 75%,#5a350f 100%);}
+.card .info{padding:12px 16px;font-size:12px;color:#aaa}
+.card .info .num{color:#FFC93C;font-weight:700;font-size:14px;display:block;margin-bottom:4px}
+
+.bigcard{background:#15001f;border-radius:14px;padding:24px;border:1px solid #2a0040;margin-bottom:18px}
+.bigcard h3{color:#FFC93C;margin-bottom:14px;font-size:16px}
+.bigcard canvas{display:block;margin:0 auto;image-rendering:pixelated;border-radius:6px}
+
+.detail{display:grid;grid-template-columns:1fr 1.4fr;gap:14px;align-items:center;margin-top:14px}
+.detail p{font-size:13px;color:#aaa;line-height:1.8}
+.detail strong{color:#FFC93C}
+
+.note{padding:18px 22px;background:#19191c;border-radius:10px;border:1px solid #2a2a30;font-size:13px;color:#aaa;max-width:780px}
+.note strong{color:#FFC93C}
+</style>
+</head>
+<body>
+
+<a href="../index.html" class="back">← Retour</a>
+
+<h1>🦅 Mouette agressive — silhouette longiligne v2</h1>
+<p class="lead">Nouvelle silhouette : <strong>haute sur pattes</strong> (18s vs 11s avant), corps <strong>allongé horizontalement</strong> (24×8 vs 20×16), <strong>cou visible</strong> qui relie le corps à la tête en hauteur. Tête en avant, queue en arrière, proportions de vraie mouette debout.</p>
+
+<!-- Tailles -->
+<div class="grid">
+  <div class="card">
+    <canvas id="c-s1" width="120" height="180"></canvas>
+    <div class="info"><span class="num">Taille S — s=1</span>~52 px de haut · trop petite</div>
+  </div>
+  <div class="card">
+    <canvas id="c-s2" width="180" height="240"></canvas>
+    <div class="info"><span class="num">Taille M — s=2 ★ recommandé</span>~104 px de haut · imposante, longiligne</div>
+  </div>
+  <div class="card">
+    <canvas id="c-s3" width="240" height="320"></canvas>
+    <div class="info"><span class="num">Taille L — s=3</span>~156 px · grande échassière</div>
+  </div>
+</div>
+
+<!-- Animations -->
+<div class="bigcard">
+  <h3>🎬 Cycle complet (s=2) — approche → atterrissage → picotements → départ</h3>
+  <canvas id="c-cycle" width="700" height="200"></canvas>
+  <p style="color:#aaa;font-size:12px;text-align:center;margin-top:10px">La mouette arrive par la gauche, se pose à côté de la moule, picore 5 fois, puis s'envole à droite</p>
+</div>
+
+<!-- Detail anatomy -->
+<div class="bigcard">
+  <h3>🔍 Détails anatomiques (zoom s=3)</h3>
+  <canvas id="c-anatomy" width="280" height="280"></canvas>
+  <div class="detail">
+    <p>✅ <strong>Œil jaune</strong> + sourcil sombre = regard perçant et menaçant</p>
+    <p>✅ <strong>Point rouge sur le bec</strong> = signature des Larus (mouette argentée), parfaitement reconnaissable</p>
+  </div>
+  <div class="detail">
+    <p>✅ <strong>Bout d'aile noir</strong> avec mouchetures blanches = autre signature des grosses mouettes</p>
+    <p>✅ <strong>Pattes jaunes palmées</strong> = pattes d'oiseau marin authentiques</p>
+  </div>
+  <div class="detail">
+    <p>✅ <strong>Bec crochu</strong> à la pointe = crochet typique des mouettes carnivores</p>
+    <p>✅ <strong>Plumage gris dorsal</strong> = manteau de la mouette argentée adulte</p>
+  </div>
+</div>
+
+<!-- Pecking detail -->
+<div class="bigcard">
+  <h3>🎯 Animation de picotement (s=2)</h3>
+  <canvas id="c-peck" width="500" height="180"></canvas>
+  <p style="color:#aaa;font-size:12px;text-align:center;margin-top:10px">3 frames clés du cycle : pose / plongeon / impact (sable qui jaillit)</p>
+</div>
+
+<div class="note">
+  <p>👍 <strong>Si tu valides la taille s=2</strong> : j'intègre dans le jeu, hitbox de collision inchangée (visuel uniquement).</p>
+  <p style="margin-top:8px">🛠️ <strong>Si tu veux ajuster</strong> : taille plus/moins (s=1.5 ou s=2.5), couleurs (œil rouge sang ?), expression (encore plus mauvais ?), accessoires (cigarette au bec ?), dis-moi.</p>
+</div>
+
+<script>
+function px(ctx,cx,cy,x,y,w,h,col){ctx.fillStyle=col;ctx.fillRect(cx+x,cy+y,w,h);}
+
+// ═══ MOUETTE AGRESSIVE — sprite charismatique ═══
+// cx, cy = position du POINT ENTRE LES PIEDS (le sol)
+// s = échelle, pose = 'standing' | 'flying', leanY = décalage pour picotement
+function drawBigGull(ctx,cx,cy,s,opts){
+  opts=opts||{};
+  var pose=opts.pose||'standing';
+  var leanY=opts.leanY||0;
+  var flipX=opts.flipX||false;
+  var t=opts.t||0;
+
+  ctx.save();
+  ctx.translate(cx,cy);
+  if(flipX)ctx.scale(-1,1);
+
+  if(pose==='flying'){
+    // ═══ POSE VOL ═══
+    var wp=Math.sin(t*0.4);
+    var wY=wp>0?-10*s:5*s;
+    // Corps allongé
+    px(ctx,0,0,-12*s,-3*s,22*s,6*s,'#fff');
+    px(ctx,0,0,-10*s,-4*s,18*s,1*s,'#fff');
+    px(ctx,0,0,-10*s,3*s,18*s,1*s,'#fff');
+    // Queue
+    px(ctx,0,0,-16*s,-2*s,4*s,4*s,'#fff');
+    px(ctx,0,0,-16*s,-2*s,1*s,4*s,'#a8a8b0');
+    // Tête
+    px(ctx,0,0,8*s,-5*s,8*s,7*s,'#fff');
+    // Bec + point rouge
+    px(ctx,0,0,15*s,-3*s,6*s,2*s,'#f4c040');
+    px(ctx,0,0,15*s,-1*s,5*s,1*s,'#d49020');
+    px(ctx,0,0,19*s,-1*s,1*s,1*s,'#dc3030');
+    px(ctx,0,0,20*s,-3*s,1*s,2*s,'#d49020');
+    // Œil
+    px(ctx,0,0,11*s,-4*s,2*s,2*s,'#fff');
+    px(ctx,0,0,11*s,-4*s,2*s,2*s,'#f4c040');
+    px(ctx,0,0,12*s,-3*s,1*s,1*s,'#202028');
+    // Aile arrière
+    px(ctx,0,0,-22*s,wY-1*s,12*s,3*s,'#fff');
+    px(ctx,0,0,-20*s,wY-2*s,10*s,2*s,'#a8a8b0');
+    px(ctx,0,0,-22*s,wY-1*s,3*s,2*s,'#202028');
+    px(ctx,0,0,-21*s,wY,1*s,1*s,'#fff');
+    // Aile avant
+    px(ctx,0,0,10*s,wY-1*s,12*s,3*s,'#fff');
+    px(ctx,0,0,10*s,wY-2*s,10*s,2*s,'#a8a8b0');
+    px(ctx,0,0,19*s,wY-1*s,3*s,2*s,'#202028');
+    px(ctx,0,0,20*s,wY,1*s,1*s,'#fff');
+  } else {
+    // ═══ POSE DEBOUT — silhouette LONGILIGNE, hautes pattes ═══
+    // PATTES (jaunes, 18s = 60% plus longues qu'avant)
+    px(ctx,0,0,-3*s,-18*s,2*s,18*s,'#f4c040');
+    px(ctx,0,0,1*s,-18*s,2*s,18*s,'#f4c040');
+    // Articulation genou + cheville (ombre)
+    px(ctx,0,0,-3*s,-10*s,2*s,1*s,'#d49020'); // genou
+    px(ctx,0,0,1*s,-10*s,2*s,1*s,'#d49020');
+    px(ctx,0,0,-3*s,-2*s,2*s,1*s,'#d49020');  // cheville
+    px(ctx,0,0,1*s,-2*s,2*s,1*s,'#d49020');
+    // PIEDS palmés
+    px(ctx,0,0,-5*s,0,5*s,2*s,'#f4c040');
+    px(ctx,0,0,0,0,5*s,2*s,'#f4c040');
+    px(ctx,0,0,-5*s,2*s,5*s,1*s,'#d49020');
+    px(ctx,0,0,0,2*s,5*s,1*s,'#d49020');
+    // Lignes palmure
+    px(ctx,0,0,-4*s,0,1*s,2*s,'#d49020');
+    px(ctx,0,0,-2*s,0,1*s,2*s,'#d49020');
+    px(ctx,0,0,2*s,0,1*s,2*s,'#d49020');
+    px(ctx,0,0,4*s,0,1*s,2*s,'#d49020');
+
+    // CORPS horizontal allongé (24 wide × 8 tall — silhouette de mouette debout)
+    var bY=-26*s; // top du corps
+    px(ctx,0,0,-12*s,bY,24*s,8*s,'#fff');
+    px(ctx,0,0,-10*s,bY-1*s,20*s,1*s,'#fff'); // dôme supérieur
+    px(ctx,0,0,-10*s,bY+8*s,20*s,1*s,'#fff'); // courbure ventrale
+    // QUEUE (saillie à l'arrière, légère pointe grise)
+    px(ctx,0,0,-14*s,bY+3*s,3*s,3*s,'#fff');
+    px(ctx,0,0,-14*s,bY+4*s,2*s,1*s,'#a8a8b0');
+
+    // AILE repliée (gris dorsal — étendue horizontalement le long du corps)
+    px(ctx,0,0,-10*s,bY+1*s,18*s,5*s,'#a8a8b0');
+    px(ctx,0,0,-10*s,bY+1*s,6*s,2*s,'#888892');
+    px(ctx,0,0,-10*s,bY+5*s,18*s,1*s,'#7c7c86');
+    // Détails plumage
+    px(ctx,0,0,-6*s,bY+3*s,12*s,1*s,'#888892');
+    // BOUT D'AILE NOIR (à l'arrière, signature Larus)
+    px(ctx,0,0,-12*s,bY+2*s,3*s,3*s,'#202028');
+    px(ctx,0,0,-12*s,bY+3*s,1*s,1*s,'#fff');
+
+    // POITRINE bombée (arrondie à l'avant, sous le cou)
+    px(ctx,0,0,8*s,bY+1*s,5*s,7*s,'#fff');
+    px(ctx,0,0,8*s,bY+1*s,1*s,5*s,'#f0f0f4');
+
+    // COU vertical (8s de haut, relie le corps à la tête en hauteur)
+    var nX=9*s;
+    var nY=bY-8*s+leanY*0.3; // suit légèrement le picotement
+    px(ctx,0,0,nX,nY,4*s,9*s,'#fff');
+    px(ctx,0,0,nX-1*s,nY+3*s,1*s,5*s,'#f0f0f4'); // ombre côté
+
+    // TÊTE (au-dessus du cou, avec leanY pour picotement)
+    var hX=nX+2*s;
+    var hY=nY-9*s+leanY;
+    px(ctx,0,0,hX-5*s,hY,10*s,9*s,'#fff');
+    px(ctx,0,0,hX-4*s,hY-1*s,8*s,1*s,'#fff');
+    // Ombre crâne
+    px(ctx,0,0,hX-4*s,hY-1*s,8*s,1*s,'#e8e8ee');
+    // SOURCIL menaçant
+    px(ctx,0,0,hX+1*s,hY+1*s,4*s,1*s,'#888892');
+    // ŒIL jaune perçant
+    px(ctx,0,0,hX+2*s,hY+2*s,3*s,3*s,'#f4c040');
+    px(ctx,0,0,hX+3*s,hY+3*s,1*s,1*s,'#202028');
+    px(ctx,0,0,hX+2*s,hY+2*s,1*s,1*s,'#ffe080');
+    // BEC crochu avec point rouge
+    var bkX=hX+5*s;
+    var bkY=hY+4*s;
+    px(ctx,0,0,bkX,bkY,8*s,3*s,'#f4c040');
+    px(ctx,0,0,bkX,bkY+3*s,7*s,1*s,'#d49020');
+    px(ctx,0,0,bkX+7*s,bkY+1*s,1*s,2*s,'#d49020');
+    px(ctx,0,0,bkX+6*s,bkY+2*s,2*s,1*s,'#dc3030');
+    px(ctx,0,0,bkX+1*s,bkY+2*s,6*s,1*s,'#d49020');
+  }
+
+  ctx.restore();
+}
+
+// ═══ RENDER ═══
+var animT=0;
+function render(){
+  animT+=1;
+
+  // Sizes (cy = position des pieds, gull pousse vers le haut)
+  [['c-s1',1,60,170],['c-s2',2,90,230],['c-s3',3,120,310]].forEach(function(c){
+    var canvas=document.getElementById(c[0]);
+    var ctx=canvas.getContext('2d');
+    ctx.imageSmoothingEnabled=false;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    drawBigGull(ctx,c[2],c[3],c[1],{pose:'standing'});
+  });
+
+  // Cycle complet : approach → land → peck → leave (parcours sur 6 secondes)
+  var cycCanvas=document.getElementById('c-cycle');
+  var cyc=cycCanvas.getContext('2d');
+  cyc.imageSmoothingEnabled=false;
+  cyc.clearRect(0,0,700,200);
+  // Fond mer/plage
+  var seaG=cyc.createLinearGradient(0,0,0,200);
+  seaG.addColorStop(0,'#2D0E5C');seaG.addColorStop(0.5,'#7c3f9e');seaG.addColorStop(0.8,'#5a350f');seaG.addColorStop(1,'#3a200a');
+  cyc.fillStyle=seaG;cyc.fillRect(0,0,700,200);
+  // Moule au sol (sprite simplifié)
+  var mX=350,mY=158;
+  cyc.fillStyle='#1e0035';
+  cyc.beginPath();cyc.ellipse(mX,mY,14,8,0,0,Math.PI*2);cyc.fill();
+  cyc.fillStyle='#3e0858';
+  cyc.beginPath();cyc.ellipse(mX-2,mY-1,11,6,0,0,Math.PI*2);cyc.fill();
+  // 6 secondes cycle
+  var cycleT=(animT/4)%240;
+  var s=2, gulX, gulY, gulPose, leanY=0, flipX=false;
+  if(cycleT<60){
+    // approach (left to landing point)
+    var p=cycleT/60;
+    gulX=70+p*(mX-50-70);
+    gulY=40+p*(160-40);
+    gulPose='flying';
+    flipX=false;
+  } else if(cycleT<78){
+    // land
+    gulX=mX-50;gulY=160;
+    gulPose='standing';
+    flipX=false;
+  } else if(cycleT<198){
+    // peck cycle (5 picotements de 24 frames chacun)
+    gulX=mX-50;gulY=160;
+    gulPose='standing';
+    flipX=false;
+    var p=(cycleT-78);
+    var pc=(p%24)/24;
+    var peakLean=22; // pic du plongeon en pixels (à s=2)
+    if(pc<0.30)leanY=pc*peakLean/0.30;
+    else if(pc<0.42)leanY=peakLean;
+    else leanY=Math.max(0,(1-(pc-0.42)/0.58)*peakLean);
+  } else {
+    // leave (rise diagonal right)
+    var p=(cycleT-198)/42;
+    gulX=mX-50+p*200;
+    gulY=160-p*140;
+    gulPose='flying';
+    flipX=false;
+  }
+  drawBigGull(cyc,gulX,gulY,s,{pose:gulPose,leanY:leanY,flipX:flipX,t:animT});
+  // Particules sable pendant le peck
+  if(cycleT>=78 && cycleT<198){
+    var p=cycleT-78;
+    var pc=(p%24)/24;
+    if(pc>0.30 && pc<0.45){
+      cyc.fillStyle='rgba(200,180,160,0.85)';
+      for(var pi=0;pi<5;pi++){
+        cyc.fillRect(mX-30+Math.random()*15,158+Math.random()*5,1,1);
+      }
+    }
+  }
+
+  // Anatomy — gros zoom
+  var anatCanvas=document.getElementById('c-anatomy');
+  var an=anatCanvas.getContext('2d');
+  an.imageSmoothingEnabled=false;
+  an.clearRect(0,0,280,280);
+  drawBigGull(an,140,275,3,{pose:'standing'});
+
+  // Peck animation — 3 frames clés
+  var peckCanvas=document.getElementById('c-peck');
+  var pe=peckCanvas.getContext('2d');
+  pe.imageSmoothingEnabled=false;
+  pe.clearRect(0,0,500,180);
+  pe.fillStyle='#1a0a2a';pe.fillRect(0,0,500,180);
+  // 3 frames : repos, plongeon, impact
+  [[100,160,0,'POSE'],[250,160,15,'PLONGE'],[400,160,22,'IMPACT']].forEach(function(p,i){
+    drawBigGull(pe,p[0],p[1],2,{pose:'standing',leanY:p[2]});
+    pe.font='10px monospace';pe.fillStyle='#aaa';pe.textAlign='center';
+    pe.fillText(p[3],p[0],178);
+    // Particules d'impact pour la 3e
+    if(i===2){
+      pe.fillStyle='rgba(200,180,160,0.8)';
+      for(var k=0;k<8;k++){
+        pe.fillRect(p[0]+12+Math.random()*8,p[1]-2+Math.random()*4,1,1);
+      }
+    }
+  });
+}
+
+render();
+setInterval(render,33);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aperçu du monde — La Moule Volante</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#0a0014;color:#fff;padding:24px 18px;min-height:100vh;line-height:1.5}
+h1{font-size:22px;font-weight:800;margin-bottom:6px;color:#FFC93C}
+.lead{color:#aaa;font-size:13px;max-width:780px;margin-bottom:18px}
+.back{position:fixed;top:14px;right:14px;background:#222;color:#FFC93C;padding:8px 16px;border-radius:99px;text-decoration:none;font-size:12px;font-weight:700;z-index:50}
+
+.frame-wrap{
+  max-width:1100px;
+  margin:0 auto;
+  background:#15001f;
+  border:1px solid #2a0040;
+  border-radius:14px;
+  overflow:hidden;
+  box-shadow:0 25px 80px rgba(0,0,0,.6);
+}
+.frame-wrap iframe{
+  width:100%;
+  height:520px;
+  border:0;
+  display:block;
+  background:#0d0014;
+}
+
+.legend{
+  margin-top:18px;
+  max-width:1100px;
+  margin-left:auto;
+  margin-right:auto;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:14px;
+}
+.legend .item{
+  background:#15001f;
+  border:1px solid #2a0040;
+  border-radius:10px;
+  padding:14px 16px;
+  font-size:12px;
+  color:#aaa;
+}
+.legend .item strong{color:#FFC93C;display:block;margin-bottom:4px;font-size:13px}
+.legend .item .range{color:#f0abfc;font-family:monospace;font-size:11px}
+
+.note{
+  margin-top:18px;
+  max-width:1100px;
+  margin-left:auto;
+  margin-right:auto;
+  padding:14px 18px;
+  background:#19191c;
+  border-radius:10px;
+  border:1px solid #2a2a30;
+  font-size:12px;
+  color:#aaa;
+}
+.note strong{color:#FFC93C}
+</style>
+</head>
+<body>
+
+<a href="../index.html" class="back">← Retour</a>
+
+<h1>🗺️ Aperçu du monde — La Moule Volante</h1>
+<p class="lead">Navigue dans tout le décor du jeu sans avoir à jouer. Utilise le slider en haut du jeu pour scrubber, ou clique <strong>AUTO</strong> pour un voyage automatique de ~45 secondes.</p>
+
+<div class="frame-wrap">
+  <iframe src="../assets/moule-launcher.html?preview=1" title="Aperçu du monde" allow="autoplay"></iframe>
+</div>
+
+<div class="legend">
+  <div class="item"><strong>🏯 Zone départ</strong><span class="range">0 – 1000m</span><br>Phare de Pors-Poulhan, oyats, char à voile, ciel coucher de soleil rose/violet, vagues dorées. Possibilité météo brouillard (1/5 parties).</div>
+  <div class="item"><strong>🌙 Zone nuit</strong><span class="range">1000 – 6000m</span><br>Voiliers, bouées violettes, poissons sauteurs, étoiles, possible étoile filante. Possibilité météo orage avec éclairs.</div>
+  <div class="item"><strong>💀 Hommage champions</strong><span class="range">6010m</span><br>Squelettes des 3 meilleurs scores du leaderboard, devenus statues dans le sable.</div>
+  <div class="item"><strong>🦀 Crabes dansants</strong><span class="range">6700 – 7000m</span><br>20 crabes qui font la fête après les squelettes. Zone célébration avec banderoles et confettis.</div>
+  <div class="item"><strong>🌌 Zone astrale</strong><span class="range">6000 – 9020m</span><br>Saturne (6200m), géante gazeuse rose (6660m), galaxie spirale (7140m), stardust, aurore rose. Météo aurore intense possible.</div>
+  <div class="item"><strong>🏁 Fin du monde</strong><span class="range">9020m</span><br>Panneau "RECORD 2026", fin de la zone célébration. Au-delà : limite du monde.</div>
+</div>
+
+<div class="note">
+  <p>💡 <strong>Mode preview</strong> : la moule fantôme est placée à la position de la caméra pour que les crabes s'animent au passage (yeux qui suivent, pinces qui s'ouvrent). Aucun score n'est enregistré — c'est un mode debug.</p>
+  <p style="margin-top:6px">🎲 <strong>Météo aléatoire</strong> : recharge la page pour tomber sur une météo différente (1 chance sur 5 d'avoir storm/fog/aurora intense, sinon météo normale).</p>
+</div>
+
+</body>
+</html>

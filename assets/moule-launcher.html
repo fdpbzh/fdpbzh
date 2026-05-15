@@ -45,7 +45,7 @@ input[type=text]::placeholder{color:#7c3f9e;}
     <input type="text" id="nameInput" maxlength="12" placeholder="TON PSEUDO" autocomplete="off" spellcheck="false">
     <button class="btn" id="btnPlay">▶ LANCER</button>
     <button class="btn-sm" id="btnLbMenu">★ SCORES</button>
-    <p class="sub" style="font-size:clamp(4px,1.1vw,6px);color:#ffd700;line-height:1.8;border-top:1px solid #6b21a8;padding-top:6px;margin-top:4px;">TOP 10 = BOISSON OFFERTE · 1ER = OPEN BAR<br>À RÉCUPÉRER SUR PLACE LE 8 AOÛT<br><span style="color:#7c3f9e;font-size:.85em">+18 ANS · DANS LA LIMITE DU RAISONNABLE</span></p>
+    <p style="font-size:clamp(8px,2.4vw,14px);font-weight:800;color:#ffd700;text-shadow:0 0 8px #c026d3,2px 2px #6b21a8;letter-spacing:1.5px;line-height:1.6;border-top:1px solid #6b21a8;padding-top:6px;margin-top:4px;text-align:center;">TOP 10 = BOISSON OFFERTE<br>1ER = OPEN BAR<br><span style="font-size:.42em;font-weight:400;letter-spacing:1px;text-shadow:none;color:#ffd700;">À RÉCUPÉRER SUR PLACE LE 8 AOÛT</span><br><span style="font-size:.36em;font-weight:400;letter-spacing:1px;text-shadow:none;color:#7c3f9e;">+18 ANS · DANS LA LIMITE DU RAISONNABLE</span></p>
   </div>
   <div class="screen hidden" id="sResult">
     <h1>★ RÉSULTAT ★</h1>
@@ -225,12 +225,267 @@ var BPM=168,BASE_BEAT=60/BPM,BEAT=BASE_BEAT;
 var weather='normal'; // 'normal' | 'storm' | 'fog' | 'aurora_intense'
 var stormFlashT=0;
 function pickWeather(){
-  if(Math.random()<0.20){
-    weather=['storm','fog','aurora_intense'][Math.floor(Math.random()*3)];
-  } else {
-    weather='normal';
-  }
+  // 80% normal, 20% partagé entre storm/fog/aurora_intense (≈6-7% chacune)
+  var r=Math.random();
+  if(r<0.80)weather='normal';
+  else if(r<0.87)weather='storm';        // 7%
+  else if(r<0.94)weather='fog';          // 7%
+  else weather='aurora_intense';         // 6%
   stormFlashT=0;
+}
+
+// === MOUETTE AGRESSIVE APRÈS RUN (phase='done') ===
+// Mouette grand format qui se pose à côté de la moule, picore plusieurs fois, puis s'envole.
+var afterRunGull=null;
+var afterRunGullDelay=0;
+var lastPhase='';
+function spawnAfterRunGull(){
+  if(afterRunGull)return;
+  var fromLeft=Math.random()<0.5;
+  var inSea=M.wx>=SHORE, gy=inSea?SY:GY;
+  // Position de pose : à 40 px du côté de la moule, pieds posés au sol
+  var landX=M.wx+(fromLeft?-40:40);
+  var landY=gy;
+  afterRunGull={
+    wx:landX+(fromLeft?-250:250),
+    wy:Math.max(60,landY-200),
+    landX:landX,
+    landY:landY,
+    phase:'approach',
+    t:0,
+    flipX:!fromLeft,
+    pecks:0,
+    totalPecks:5+Math.floor(Math.random()*3) // 5-7 picotements
+  };
+}
+function updateAfterRunGull(){
+  if(!afterRunGull)return;
+  var g=afterRunGull;
+  g.t++;
+  if(g.phase==='approach'){
+    var dx=g.landX-g.wx, dy=g.landY-g.wy;
+    var d=Math.sqrt(dx*dx+dy*dy);
+    if(d<5){
+      g.wx=g.landX;g.wy=g.landY;
+      g.phase='land';g.t=0;
+    } else {
+      var spd=5;
+      g.wx+=(dx/d)*spd;
+      g.wy+=(dy/d)*spd;
+    }
+  } else if(g.phase==='land'){
+    if(g.t>14){g.phase='peck';g.t=0;sfxGull();}
+  } else if(g.phase==='peck'){
+    if(g.t>0 && g.t%28===0){
+      g.pecks++;sfxBounce();
+      if(g.pecks>=g.totalPecks){g.phase='leave';g.t=0;sfxGull();}
+    }
+  } else if(g.phase==='leave'){
+    var dir=g.flipX?-1:1;
+    g.wy-=3.5;
+    g.wx+=dir*2.5;
+    if(g.wy<-30||g.t>90)afterRunGull=null;
+  }
+}
+// Sprite mouette longiligne — Larus argentatus avec point rouge signature
+// cx,cy = position des pieds, s = échelle (par défaut 2)
+function drawBigGull(cx,cy,s,pose,leanY,flipX,t){
+  s=s||2; leanY=leanY||0;
+  ctx.save();
+  ctx.translate(cx,cy);
+  if(flipX)ctx.scale(-1,1);
+  if(pose==='flying'){
+    // POSE VOL — corps horizontal allongé, ailes battent
+    var wp=Math.sin(t*0.4);
+    var wY=wp>0?-10*s:5*s;
+    px(0,0,-12*s,-3*s,22*s,6*s,'#fff');
+    px(0,0,-10*s,-4*s,18*s,1*s,'#fff');
+    px(0,0,-10*s,3*s,18*s,1*s,'#fff');
+    px(0,0,-16*s,-2*s,4*s,4*s,'#fff');
+    px(0,0,-16*s,-2*s,1*s,4*s,'#a8a8b0');
+    px(0,0,8*s,-5*s,8*s,7*s,'#fff');
+    px(0,0,15*s,-3*s,6*s,2*s,'#f4c040');
+    px(0,0,15*s,-1*s,5*s,1*s,'#d49020');
+    px(0,0,19*s,-1*s,1*s,1*s,'#dc3030');
+    px(0,0,20*s,-3*s,1*s,2*s,'#d49020');
+    px(0,0,11*s,-4*s,2*s,2*s,'#f4c040');
+    px(0,0,12*s,-3*s,1*s,1*s,'#202028');
+    px(0,0,-22*s,wY-1*s,12*s,3*s,'#fff');
+    px(0,0,-20*s,wY-2*s,10*s,2*s,'#a8a8b0');
+    px(0,0,-22*s,wY-1*s,3*s,2*s,'#202028');
+    px(0,0,-21*s,wY,1*s,1*s,'#fff');
+    px(0,0,10*s,wY-1*s,12*s,3*s,'#fff');
+    px(0,0,10*s,wY-2*s,10*s,2*s,'#a8a8b0');
+    px(0,0,19*s,wY-1*s,3*s,2*s,'#202028');
+    px(0,0,20*s,wY,1*s,1*s,'#fff');
+  } else {
+    // POSE DEBOUT — silhouette longiligne, hautes pattes
+    px(0,0,-3*s,-18*s,2*s,18*s,'#f4c040');
+    px(0,0,1*s,-18*s,2*s,18*s,'#f4c040');
+    px(0,0,-3*s,-10*s,2*s,1*s,'#d49020');
+    px(0,0,1*s,-10*s,2*s,1*s,'#d49020');
+    px(0,0,-3*s,-2*s,2*s,1*s,'#d49020');
+    px(0,0,1*s,-2*s,2*s,1*s,'#d49020');
+    px(0,0,-5*s,0,5*s,2*s,'#f4c040');
+    px(0,0,0,0,5*s,2*s,'#f4c040');
+    px(0,0,-5*s,2*s,5*s,1*s,'#d49020');
+    px(0,0,0,2*s,5*s,1*s,'#d49020');
+    px(0,0,-4*s,0,1*s,2*s,'#d49020');
+    px(0,0,-2*s,0,1*s,2*s,'#d49020');
+    px(0,0,2*s,0,1*s,2*s,'#d49020');
+    px(0,0,4*s,0,1*s,2*s,'#d49020');
+    var bY=-26*s;
+    px(0,0,-12*s,bY,24*s,8*s,'#fff');
+    px(0,0,-10*s,bY-1*s,20*s,1*s,'#fff');
+    px(0,0,-10*s,bY+8*s,20*s,1*s,'#fff');
+    px(0,0,-14*s,bY+3*s,3*s,3*s,'#fff');
+    px(0,0,-14*s,bY+4*s,2*s,1*s,'#a8a8b0');
+    px(0,0,-10*s,bY+1*s,18*s,5*s,'#a8a8b0');
+    px(0,0,-10*s,bY+1*s,6*s,2*s,'#888892');
+    px(0,0,-10*s,bY+5*s,18*s,1*s,'#7c7c86');
+    px(0,0,-6*s,bY+3*s,12*s,1*s,'#888892');
+    px(0,0,-12*s,bY+2*s,3*s,3*s,'#202028');
+    px(0,0,-12*s,bY+3*s,1*s,1*s,'#fff');
+    px(0,0,8*s,bY+1*s,5*s,7*s,'#fff');
+    px(0,0,8*s,bY+1*s,1*s,5*s,'#f0f0f4');
+    var nX=9*s;
+    var nY=bY-8*s+leanY*0.3;
+    px(0,0,nX,nY,4*s,9*s,'#fff');
+    px(0,0,nX-1*s,nY+3*s,1*s,5*s,'#f0f0f4');
+    var hX=nX+2*s;
+    var hY=nY-9*s+leanY;
+    px(0,0,hX-5*s,hY,10*s,9*s,'#fff');
+    px(0,0,hX-4*s,hY-1*s,8*s,1*s,'#fff');
+    px(0,0,hX-4*s,hY-1*s,8*s,1*s,'#e8e8ee');
+    px(0,0,hX+1*s,hY+1*s,4*s,1*s,'#888892');
+    px(0,0,hX+2*s,hY+2*s,3*s,3*s,'#f4c040');
+    px(0,0,hX+3*s,hY+3*s,1*s,1*s,'#202028');
+    px(0,0,hX+2*s,hY+2*s,1*s,1*s,'#ffe080');
+    var bkX=hX+5*s;
+    var bkY=hY+4*s;
+    px(0,0,bkX,bkY,8*s,3*s,'#f4c040');
+    px(0,0,bkX,bkY+3*s,7*s,1*s,'#d49020');
+    px(0,0,bkX+7*s,bkY+1*s,1*s,2*s,'#d49020');
+    px(0,0,bkX+6*s,bkY+2*s,2*s,1*s,'#dc3030');
+    px(0,0,bkX+1*s,bkY+2*s,6*s,1*s,'#d49020');
+  }
+  ctx.restore();
+}
+function drawAfterRunGull(){
+  if(!afterRunGull)return;
+  var g=afterRunGull;
+  var sx=toSX(g.wx);
+  if(sx<-80||sx>W+80)return;
+  var flying=(g.phase==='approach'||g.phase==='leave');
+  var pecking=g.phase==='peck';
+  var leanY=0;
+  if(pecking){
+    var pc=(g.t%28)/28;
+    var peakLean=22; // pic du plongeon à s=2
+    if(pc<0.30)leanY=pc*peakLean/0.30;
+    else if(pc<0.42)leanY=peakLean;
+    else leanY=Math.max(0,(1-(pc-0.42)/0.58)*peakLean);
+  }
+  drawBigGull(sx,g.wy,2,flying?'flying':'standing',leanY,g.flipX,bgT*60);
+  // Particules de sable quand le bec frappe
+  if(pecking){
+    var pc=(g.t%28)/28;
+    if(pc>0.30 && pc<0.45){
+      ctx.fillStyle='rgba(200,180,160,0.85)';
+      for(var pi=0;pi<6;pi++){
+        var ppx=sx+(g.flipX?-1:1)*(14+Math.random()*10);
+        var ppy=g.wy-2+Math.random()*6;
+        ctx.fillRect(ppx,ppy,1,1);
+      }
+    }
+  }
+}
+
+// === MOULES PERSISTANTES (cimetière de moules dans le décor) ===
+// Chaque moule lancée est sauvegardée à sa position finale via localStorage.
+// Apparaissent comme décor immobile (pas d'effet physique sur les futures runs).
+var thrownMussels=[];
+var THROWN_MAX=300; // cap mémoire/perf — ~15 KB en localStorage, négligeable côté perf rendu
+function loadThrownMussels(){
+  try{
+    var s=localStorage.getItem('thrownMussels');
+    if(s){
+      var parsed=JSON.parse(s);
+      if(Array.isArray(parsed))thrownMussels=parsed.slice(-THROWN_MAX);
+    }
+  }catch(e){thrownMussels=[];}
+}
+function saveThrownMussel(wx,wy,ang){
+  thrownMussels.push({wx:wx,wy:wy,ang:ang});
+  if(thrownMussels.length>THROWN_MAX)thrownMussels.shift();
+  try{localStorage.setItem('thrownMussels',JSON.stringify(thrownMussels));}catch(e){}
+}
+function drawThrownMussels(){
+  // Moules K.O. en pleine opacité, dessinées avec rotation à leur position de chute
+  thrownMussels.forEach(function(m){
+    var sx=toSX(m.wx);
+    if(sx<-30||sx>W+30)return;
+    ctx.save();
+    ctx.translate(sx,m.wy);
+    ctx.rotate(m.ang||0);
+    drawMusselDead(0,0,1);
+    ctx.restore();
+  });
+}
+loadThrownMussels();
+
+// === TRAIL DE LA MOULE (vol à haute vitesse) ===
+var trail=[];
+function getTrailColor(d){
+  if(d>6000){
+    // Astral : stardust multicolore
+    var cAstral=['#f0abfc','#80c0ff','#ffd700','#ffffff','#ff80c0','#c026d3'];
+    return cAstral[Math.floor(Math.random()*cAstral.length)];
+  } else if(d>1000){
+    // Nuit : or chaud
+    var cNight=['#ffd700','#ff8c00','#ffa040'];
+    return cNight[Math.floor(Math.random()*cNight.length)];
+  } else {
+    // Coucher : rose/coral
+    var cSunset=['#ff4d9b','#ff8060','#ffaa40'];
+    return cSunset[Math.floor(Math.random()*cSunset.length)];
+  }
+}
+function spawnTrailParticle(){
+  if(phase!=='flying')return;
+  var spd=Math.sqrt(M.vx*M.vx+M.vy*M.vy);
+  if(spd<6&&combo<4)return; // pas de trail à basse vitesse sans combo
+  var n=1+Math.floor(combo/2);
+  for(var i=0;i<n;i++){
+    trail.push({
+      wx:M.wx-M.vx*0.2+(Math.random()-0.5)*4,
+      wy:M.wy-M.vy*0.2+(Math.random()-0.5)*4,
+      vx:-M.vx*0.04+(Math.random()-0.5)*0.9,
+      vy:-M.vy*0.04+(Math.random()-0.5)*0.9,
+      life:1.0,
+      sz:2+Math.random()*3,
+      col:getTrailColor(M.dist)
+    });
+  }
+  if(trail.length>140)trail.splice(0,trail.length-140);
+}
+function updateTrail(){
+  for(var i=trail.length-1;i>=0;i--){
+    var p=trail[i];
+    p.wx+=p.vx;p.wy+=p.vy;p.life-=0.035;
+    if(p.life<=0)trail.splice(i,1);
+  }
+}
+function drawTrail(){
+  trail.forEach(function(p){
+    var sx=toSX(p.wx);
+    if(sx<-10||sx>W+10)return;
+    ctx.globalAlpha=p.life;
+    ctx.fillStyle=p.col;
+    var s=p.sz*p.life;
+    ctx.fillRect(sx-s/2,p.wy-s/2,s,s);
+  });
+  ctx.globalAlpha=1;
 }
 
 // === COMBO FLASHES & DISTORTION (x6/x7/x8) ===
@@ -434,7 +689,7 @@ var FINISH_WX=65130,CELEBRATE_WX=65130,WORLD_END=120000;
 var CELEBRATE_END_WX=78260; // fin de la zone célébration (panneau "MAX 6000m" hommage)
 var SQUELETTE_WX=78130; // position des squelettes top 3 (~6010m)
 var ASTRAL_START_WX=78000; // début zone astrale (~6000m)
-var CRABS_DANCE_WX=87150; // crabes dansants entre 6700m et 7100m (déplacés pour rester atteignables)
+var CRABS_DANCE_WX=78130; // début de la zone crabes dansants (~6000m). Couvre jusqu'à ~7100m.
 var REAL_END_WX=117260; // fin réelle du jeu : 9020m
 var camX=0;
 function toSX(wx){return wx-camX;}
@@ -508,6 +763,38 @@ function drawCrab(holding){
 }
 
 // ══════ MOULE ══════
+// Variante moule "morte" — pour les moules échouées dans le décor.
+// Identique à drawMussel mais l'œil est remplacé par un X (KO).
+function drawMusselDead(cx,cy,sc){
+  var s=Math.max(1,Math.round(8*(sc||1)));
+  // CORPS (identique à drawMussel)
+  px(cx,cy,-s,   -s*5, s*2, s,  '#1a1448');
+  px(cx,cy,-(s*1.5|0),-s*4, s*3, s, '#201850');
+  px(cx,cy,-(s*1.5|0),-s*3, s*3, s, '#241c58');
+  px(cx,cy,-(s*1.5|0),-s*2, s*3, s, '#201850');
+  px(cx,cy,-s,   -s,   s*2, s,  '#1c1548');
+  px(cx,cy,-(s*.5|0), 0, s, s,  '#161240');
+  px(cx,cy,-(s*.3|0), s, Math.max(1,s*.6|0), Math.max(1,s*.7|0),'#100e38');
+  // Reflet nacré gauche (un peu plus terne)
+  px(cx,cy,-(s*1.5|0),-s*4, Math.max(1,s*.8|0),s*4,'rgba(192,38,211,.40)');
+  px(cx,cy,-(s*1.5|0),-s*5, s, s, 'rgba(240,171,252,.22)');
+  // Nervure droite
+  px(cx,cy,(s*.5|0),-s*4, Math.max(1,s*.5|0),s*4,'#0c0a20');
+  // ŒIL EN X — la moule est K.O., chaque trait est un pixel
+  var es=Math.max(1,s*.55|0);
+  // Petit fond clair (comme l'œil normal) pour qu'on voit bien le X
+  px(cx,cy,-(s*.8|0),-s*3.5|0, s*1.6|0, es*2, '#dde0f0');
+  // X formé par 2 diagonales (s*0.9 large par s*0.9 haut)
+  var xSize=Math.max(3,(s*0.9)|0);
+  var xCx=-((xSize/2)|0);
+  var xCy=(-s*3.2)|0;
+  for(var k=0;k<xSize;k++){
+    px(cx,cy,xCx+k,xCy+k,1,1,'#080610');
+    px(cx,cy,xCx+(xSize-1-k),xCy+k,1,1,'#080610');
+  }
+  // Bouche affaissée (trait droit, plus triste qu'agressive)
+  px(cx,cy,-(s*.7|0),(-s*1.3)|0, s*1.4|0, Math.max(1,es*.5|0),'#0a0820');
+}
 function drawMussel(cx,cy,sc){
   var s=Math.max(1,Math.round(8*(sc||1)));
   // Corps — pointu bas, arrondi haut
@@ -1428,6 +1715,9 @@ function drawDecor(dist,t2){
   // OYATS — touffes d'herbe de dune sur la plage du début
   drawOyats(dist,t2);
 
+  // MOULES PERSISTANTES — cimetière des moules lancées des parties précédentes
+  drawThrownMussels();
+
   // PHARE de Pors-Poulhan (sur la falaise, après que plage soit dessinée)
   drawLighthouse();
 
@@ -1812,20 +2102,22 @@ for(var ci2=0;ci2<80;ci2++)CONFETTI.push({
   ph:Math.random()*Math.PI*2
 });
 
-// Positions des crabes célébration
-var DANCE_CRABS=[
-  {ox:80,phase:0},{ox:220,phase:1.2},{ox:380,phase:0.5},{ox:550,phase:1.8},
-  {ox:700,phase:0.3},{ox:900,phase:1.5},{ox:1100,phase:0.8},{ox:1300,phase:2.1},
-  {ox:1500,phase:0.2},{ox:1700,phase:1.7},{ox:1900,phase:0.6},{ox:2100,phase:1.3},
-  {ox:2300,phase:0.9},{ox:2500,phase:2.4},{ox:2700,phase:0.4},{ox:2900,phase:1.1},
-  {ox:3100,phase:1.9},{ox:3300,phase:0.7},{ox:3500,phase:2.2},{ox:3700,phase:0.1},
-];
+// Positions des crabes célébration — répartis sur 1100m (de 6000m à 7100m)
+// Génération déterministe : 36 crabes espacés de ~400 wx (~30m) avec phases décalées
+var DANCE_CRABS=(function(){
+  var arr=[];
+  // Espacement légèrement irrégulier pour casser le look "robotique"
+  var spacings=[0,380,420,400,360,440,380,420,400,380,420,400,380,440,400,380,420,360,440,400,380,420,400,380,440,400,380,420,400,380,440,400,380,420,400,380];
+  var cumul=80;
+  for(var i=0;i<36;i++){
+    arr.push({ox:cumul,phase:(i*0.83)%(Math.PI*2)});
+    cumul+=spacings[i];
+  }
+  return arr;
+})();
 
 function drawFinish(){
   var sx=toSX(FINISH_WX);
-
-  // ══ SQUELETTES DES CHAMPIONS (à 6010m) ══
-  drawSquelettesHommage();
 
   // ══ ZONE CÉLÉBRATION (entre FINISH et CELEBRATE_END_WX, pas REAL_END) ══
   var celSX=toSX(CELEBRATE_WX);
@@ -1858,28 +2150,16 @@ function drawFinish(){
       ctx.globalAlpha=1;
     });
 
-    // Crabes dansants déplacés après 6000m (au-delà des squelettes top 3)
-    DANCE_CRABS.forEach(function(dc){
-      var dwx=CRABS_DANCE_WX+dc.ox;
-      var cx2=toSX(dwx);
-      if(cx2<-40||cx2>W+40)return;
-      drawDanceCrab(cx2,GY,bgT+dc.phase);
-    });
-
-    // Panneau "RECORD 2026" à la fin de la zone célébration
-    var esx=toSX(CELEBRATE_END_WX);
-    if(esx>-80&&esx<W+20){
-      ctx.fillStyle='#5a3a10';ctx.fillRect(esx-3,GY-60,6,60);
-      ctx.fillStyle='#1e0038';ctx.fillRect(esx-40,GY-98,80,38);
-      ctx.strokeStyle='#ffd700';ctx.lineWidth=2;ctx.strokeRect(esx-40,GY-98,80,38);
-      for(var i=0;i<8;i++){ctx.fillStyle=i%2===0?'#ffd700':'#c026d3';ctx.fillRect(esx-40+i*10,GY-98,10,4);}
-      ctx.font='bold 9px monospace';ctx.textAlign='center';
-      ctx.fillStyle='#ffd700';ctx.shadowColor='#c026d3';ctx.shadowBlur=8;
-      ctx.fillText('RECORD 2026',esx,GY-74);ctx.shadowBlur=0;ctx.textAlign='left';
-    }
   }
 
-  // (panneau FIN retiré pour simplifier la zone)
+  // Crabes dansants — RENDUS HORS du if celebration pour rester visibles entre 6000m et 7100m
+  // (la zone célébration se termine à 6010m, mais les crabes continuent bien au-delà)
+  DANCE_CRABS.forEach(function(dc){
+    var dwx=CRABS_DANCE_WX+dc.ox;
+    var cx2=toSX(dwx);
+    if(cx2<-40||cx2>W+40)return;
+    drawDanceCrab(cx2,GY,bgT+dc.phase);
+  });
 }
 
 // ══════ GAME STATE ══════
@@ -1901,6 +2181,8 @@ function resetAll(){
   resetShootingStar();
   pickWeather();
   comboFlash=0;comboFlashPeak=0;stormFlashT=0;
+  trail=[];
+  afterRunGull=null;afterRunGullDelay=0;
 }
 
 function updatePhysics(){
@@ -2024,12 +2306,29 @@ function loop(ts){
     drawHUD(M.dist);
   }
   if(phase==='done'){
+    // Détecter transition vers 'done' → armer la mouette (1/100) + sauvegarder la moule
+    if(lastPhase!=='done'){
+      // 1% de chance d'avoir la mouette agressive — easter egg rare
+      afterRunGullDelay=(Math.random()<0.01)?72:0;
+      afterRunGull=null;
+      // Sauvegarder la moule dans le cimetière (seulement si elle a vraiment volé)
+      if(M.dist>=14){
+        saveThrownMussel(M.wx,M.wy,M.ang);
+      }
+    }
+    if(afterRunGullDelay>0){
+      afterRunGullDelay--;
+      if(afterRunGullDelay===0)spawnAfterRunGull();
+    }
+    updateAfterRunGull();
     if(toSX(CRAB_WX)>-100)drawCrab(false);
     drawMusselFlying(M.wx,M.wy,M.ang);
+    drawAfterRunGull();
     drawHUD(M.dist);
     // Instruction clignotante
     if(Math.floor(bgT*2)%2===0)drawInstruction('TAPE POUR VOIR TON SCORE','#ffd700');
   }
+  lastPhase=phase;
   // Embrasement atmosphérique au combo 6+ (la moule met le ciel en feu)
   if(combo>=6&&phase==='flying'){
     var intensity=Math.min((combo-5)*0.08,0.3);
@@ -2092,11 +2391,14 @@ function drawHUD(d){
     ctx.font='6px "Press Start 2P"';ctx.fillStyle='rgba(240,171,252,.7)';
     ctx.fillText('RECORD: '+sessionRecord+'m',W/2,38);
   }
-  // Combo
+  // Combo — plus haut (3% de H) + plus gros (11px), avec ombre pour le détacher des vagues
   if(combo>=2){
     var cc=combo>=6?'#ff4040':combo>=4?'#ff8000':'#ffd700';
-    ctx.font='8px "Press Start 2P"';ctx.fillStyle=cc;
-    ctx.fillText('COMBO x'+combo+'!',W/2,H-24);
+    ctx.font='11px "Press Start 2P"';
+    ctx.shadowColor='rgba(0,0,0,0.85)';ctx.shadowBlur=4;
+    ctx.fillStyle=cc;
+    ctx.fillText('COMBO x'+combo+'!',W/2,H-36);
+    ctx.shadowBlur=0;
   }
   // Boost mouette
   if(gullBoostT>0){
@@ -2134,18 +2436,16 @@ document.addEventListener('keyup',function(e){if(e.key===' '){e.preventDefault()
 
 // ══════ RESULT ══════
 function getComment(d){
-  if(d<5)return 'La moule a pas bouge...';
-  if(d<30)return 'Mou du crabe !';
-  if(d<100)return 'Pas mal - vise les FDP !';
-  if(d<300)return 'Belle catapulte !';
-  if(d<800)return 'ENORME !! Les FDP ont aide ?';
+  if(d<15)return 'La moule a pas bouge...';
+  if(d<600)return 'Mou du crabe !';
+  if(d<800)return 'Pas mal - vise les CRABES !';
+  if(d<1000)return 'Belle catapulte !';
+  if(d<1500)return 'ENORME !! Les CRABES ont aide ?';
   if(d<2000)return 'LEGENDAIRE !!';
-  if(d<4000)return 'LA MOULE EST EN MER !!';
-  if(d<5000)return 'EN IRLANDE !!';
-  if(d<6000)return '★ ZONE DE GLOIRE ★';
-  if(d<6010)return 'HOMMAGE A NOS CHAMPIONS';
-  if(d<7000)return 'TU AS DEPASSE PLOUPLOU & SEBITCH !!!';
-  if(d<8500)return 'LA MOULE EST EN ORBITE !!!';
+  if(d<3000)return 'LA MOULE EST EN MER !!';
+  if(d<4000)return 'EN IRLANDE !!';
+  if(d<5000)return '★ ZONE DE GLOIRE ★';
+  if(d<6000)return 'LA MOULE EST EN ORBITE !!!';
   return 'CONQUERANT DE L\'ESPACE !!!';
 }
 function showResult(){
@@ -2209,7 +2509,7 @@ document.getElementById('btnConfirmInsta').onclick=function(){
   });
 };
 
-// Partage du score
+// Partage du score (texte simple via Web Share API + fallback clipboard)
 document.getElementById('btnShare').onclick=function(){
   var b=document.getElementById('btnShare');
   var orig=b.textContent;
@@ -2297,6 +2597,65 @@ show(sMenu);
 loadCount();
 loadTopScore(); // charge le champion actuel pour afficher son squelette en jeu
 requestAnimationFrame(loop);
+
+// ══════ MODE PREVIEW (?preview=1) ══════
+// Permet de naviguer dans tout le monde via un slider, sans jouer.
+// Skip menu, désactive la physique, place une phantom mussel à la position de la caméra
+// pour que les crabes s'animent au passage.
+(function previewMode(){
+  var params=new URLSearchParams(window.location.search);
+  if(params.get('preview')!=='1')return;
+  setTimeout(function(){
+    // Préparer l'état pour rendu sans physique
+    resetAll();
+    document.getElementById('sMenu').classList.add('hidden');
+    gState='play';
+    phase='preview'; // état custom qui ne matche aucun branchement de la loop
+    // Charger les scores pour le squelette des champions (zone 6010m)
+    loadTopScore();
+    // Construction du panneau de contrôle
+    var box=document.createElement('div');
+    box.style.cssText='position:fixed;top:0;left:0;right:0;background:rgba(15,6,40,0.94);padding:10px 14px;z-index:1000;display:flex;align-items:center;gap:12px;color:#FFC93C;font-family:monospace;font-size:11px;border-bottom:2px solid #6b21a8;';
+    box.innerHTML='<span style="font-weight:700">APERCU MONDE</span>'+
+      '<span>0m</span>'+
+      '<input type="range" min="0" max="9020" value="0" step="20" style="flex:1;">'+
+      '<span>9020m</span>'+
+      '<span id="prevDist" style="min-width:75px;text-align:right;color:#fff;font-weight:700">0 m</span>'+
+      '<button id="prevAuto" style="background:#6b21a8;color:#fff;border:1px solid #f0abfc;padding:4px 8px;cursor:pointer;font-family:monospace;font-size:10px;">▶ AUTO</button>';
+    document.body.appendChild(box);
+    var slider=box.querySelector('input');
+    var distLabel=document.getElementById('prevDist');
+    var btnAuto=document.getElementById('prevAuto');
+    function setDist(dist){
+      var wx=dist*METERS+CRAB_WX;
+      camX=Math.max(0,wx-W*0.28);
+      M.wx=wx;
+      M.wy=SY-80;
+      M.dist=dist;
+      distLabel.textContent=Math.round(dist)+' m';
+    }
+    slider.addEventListener('input',function(e){
+      setDist(parseFloat(e.target.value));
+      if(autoTimer){clearInterval(autoTimer);autoTimer=null;btnAuto.textContent='▶ AUTO';}
+    });
+    // Auto-scroll : ~45s pour traverser tout le monde
+    var autoTimer=null;
+    btnAuto.addEventListener('click',function(){
+      if(autoTimer){
+        clearInterval(autoTimer);autoTimer=null;btnAuto.textContent='▶ AUTO';
+      } else {
+        autoTimer=setInterval(function(){
+          var cur=parseFloat(slider.value);
+          var next=cur+5;
+          if(next>9020){clearInterval(autoTimer);autoTimer=null;btnAuto.textContent='▶ AUTO';return;}
+          slider.value=next;setDist(next);
+        },25);
+        btnAuto.textContent='⏸ STOP';
+      }
+    });
+    setDist(0);
+  },200);
+})();
 </script>
 </body>
 </html>
