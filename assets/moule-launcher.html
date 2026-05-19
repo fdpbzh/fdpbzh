@@ -405,7 +405,7 @@ function drawAfterRunGull(){
 // Chaque moule lancée est sauvegardée à sa position finale via localStorage.
 // Apparaissent comme décor immobile (pas d'effet physique sur les futures runs).
 var thrownMussels=[];
-var THROWN_MAX=300; // cap mémoire/perf — ~15 KB en localStorage, négligeable côté perf rendu
+var THROWN_MAX=3000; // ~150 KB en localStorage, ~20-25 moules visibles/écran — wall-to-wall
 function loadThrownMussels(){
   try{
     var s=localStorage.getItem('thrownMussels');
