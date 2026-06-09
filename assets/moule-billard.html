@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>La Moule Volante — FDP 2026</title>
+<title>Les Crabes Fous — FDP 2026</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
@@ -39,8 +39,8 @@ input[type=text]::placeholder{color:#7c3f9e;}
 <div id="wrap">
   <canvas id="c" width="710" height="400"></canvas>
   <div class="screen" id="sMenu">
-    <h1>★ LA MOULE VOLANTE ★</h1>
-    <p class="sub">MAINTIENS POUR CHARGER · RELÂCHE POUR LANCER</p>
+    <h1>★ LES CRABES FOUS ★</h1>
+    <p class="sub">10 LANCERS · CHAQUE MOULE TOMBÉE ATTIRE UN CRABE<br>VISE LES CRABES POUR REBONDIR ET ALLER PLUS LOIN</p>
     <p id="gameCount" style="font-size:clamp(4px,1.2vw,6px);color:#c026d3;letter-spacing:1px;">...</p>
     <input type="text" id="nameInput" maxlength="12" placeholder="TON PSEUDO" autocomplete="off" spellcheck="false">
     <button class="btn" id="btnPlay">▶ LANCER</button>
@@ -103,7 +103,7 @@ function trackAction(){actionCount++;}
 var lastScoreId=null; // id de la dernière partie pour ajouter l'insta après coup
 
 function loadScores(){
-  return fetch(SB_URL+'/scores?select=name,score&order=score.desc&limit=10',{headers:sbHeaders()})
+  return fetch(SB_URL+'/scores_billard?select=name,score&order=score.desc&limit=10',{headers:sbHeaders()})
     .then(function(r){return r.json();})
     .catch(function(){return[];});
 }
@@ -112,7 +112,7 @@ function loadScores(){
 var topScores=[]; // [{name, score, wx}, ...]
 var topScore=null; // alias pour le 1er (utilisé par checkBeatTop)
 function loadTopScore(){
-  return fetch(SB_URL+'/scores?select=name,score&order=score.desc&limit=3',{headers:sbHeaders()})
+  return fetch(SB_URL+'/scores_billard?select=name,score&order=score.desc&limit=3',{headers:sbHeaders()})
     .then(function(r){return r.json();})
     .then(function(data){
       if(data&&data.length){
@@ -142,7 +142,7 @@ function saveScore(name,dist){
     action_count:actionCount
   };
 
-  return fetch(SB_URL+'/scores',{
+  return fetch(SB_URL+'/scores_billard',{
     method:'POST',
     headers:sbHeaders({'Content-Type':'application/json','Prefer':'return=representation'}),
     body:JSON.stringify(body)
@@ -160,7 +160,7 @@ function updateInsta(insta){
   if(insta.charAt(0)==='@')insta=insta.substring(1);
   insta=insta.trim().slice(0,30);
   if(!insta)return Promise.resolve();
-  return fetch(SB_URL+'/scores?id=eq.'+lastScoreId,{
+  return fetch(SB_URL+'/scores_billard?id=eq.'+lastScoreId,{
     method:'PATCH',
     headers:sbHeaders({'Content-Type':'application/json','Prefer':'return=minimal'}),
     body:JSON.stringify({insta:insta})
@@ -170,13 +170,12 @@ function updateInsta(insta){
 }
 
 // Vérifie si le score qualifie pour le top 10 et révèle l'input insta
-function checkTop10AndRevealInsta(distToCheck){
+function checkTop10AndRevealInsta(){
   loadScores().then(function(scores){
-    // Si le chargement échoue (réseau) → scores=[] → on ne qualifie pas pour éviter les faux positifs
-    if(!scores||scores.length===0)return;
+    if(!scores)return;
     var qualifies=false;
-    if(scores.length<10){qualifies=true;} // moins de 10 scores en base : automatique
-    else{qualifies=distToCheck>=scores[scores.length-1].score;}
+    if(scores.length<10){qualifies=true;} // moins de 10 scores : automatique
+    else{qualifies=M.dist>=scores[scores.length-1].score;}
     if(qualifies){
       var box=document.getElementById('topInstaBox');
       if(box)box.classList.remove('hidden');
@@ -187,7 +186,7 @@ function checkTop10AndRevealInsta(distToCheck){
 // ══════ COMPTEUR (auto = nombre de lignes en base) ══════
 var totalGames=0;
 function loadCount(){
-  return fetch(SB_URL+'/scores?select=*',{
+  return fetch(SB_URL+'/scores_billard?select=*',{
     method:'HEAD',
     headers:sbHeaders({'Prefer':'count=exact','Range':'0-0'})
   }).then(function(r){
@@ -403,26 +402,13 @@ function drawAfterRunGull(){
 }
 
 // === MOULES PERSISTANTES (cimetière de moules dans le décor) ===
-// Chaque moule lancée est sauvegardée à sa position finale via localStorage.
-// Apparaissent comme décor immobile (pas d'effet physique sur les futures runs).
-var thrownMussels=[];
-var THROWN_MAX=3000; // ~150 KB en localStorage, ~20-25 moules visibles/écran — wall-to-wall
-function loadThrownMussels(){
-  try{
-    var s=localStorage.getItem('thrownMussels');
-    if(s){
-      var parsed=JSON.parse(s);
-      if(Array.isArray(parsed))thrownMussels=parsed.slice(-THROWN_MAX);
-    }
-  }catch(e){thrownMussels=[];}
-}
-function saveThrownMussel(wx,wy,ang){
-  thrownMussels.push({wx:wx,wy:wy,ang:ang});
-  if(thrownMussels.length>THROWN_MAX)thrownMussels.shift();
-  try{localStorage.setItem('thrownMussels',JSON.stringify(thrownMussels));}catch(e){}
-}
+// MODE BILLARD : pas de persistance localStorage entre les parties.
+// Mais on garde les moules tombées EN MÉMOIRE pendant une partie (10 lancers),
+// pour que le crabe semble venir manger une moule restée au sol.
+var thrownMussels=[]; // dead mussels accumulées DANS la partie en cours
+function loadThrownMussels(){thrownMussels=[];} // pas de chargement
+function saveThrownMussel(wx,wy,ang){thrownMussels.push({wx:wx,wy:wy,ang:ang});}
 function drawThrownMussels(){
-  // Moules K.O. en pleine opacité, dessinées avec rotation à leur position de chute
   thrownMussels.forEach(function(m){
     var sx=toSX(m.wx);
     if(sx<-30||sx>W+30)return;
@@ -433,7 +419,6 @@ function drawThrownMussels(){
     ctx.restore();
   });
 }
-loadThrownMussels();
 
 // === TRAIL DE LA MOULE (vol à haute vitesse) ===
 var trail=[];
@@ -1732,31 +1717,45 @@ function drawDecor(dist,t2){
 }
 
 // ══════ FDP LOGOS ══════
-var FDP_DEFS=(function(){
-  var p1=[340,470,560,680,800,950,1100,1270,1450,1670,1900,2200,2500,
-    2800,3100,3500,3900,4300,4700,5150,5600,6150,6700,7350,8000,8750,9500,
-    10250,11000,11500,12000,12450,12900,13300,13700];
-  var p2=[];
-  // Étendu jusqu'à ~5900m pour donner une chance d'atteindre les squelettes (6010m)
-  for(var w=14000;w<77000;w+=800)p2.push(w);
-  p2.push(77000); // ~5923m, dernier logo FDP
-  return p1.concat(p2).map(function(wx){return{wx:wx};});
-})();
-var fdps=[];
-function resetFDPs(){fdps=FDP_DEFS.map(function(d){return{wx:d.wx,onSea:d.wx>=SHORE,hit:false,ep:0,rot:0};});}
+// LES CRABES FOUS : aucun crabe pré-spawné sur la piste, ils apparaissent
+// uniquement après chaque moule tombée (à partir du 2e lancer).
+var FDP_DEFS=[];
+var fdps=[]; // accumulés dynamiquement au fil des lancers
+// resetFDPs vide TOUT (nouvelle partie complète). Pour reset entre lancers, voir refreshObstacles().
+function resetFDPs(){fdps=[];}
+// Refresh entre 2 lancers d'une même partie : on garde les crabes accumulés mais on remet hit=false
+function refreshObstacles(){
+  fdps.forEach(function(f){f.hit=false;f.ep=0;f.rot=0;});
+}
+// Spawn d'un nouveau crabe affamé à côté d'une moule tombée (appelé à phase='done')
+// emergeT : compteur d'émergence (0 = vient de sortir du sable, 36 = totalement sorti)
+// sandSeed : graine pour la position des particules de sable (déterministe par crabe)
+function spawnObstacleAtMussel(){
+  var inSea=M.wx>=SHORE;
+  fdps.push({
+    wx:M.wx-20,
+    onSea:inSea,
+    hit:false,ep:0,rot:0,
+    emergeT:0,
+    sandSeed:Math.random()*1000,
+    eating:true // animation continue des pinces (mange la moule)
+  });
+}
 function getFdpY(f){return f.onSea?SY-22+Math.sin(bgT*.05+f.wx*.008)*4:GY-22;}
 
 // ══════ PETIT CRABE (remplace drawFDPLogo + drawFDPExplosion) ══════
 // HITBOX 50×38 INCHANGÉE — uniquement le visuel change.
 // prox: 0 = moule loin (statique), 1 = moule juste à côté (pinces ouvertes + tremblement)
 // lookX, lookY (en coord écran) : position de la moule, les yeux la suivent
-function drawSmallCrab(cx,cy,s,prox,lookX,lookY){
+function drawSmallCrab(cx,cy,s,prox,lookX,lookY,eating){
   s=s||5;
   prox=prox||0;
   // Tremblement + ouverture des pinces (s'accélère à l'approche)
   var freq=0.8+prox*5;
   var twitch=Math.sin(bgT*freq*8)*(0.3+prox*1.4);
-  var open=prox*s*0.7;
+  // EATING : cycle de mastication permanent (~1.5 Hz), dominé par la panique quand prox élevé
+  var eatCycle=eating?Math.max(0,Math.sin(bgT*3.2+cx*0.04)):0; // 0 à 1
+  var open=Math.max(prox,eatCycle*0.55*(1-prox*0.7))*s*0.7;
   // Frémissement des pattes — visible surtout à courte distance
   var legJ=Math.sin(bgT*18+cx*0.3)*prox*1.1;
   // Direction du regard (pupilles suivent la moule si fournie)
@@ -1830,14 +1829,30 @@ function drawCrabHit(cx,cy,ep){
   if(prog<.65){ctx.font='8px "Press Start 2P"';ctx.fillStyle='rgba(255,80,40,'+(.65-prog)*2+')';ctx.textAlign='center';ctx.fillText('CRAC !',cx,cy-prog*42);ctx.textAlign='left';}
 }
 
+var EMERGE_DURATION=42; // frames (~0.7s à 60fps) pour sortir du sable
 function drawFDPs(){
   fdps.forEach(function(m){
     var sx=toSX(m.wx);if(sx<-50||sx>W+50)return;
     var fy=getFdpY(m); // CENTRE HITBOX — inchangé
-    // Décalage visuel : crabe 6 px plus bas pour que les pattes (s=6) touchent le sol/la mer
     var visualY=fy+6;
     if(m.ep>0){drawCrabHit(sx,visualY,m.ep);if(m.ep<1.6)m.ep+=.048;return;}
     if(m.hit)return;
+
+    // ÉMERGENCE — le crabe sort du sable au spawn
+    if(m.emergeT===undefined)m.emergeT=EMERGE_DURATION; // crabes pré-existants : déjà sortis
+    var emergeP=Math.min(1,m.emergeT/EMERGE_DURATION);
+    // Easing : ease-out (vif au début, ralentit) → effet "jaillissement"
+    var emergeEase=1-Math.pow(1-emergeP,2.5);
+    // Offset Y : positif = encore enfoncé dans le sable (descendu)
+    var emergeOffset=(1-emergeEase)*26;
+    m.emergeT++;
+
+    // Sable qui jaillit pendant les premières frames
+    var groundY=m.onSea?SY:GY;
+    if(emergeP<0.7){
+      drawSandBurst(sx,groundY,m.emergeT,m.sandSeed||0);
+    }
+
     // Proximité (basée sur fy = centre hitbox)
     var prox=0, lookX, lookY;
     if(gState==='play'&&phase==='flying'){
@@ -1845,12 +1860,45 @@ function drawFDPs(){
       var d=Math.sqrt(dx*dx+dy*dy);
       prox=Math.max(0,1-d/220);
       prox=prox*prox;
-      // Position écran de la moule pour le regard des crabes
       lookX=M.wx-camX;
       lookY=M.wy;
     }
-    drawSmallCrab(sx,visualY,6,prox,lookX,lookY);
+
+    // CLIP au-dessus du sol pendant l'émergence (le crabe paraît sortir du sable)
+    if(emergeP<1){
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(0,0,W,groundY);
+      ctx.clip();
+      drawSmallCrab(sx,visualY+emergeOffset,6,prox,lookX,lookY,m.eating);
+      ctx.restore();
+    } else {
+      drawSmallCrab(sx,visualY,6,prox,lookX,lookY,m.eating);
+    }
   });
+}
+// Burst de sable pendant l'émergence d'un crabe
+function drawSandBurst(sx,gy,t,seed){
+  // Particules déterministes mais dispersées (pas de flicker random)
+  var n=8;
+  for(var i=0;i<n;i++){
+    var ang=Math.sin(seed*0.13+i*0.7)*Math.PI*0.45-Math.PI/2; // entre -π/2 ± π*0.45
+    var spd=2+((seed+i*17)%5);
+    // Trajectoire balistique pour chaque particule
+    var t2=Math.max(0,t-i*1.2);
+    if(t2>25)continue;
+    var px2=sx+Math.cos(ang)*spd*t2*0.6;
+    var py2=gy-Math.sin(-ang)*spd*t2*0.6+0.5*t2*t2*0.04; // gravité légère
+    var alpha=Math.max(0,1-t2/25);
+    ctx.fillStyle='rgba(180,140,80,'+alpha+')';
+    var sz=(seed+i)%2===0?2:1;
+    ctx.fillRect(Math.floor(px2),Math.floor(py2),sz,sz);
+    // Petite ombre plus sombre derrière
+    if(sz===2){
+      ctx.fillStyle='rgba(110,80,40,'+(alpha*0.7)+')';
+      ctx.fillRect(Math.floor(px2)+1,Math.floor(py2)+1,1,1);
+    }
+  }
 }
 
 // ══════ MOUETTES SPECTACULAIRES ══════
@@ -2169,6 +2217,13 @@ var phase='ready',armT=0,snapT=0,isDown=false;
 var M={wx:0,wy:0,vx:0,vy:0,ang:0,spin:0,dist:0};
 var combo=0,shakeT=0,shakeStr=0,sessionRecord=0,gullBoostT=0;
 
+// === MODE LES CRABES FOUS — état spécifique ===
+var MAX_LAUNCHES=10;
+var launchCount=0;   // de 0 (aucun lancer effectué) à MAX_LAUNCHES
+var bestDist=0;      // meilleur des lancers effectués cette partie
+var allDists=[];     // historique des distances de chaque lancer
+
+// Reset complet : nouvelle partie (10 lancers)
 function resetAll(){
   phase='ready';armAngle=ARM_LO;armT=0;snapT=0;isDown=false;camX=0;gameT=0;
   M={wx:0,wy:0,vx:0,vy:0,ang:0,spin:0,dist:0};
@@ -2178,7 +2233,31 @@ function resetAll(){
   topBeaten=false;
   flightStartT=0;
   setSlowMo(false);
-  resetFDPs();resetGulls();
+  resetFDPs();resetGulls(); // vide TOUT (les crabes accumulés sont effacés)
+  resetShootingStar();
+  pickWeather();
+  comboFlash=0;comboFlashPeak=0;stormFlashT=0;
+  trail=[];
+  afterRunGull=null;afterRunGullDelay=0;
+  // État spécifique au mode billard
+  launchCount=0;
+  bestDist=0;
+  allDists=[];
+  thrownMussels=[]; // efface les moules tombées de la partie précédente
+}
+
+// Reset entre 2 lancers de la même partie (on garde les crabes accumulés)
+function resetForNextLaunch(){
+  phase='ready';armAngle=ARM_LO;armT=0;snapT=0;isDown=false;camX=0;
+  M={wx:0,wy:0,vx:0,vy:0,ang:0,spin:0,dist:0};
+  combo=0;shakeT=0;shakeStr=0;gullBoostT=0;
+  fireParticles=[];
+  fireworks=[];
+  topBeaten=false;
+  flightStartT=0;
+  setSlowMo(false);
+  refreshObstacles(); // les crabes reviennent (hit=false)
+  resetGulls();
   resetShootingStar();
   pickWeather();
   comboFlash=0;comboFlashPeak=0;stormFlashT=0;
@@ -2307,15 +2386,20 @@ function loop(ts){
     drawHUD(M.dist);
   }
   if(phase==='done'){
-    // Détecter transition vers 'done' → armer la mouette (1/100) + sauvegarder la moule
+    // Détecter transition vers 'done' : enregistrer le lancer + spawn crabe
     if(lastPhase!=='done'){
-      // 1% de chance d'avoir la mouette agressive — easter egg rare
+      launchCount++;
+      allDists.push(M.dist);
+      if(M.dist>bestDist)bestDist=M.dist;
+      // Garde la moule tombée comme repère visuel + spawn d'un crabe à côté
+      // (sauf pour le 10e lancer — on ne re-jouera pas)
+      if(M.dist>=14 && launchCount<MAX_LAUNCHES){
+        saveThrownMussel(M.wx,M.wy,M.ang); // dead mussel reste visible au sol
+        spawnObstacleAtMussel();           // crabe affamé spawn à gauche
+      }
+      // 1% de chance d'avoir la mouette agressive (easter egg conservé)
       afterRunGullDelay=(Math.random()<0.01)?72:0;
       afterRunGull=null;
-      // Sauvegarder la moule dans le cimetière (seulement si elle a vraiment volé)
-      if(M.dist>=14){
-        saveThrownMussel(M.wx,M.wy,M.ang);
-      }
     }
     if(afterRunGullDelay>0){
       afterRunGullDelay--;
@@ -2326,8 +2410,17 @@ function loop(ts){
     drawMusselFlying(M.wx,M.wy,M.ang);
     drawAfterRunGull();
     drawHUD(M.dist);
-    // Instruction clignotante
-    if(Math.floor(bgT*2)%2===0)drawInstruction('TAPE POUR VOIR TON SCORE','#ffd700');
+    // Instruction clignotante GRANDE TAILLE — bien visible entre les lancers
+    if(Math.floor(bgT*2)%2===0){
+      var msg=launchCount>=MAX_LAUNCHES?'TAPE POUR VOIR LE SCORE FINAL':'TAPE POUR LANCER LA MOULE #'+(launchCount+1);
+      ctx.font='10px "Press Start 2P"';
+      ctx.textAlign='center';
+      ctx.shadowColor='rgba(0,0,0,0.9)';ctx.shadowBlur=6;
+      ctx.fillStyle='#ffd700';
+      ctx.fillText(msg,W/2,H/2+30);
+      ctx.shadowBlur=0;
+      ctx.textAlign='left';
+    }
   }
   lastPhase=phase;
   // Embrasement atmosphérique au combo 6+ (la moule met le ciel en feu)
@@ -2383,14 +2476,58 @@ function loop(ts){
 }
 
 function drawInstruction(txt,col){ctx.font='6px "Press Start 2P"';ctx.fillStyle=col||'rgba(240,171,252,.8)';ctx.textAlign='center';ctx.fillText(txt,W/2,H-12);ctx.textAlign='left';}
+// Petite icône de moule pour le HUD (~9x14 px). used=true → faded avec X rouge
+function drawMusselIcon(cx,cy,used){
+  var c1,c2,c3,refl;
+  if(used){
+    c1='#3a303a';c2='#2a202a';c3='#1a141a';
+    refl='rgba(120,90,120,0.35)';
+  } else {
+    c1='#241c58';c2='#1a1448';c3='#100e38';
+    refl='rgba(192,38,211,0.7)';
+  }
+  // Corps moule simplifié (top arrondi, pointe basse)
+  ctx.fillStyle=c2;
+  ctx.fillRect(cx+1,cy+1,7,2);     // tip top
+  ctx.fillRect(cx,cy+3,9,7);        // body
+  ctx.fillStyle=c1;
+  ctx.fillRect(cx+1,cy+4,7,4);      // body mid (a bit lighter)
+  ctx.fillStyle=c3;
+  ctx.fillRect(cx+1,cy+10,7,2);    // shadow bottom
+  ctx.fillRect(cx+3,cy+12,3,1);    // tip
+  // Reflet nacré gauche
+  ctx.fillStyle=refl;
+  ctx.fillRect(cx,cy+3,1,7);
+  // X rouge si utilisée
+  if(used){
+    ctx.fillStyle='rgba(255,80,80,0.85)';
+    ctx.fillRect(cx+2,cy+5,1,1);
+    ctx.fillRect(cx+3,cy+6,1,1);
+    ctx.fillRect(cx+4,cy+7,1,1);
+    ctx.fillRect(cx+5,cy+6,1,1);
+    ctx.fillRect(cx+6,cy+5,1,1);
+    ctx.fillRect(cx+2,cy+7,1,1);
+    ctx.fillRect(cx+6,cy+7,1,1);
+  }
+}
+
 function drawHUD(d){
-  // Distance
+  // Distance actuelle (gros)
   ctx.font='11px "Press Start 2P"';ctx.fillStyle='#ffd700';ctx.textAlign='center';
   ctx.fillText(d+' m',W/2,24);
-  // Record session
-  if(sessionRecord>0){
-    ctx.font='6px "Press Start 2P"';ctx.fillStyle='rgba(240,171,252,.7)';
-    ctx.fillText('RECORD: '+sessionRecord+'m',W/2,38);
+  // ROW DE 10 MOULES-ICÔNES (style "munitions") — remplace le texte LANCER X/10
+  var ICON_W=9, ICON_GAP=2;
+  var rowWidth=MAX_LAUNCHES*ICON_W+(MAX_LAUNCHES-1)*ICON_GAP;
+  var rowStartX=Math.round(W/2-rowWidth/2);
+  for(var li=0;li<MAX_LAUNCHES;li++){
+    drawMusselIcon(rowStartX+li*(ICON_W+ICON_GAP),32,li<launchCount);
+  }
+  // MEILLEUR sous la rangée (plus gros : 8px vs 6px avant)
+  if(bestDist>0){
+    ctx.font='8px "Press Start 2P"';ctx.fillStyle='#ffd700';
+    ctx.shadowColor='rgba(0,0,0,0.85)';ctx.shadowBlur=3;
+    ctx.fillText('MEILLEUR: '+bestDist+'m',W/2,60);
+    ctx.shadowBlur=0;
   }
   // Combo — plus haut (3% de H) + plus gros (11px), avec ombre pour le détacher des vagues
   if(combo>=2){
@@ -2424,7 +2561,15 @@ function onDown(){
   if(gState!=='play')return;
   getAC();
   trackAction();
-  if(phase==='done'){showResult();return;}
+  if(phase==='done'){
+    // Mode billard : si encore des lancers dispo, on enchaîne sans aller à l'écran de résultat
+    if(launchCount<MAX_LAUNCHES){
+      resetForNextLaunch();
+    } else {
+      showResult();
+    }
+    return;
+  }
   if(phase==='ready'||phase==='charging'){if(phase==='ready')armT=0;phase='charging';isDown=true;}
 }
 function onUp(){if(!isDown||gState!=='play')return;isDown=false;trackAction();if(phase==='charging'){var tip=getTipWorld(),lv=getLaunchVec();M.wx=tip.wx;M.wy=tip.wy;M.vx=lv.vx;M.vy=lv.vy;M.ang=0;M.spin=-0.08;M.dist=0;sfxLaunch();snapT=0;phase='snap';flightStartT=Date.now();}}
@@ -2450,10 +2595,19 @@ function getComment(d){
   return 'CONQUERANT DE L\'ESPACE !!!';
 }
 function showResult(){
-  if(M.dist>sessionRecord)sessionRecord=M.dist;
+  // En mode billard, le score retenu est le MEILLEUR des 10 lancers
+  var finalScore=bestDist;
+  if(finalScore>sessionRecord)sessionRecord=finalScore;
+  // Surcharger M.dist pour que les autres fonctions (saveScore, partage) utilisent finalScore
+  M.dist=finalScore;
   document.getElementById('resName').textContent=playerName.toUpperCase();
-  document.getElementById('resDist').textContent=M.dist+' METRES';
-  document.getElementById('resComment').textContent=getComment(M.dist);
+  document.getElementById('resDist').textContent=finalScore+' METRES';
+  // Commentaire + récap des 10 lancers
+  var recap=getComment(finalScore);
+  if(allDists.length){
+    recap+=' · 10 LANCERS : '+allDists.join('m · ')+'m';
+  }
+  document.getElementById('resComment').textContent=recap;
   // Reset visibilité de la box insta (cachée par défaut)
   var box=document.getElementById('topInstaBox');
   if(box)box.classList.add('hidden');
@@ -2461,8 +2615,8 @@ function showResult(){
   if(instaIn)instaIn.value='';
   show(sResult);
   // On sauvegarde, puis on vérifie si on est dans le top 10
-  saveScore(playerName,M.dist).then(function(){
-    checkTop10AndRevealInsta(M.dist);
+  saveScore(playerName,finalScore).then(function(){
+    checkTop10AndRevealInsta();
   });
   stopBGM();
 }
@@ -2608,10 +2762,8 @@ requestAnimationFrame(loop);
   if(params.get('preview')!=='1')return;
   setTimeout(function(){
     // Préparer l'état pour rendu sans physique
-    resetAll();
     document.getElementById('sMenu').classList.add('hidden');
-    gState='play';
-    phase='preview'; // état custom qui ne matche aucun branchement de la loop
+    gState='play';    phase='preview'; // état custom qui ne matche aucun branchement de la loop
     // Charger les scores pour le squelette des champions (zone 6010m)
     loadTopScore();
     // Construction du panneau de contrôle
