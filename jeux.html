@@ -42,4 +42,19 @@
 </main>
 
 <footer class="foot">
-  <a
+  <a href="mailto:lassoduport@gmail.com">lassoduport@gmail.com</a>
+  <span class="sep">·</span>
+  L'asso du Port — Pors-Poulhan
+</footer>
+
+<script>
+document.getElementById('fsBtn').addEventListener('click', function () {
+  var f = document.getElementById('gameFrame');
+  if (f.requestFullscreen) f.requestFullscreen();
+  else if (f.webkitRequestFullscreen) f.webkitRequestFullscreen();
+  else alert("Plein écran non supporté par ce navigateur — sur iPhone, tourne l'écran en paysage.");
+});
+</script>
+
+</body>
+</html>
