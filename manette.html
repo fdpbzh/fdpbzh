@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Manette — La Moule Volante</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#0F0628">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:#0a0712;color:#FFF5E1;font-family:'Press Start 2P',monospace;overflow:hidden}
+#app{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:20px;text-align:center}
+h1{font-size:14px;color:#ffd24a;text-shadow:2px 2px #000;line-height:1.6}
+#status{font-size:9px;color:#9fe8ff;line-height:1.8;min-height:40px}
+input{font-family:inherit;font-size:12px;padding:12px;width:240px;background:#1a1430;border:1px solid #6b21a8;color:#fff;text-align:center;text-transform:uppercase;outline:none}
+#join{font-family:inherit;font-size:12px;padding:14px 24px;background:#6b21a8;color:#fff;border:1px solid #f0abfc;cursor:pointer}
+#fire{width:200px;height:200px;border-radius:50%;border:6px solid #7a1c1c;background:#3a1010;color:#7c6f9e;font-family:inherit;font-size:16px;cursor:pointer;transition:transform 0.05s}
+#fire.on{background:#d23c3c;border-color:#ff7a6a;color:#fff;box-shadow:0 0 40px rgba(255,80,60,0.5);animation:pulse 1s infinite}
+#fire:active{transform:scale(0.93)}
+@keyframes pulse{0%,100%{box-shadow:0 0 30px rgba(255,80,60,0.4)}50%{box-shadow:0 0 60px rgba(255,80,60,0.8)}}
+#pos{font-size:10px;color:#7CFC9B;line-height:1.8}
+.hide{display:none}
+</style>
+</head>
+<body>
+<div id="app">
+  <h1>★ LA MOULE VOLANTE ★<br>MANETTE</h1>
+  <div id="joinbox">
+    <input id="pseudo" maxlength="10" placeholder="TON PSEUDO" autocomplete="off"><br><br>
+    <button id="join">REJOINDRE LA FILE</button>
+  </div>
+  <div id="pos" class="hide"></div>
+  <button id="fire" class="hide" disabled>TIRE !</button>
+  <div id="status">Connexion à la façade...</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+var SB_URL='https://nhsroymqvwrjflagzznz.supabase.co';
+var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oc3JveW1xdndyamZsYWd6em56Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MTcyNzEsImV4cCI6MjA5MzM5MzI3MX0.9DF3S9rqhyR4UY9W_vVT2xUxyZNhA3wfk4LTOBzRg64';
+var ID=sessionStorage.getItem('mvf_mid')||('m'+Math.random().toString(36).slice(2)+Date.now().toString(36));
+sessionStorage.setItem('mvf_mid',ID);
+var joined=false,myName='',lastState=0,lastJoinSend=0,isMyTurn=false;
+var $=function(i){return document.getElementById(i);};
+try{$('pseudo').value=localStorage.getItem('mvf_pseudo')||'';}catch(e){}
+
+var client=window.supabase.createClient(SB_URL,SB_KEY);
+var ch=client.channel('manette-fdp');
+function send(o){try{ch.send({type:'broadcast',event:'msg',payload:o});}catch(e){}}
+ch.on('broadcast',{event:'msg'},function(p){handle(p.payload||{});}).subscribe(function(st){
+ if(st==='SUBSCRIBED')$('status').textContent='Connecté. Entre ton pseudo !';
+});
+
+function handle(m){
+ if(m.t!=='state')return;
+ lastState=Date.now();
+ if(!joined)return;
+ var inQ=-1;(m.q||[]).forEach(function(q,i){if(q.id===ID)inQ=i;});
+ if(m.cur===ID){
+  if(!isMyTurn&&navigator.vibrate)navigator.vibrate([80,40,80]);
+  isMyTurn=true;
+  $('pos').textContent='C’EST À TOI ' + myName + ' !';
+  $('fire').classList.add('on');$('fire').disabled=false;
+  $('status').textContent='Regarde la façade et TIRE !';
+ } else {
+  isMyTurn=false;
+  $('fire').classList.remove('on');$('fire').disabled=true;
+  if(inQ>=0){$('pos').textContent='POSITION '+(inQ+1)+' / '+m.q.length;$('status').textContent=(m.curN?('En jeu : '+m.curN):'En attente d’un joueur...');}
+  else{
+   if(Date.now()-lastJoinSend>3500){lastJoinSend=Date.now();send({t:'join',id:ID,n:myName});}
+   $('pos').textContent='REPRISE DE TA PLACE...';
+  }
+ }
+}
+$('join').addEventListener('click',function(){
+ var v=($('pseudo').value||'').trim().toUpperCase().slice(0,10);
+ if(!v){$('pseudo').style.border='2px solid #ff5530';$('pseudo').focus();return;}
+ myName=v;try{localStorage.setItem('mvf_pseudo',v);}catch(e){}
+ joined=true;lastJoinSend=Date.now();send({t:'join',id:ID,n:v});
+ $('joinbox').classList.add('hide');$('pos').classList.remove('hide');$('fire').classList.remove('hide');
+ $('pos').textContent='Inscription...';$('status').textContent='Garde cette page ouverte !';
+});
+$('fire').addEventListener('pointerdown',function(e){
+ e.preventDefault();
+ if(!isMyTurn)return;
+ send({t:'fire',id:ID});
+ if(navigator.vibrate)navigator.vibrate(30);
+});
+window.addEventListener('pagehide',function(){if(joined)send({t:'leave',id:ID});});
+setInterval(function(){
+ if(joined&&lastState&&Date.now()-lastState>9000){$('status').textContent='Façade hors ligne... réessaie plus tard';$('fire').classList.remove('on');$('fire').disabled=true;}
+},3000);
+</script>
+</body>
+</html>
