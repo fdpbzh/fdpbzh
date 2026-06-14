@@ -245,7 +245,7 @@ var perso='disco';
 try{var sv=localStorage.getItem('mvf_perso');if(PERSOS.some(function(p){return p.id===sv;}))perso=sv;}catch(e){}
 var idx=Math.max(0,PERSOS.map(function(p){return p.id;}).indexOf(perso)),SLIDE=0;
 var bigC=document.getElementById('big'),bx=bigC.getContext('2d');
-var bigQ={q:function(a,b,w,h,col){bx.fillStyle=col;bx.fillRect(Math.round(44+SLIDE*10+a*10),Math.round(92+b*10),Math.max(1,Math.round(w*10)),Math.max(1,Math.round(h*10)));},cls:function(){bx.fillStyle='#0a0712';bx.fillRect(0,0,88,104);}};
+var bigQ={q:function(a,b,w,h,col){bx.fillStyle=col;bx.fillRect(Math.round(44+SLIDE*10+a*10),Math.round(92+b*10),Math.max(1,Math.round(w*10)),Math.max(1,Math.round(h*10)));},cls:function(){bx.clearRect(0,0,88,104);}};
 var dots=document.getElementById('pdots');
 PERSOS.forEach(function(){dots.appendChild(document.createElement('i'));});
 function syncUI(){document.getElementById('pnom').textContent=PERSOS[idx].n;
