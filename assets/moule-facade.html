@@ -889,7 +889,10 @@ function updateBoss(){var B=BOSS;B.t++;if(B.hitT>0)B.hitT--;var sz=(P.bossSize==
  if(rise>0.02){
   B.tents.push(bTent(B.cx+101*k*tsp,Math.max(8*SC,PH-(lift+188*k*tsz)*rise),bt*0.55,2.4,30*k*tsz,26*k*tsz));
   B.tents.push(bTent(B.cx-151*k*tsp,Math.max(8*SC,PH-(lift+152*k*tsz)*rise),bt*0.6,4.3,24*k*tsz,19*k*tsz));
-  B.tents.push(bTent(B.cx-201*k*tsp,Math.max(8*SC,PH-(lift+192*k*tsz)*rise),bt*0.5,0.3,34*k*tsz,30*k*tsz));}}
+  B.tents.push(bTent(B.cx-201*k*tsp,Math.max(8*SC,PH-(lift+192*k*tsz)*rise),bt*0.5,0.3,34*k*tsz,30*k*tsz));
+  B.tents.push(bTent(B.cx+201*k*tsp,Math.max(8*SC,PH-(lift+170*k*tsz)*rise),bt*0.5+1.0,1.4,26*k*tsz,22*k*tsz));
+  B.tents.push(bTent(B.cx-70*k*tsp,Math.max(8*SC,PH-(lift+208*k*tsz)*rise),bt*0.65+2.0,5.2,28*k*tsz,24*k*tsz));
+  B.tents.push(bTent(B.cx+48*k*tsp,Math.max(8*SC,PH-(lift+150*k*tsz)*rise),bt*0.45+3.0,3.4,22*k*tsz,18*k*tsz));}}
 function drawTentG(tt,side){var pts=tt.pts,baseR=tt.baseR,i,p,pr,R;
  for(i=0;i<pts.length;i++){p=pts[i];pr=Math.min(1.14,p[2]);R=Math.max(1.5,baseR*(1-pr*0.8));ctx.fillStyle='#3a1c5e';ctx.beginPath();ctx.arc(p[0]+R*0.18,p[1]+R*0.15,R,0,7);ctx.fill();}
  for(i=0;i<pts.length;i++){p=pts[i];pr=Math.min(1.14,p[2]);R=Math.max(1.5,baseR*(1-pr*0.8));ctx.fillStyle='#5d3aa8';ctx.beginPath();ctx.arc(p[0],p[1],R*0.92,0,7);ctx.fill();ctx.fillStyle='#7a4fd8';ctx.beginPath();ctx.arc(p[0]-R*0.28,p[1]-R*0.24,R*0.55,0,7);ctx.fill();}
@@ -937,8 +940,11 @@ function drawBoss(){var B=BOSS;if(!B)return;var k=B.k||(PH/200*0.5);
  var realCtx=ctx;ctx=bossBX;ctx.setTransform(1/PIX,0,0,1/PIX,0,0);ctx.clearRect(0,0,PW,PH);
  drawTentG(B.tents[0],-1);
  drawTentG(B.tents[1],1);
+ if(B.tents[3])drawTentG(B.tents[3],-1);
+ if(B.tents[4])drawTentG(B.tents[4],1);
  if(B.rise>0.05)drawCorpsG(B);
  drawTentG(B.tents[2],1);
+ if(B.tents[5])drawTentG(B.tents[5],-1);
  ctx.setTransform(1,0,0,1,0,0);ctx=realCtx;var _sm=ctx.imageSmoothingEnabled;ctx.imageSmoothingEnabled=false;ctx.drawImage(bossCv,0,0,bcw,bch,0,0,bcw*PIX,bch*PIX);ctx.imageSmoothingEnabled=_sm;
  if(B.stuck&&B.stuck.length){var _sv=mvar;for(var si=0;si<B.stuck.length;si++){var su=B.stuck[si];var stt=B.tents[su.tx];if(!stt||!stt.pts[su.ti])continue;var stp=stt.pts[su.ti];mvar=su.v;ctx.save();ctx.translate(stp[0]+su.ox,stp[1]+su.oy);ctx.rotate(su.a);drawMussel(0,0,mussSC);ctx.restore();}mvar=_sv;}
  if(B.phase==='fight'){var bw=PW*0.3,bx=PW/2-bw/2,by=8*SC;gtextS('KRAKEN',PW/2,by+3*SC,'#c4a6ff',8);ctx.fillStyle='rgba(10,7,18,0.7)';ctx.fillRect(bx,by+8*SC,bw,5*SC);var fr2=Math.max(0,B.hp/(Math.round((P.bossHP||8)*5/3)));ctx.fillStyle='#7a4fd8';ctx.fillRect(bx+1,by+8*SC+1,(bw-2)*fr2,5*SC-2);ctx.fillStyle='#ff5a7e';ctx.fillRect(bx+1,by+8*SC+1,(bw-2)*fr2,Math.max(1,1.5*SC));}}
