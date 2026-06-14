@@ -16,7 +16,7 @@ html,body{height:100%;background:linear-gradient(180deg,#0F0628 0%,#15093A 60%,#
 #app{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:18px 20px;text-align:center;overflow-y:auto}
 h1{font-family:'DK Longreach','Manrope',serif;font-size:30px;font-weight:400;letter-spacing:.01em;color:var(--cream);line-height:1.05}
 #persos{width:100%;max-width:300px;user-select:none}
-#ptit{font-size:10px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--lav-soft);margin-bottom:18px}
+#ptit{font-size:10px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--lav-soft);margin-bottom:10px}
 #car{position:relative;display:flex;flex-direction:column;align-items:center;touch-action:pan-y}
 #car canvas{width:min(280px,76vw);image-rendering:pixelated;display:block}
 .arr{position:absolute;top:50%;transform:translateY(-55%);width:42px;height:42px;border-radius:50%;background:transparent;color:var(--lav);border:1px solid var(--line);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center}
@@ -46,7 +46,7 @@ input:focus{border-color:var(--gold)}
   <div id="persos">
     <div id="ptit">Manette · choisis ta moule</div>
     <div id="car">
-      <canvas id="big" width="88" height="104"></canvas>
+      <canvas id="big" width="88" height="90"></canvas>
     </div>
     <div id="pnom"></div>
     <div id="pdots"></div>
@@ -244,7 +244,7 @@ var perso='disco';
 try{var sv=localStorage.getItem('mvf_perso');if(PERSOS.some(function(p){return p.id===sv;}))perso=sv;}catch(e){}
 var idx=Math.max(0,PERSOS.map(function(p){return p.id;}).indexOf(perso)),SLIDE=0;
 var bigC=document.getElementById('big'),bx=bigC.getContext('2d');
-var bigQ={q:function(a,b,w,h,col){bx.fillStyle=col;bx.fillRect(Math.round(44+SLIDE*10+a*10),Math.round(92+b*10),Math.max(1,Math.round(w*10)),Math.max(1,Math.round(h*10)));},cls:function(){bx.clearRect(0,0,88,104);}};
+var bigQ={q:function(a,b,w,h,col){bx.fillStyle=col;bx.fillRect(Math.round(44+SLIDE*10+a*10),Math.round(78+b*10),Math.max(1,Math.round(w*10)),Math.max(1,Math.round(h*10)));},cls:function(){bx.clearRect(0,0,88,90);}};
 var dots=document.getElementById('pdots');
 PERSOS.forEach(function(){dots.appendChild(document.createElement('i'));});
 function syncUI(){document.getElementById('pnom').textContent=PERSOS[idx].n;
