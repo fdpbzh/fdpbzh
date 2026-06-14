@@ -62,7 +62,7 @@
 
 <script>
 "use strict";
-const cv=document.getElementById('c'), ctx=cv.getContext('2d');
+let cv=document.getElementById('c'), ctx=cv.getContext('2d');let bossCv=null,bossBX=null;
 const ui=document.getElementById('ui'), tip=document.getElementById('tip'), panel=document.getElementById('panel'), playctl=document.getElementById('playctl');
 const fpanel=document.getElementById('fauna');
 const TYPES={win:{c:'#37c0ff',n:'FENETRE'},wall:{c:'#9a6cff',n:'MUR'},line:{c:'#caa6ff',n:'LIGNE'},boost:{c:'#33e0c0',n:'BOOST'},pcrab:{c:'#ff7a3c',n:'CRABE'},gull:{c:'#7CFC9B',n:'MOUETTE'},jack:{c:'#ffd24a',n:'OEIL'},crab:{c:'#ff5530',n:'LANCEUR'},timer:{c:'#ffd24a',n:'CHRONO'},count:{c:'#37c0ff',n:'COMPTEUR'},lb:{c:'#ffd24a',n:'CLASSEMENT'},score:{c:'#FFF5E1',n:'SCORE'},star:{c:'#ff8ac0',n:'ETOILE'},bump:{c:'#7a55b0',n:'BUMPER'}};
@@ -923,11 +923,17 @@ function drawBoss(){var B=BOSS;if(!B)return;var k=B.k||(PH/200*0.5);
  if(B.phase==='intro'&&B.t>70&&B.t<170){var op=Math.min(1,(B.t-70)/30)*(0.55+0.45*Math.sin(bt*9))*(B.t>140?(170-B.t)/30:1);
   ctx.globalAlpha=Math.max(0,op);ctx.fillStyle='#ffd24a';ctx.fillRect(PW/2-26*k,PH*0.4,18*k,12*k);ctx.fillRect(PW/2+8*k,PH*0.4,18*k,12*k);ctx.fillStyle='#0a0712';ctx.fillRect(PW/2-20*k,PH*0.4+4*k,6*k,4*k);ctx.fillRect(PW/2+14*k,PH*0.4+4*k,6*k,4*k);ctx.globalAlpha=1;}
  if(!B.tents.length)return;
+ var PIX=Math.max(2,Math.round(2*SC));
+ if(!bossCv){bossCv=document.createElement('canvas');bossBX=bossCv.getContext('2d');}
+ var bcw=Math.ceil(PW/PIX),bch=Math.ceil(PH/PIX);
+ if(bossCv.width!==bcw||bossCv.height!==bch){bossCv.width=bcw;bossCv.height=bch;}
+ var realCtx=ctx;ctx=bossBX;ctx.setTransform(1/PIX,0,0,1/PIX,0,0);ctx.clearRect(0,0,PW,PH);
  drawTentG(B.tents[0],-1);
  drawTentG(B.tents[1],1);
  if(B.rise>0.05)drawCorpsG(B);
  drawTentG(B.tents[2],1);
  if(B.stuck&&B.stuck.length){var _sv=mvar;for(var si=0;si<B.stuck.length;si++){var su=B.stuck[si];var stt=B.tents[su.tx];if(!stt||!stt.pts[su.ti])continue;var stp=stt.pts[su.ti];mvar=su.v;ctx.save();ctx.translate(stp[0]+su.ox,stp[1]+su.oy);ctx.rotate(su.a);drawMussel(0,0,mussSC);ctx.restore();}mvar=_sv;}
+ ctx.setTransform(1,0,0,1,0,0);ctx=realCtx;var _sm=ctx.imageSmoothingEnabled;ctx.imageSmoothingEnabled=false;ctx.drawImage(bossCv,0,0,bcw,bch,0,0,bcw*PIX,bch*PIX);ctx.imageSmoothingEnabled=_sm;
  if(B.phase==='fight'){var bw=PW*0.3,bx=PW/2-bw/2,by=8*SC;gtextS('KRAKEN',PW/2,by+3*SC,'#c4a6ff',8);ctx.fillStyle='rgba(10,7,18,0.7)';ctx.fillRect(bx,by+8*SC,bw,5*SC);var fr2=Math.max(0,B.hp/(Math.round((P.bossHP||8)*5/3)));ctx.fillStyle='#7a4fd8';ctx.fillRect(bx+1,by+8*SC+1,(bw-2)*fr2,5*SC-2);ctx.fillStyle='#ff5a7e';ctx.fillRect(bx+1,by+8*SC+1,(bw-2)*fr2,Math.max(1,1.5*SC));}}
 function gameRender(){ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,PW,PH);var shk=shake*(P.shakeI===undefined?1:P.shakeI);ctx.save();ctx.translate((Math.random()-.5)*shk,(Math.random()-.5)*shk);
   drawImageBG();if(P.bgDim>0){ctx.fillStyle=hexA('#000000',P.bgDim);ctx.fillRect(0,0,PW,PH);}
