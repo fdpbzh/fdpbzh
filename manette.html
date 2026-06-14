@@ -167,21 +167,63 @@ function dSuper(q,t){var w1=Math.sin(t*3)*0.3,w2=Math.sin(t*3+1.2)*0.3;
  brw(q,'#0a1430');oeil(q,t,'#0a1430');
  var g=0.6+0.4*Math.sin(t*4);q(-0.45,-2.7,0.9,0.7,'rgba(255,210,74,'+g.toFixed(2)+')');q(-0.15,-2.5,0.3,0.3,'#8c2620');
  frw(q,'#0a1430');}
+function dVolde(q,t){
+ q(-2.0,-5.3,0.55,5.3,'#161024');q(1.45,-5.3,0.55,5.3,'#161024');q(-1.8,-5.7,3.6,0.6,'#221632');q(-1.0,-6.2,2.0,0.6,'#221632');
+ shp(q,['#cdd0da','#dde0e8','#ebeef4','#dde0e8','#c8cbd6','#aeb2c0']);
+ brw(q,'#6a445c');
+ if((t%3.2)>2.95)q(-0.8,-3.45,1.6,0.3,'#3a4250');
+ else{q(-0.8,-4.1,1.6,1.4,'#aebcce');q(-0.8,-4.1,1.6,0.45,'#7e8ca0');q(-0.32,-4.1,0.28,1.4,'#10161f');q(-0.2,-3.95,0.22,0.3,'#eaf2ff');}
+ q(-0.5,-2.7,0.28,0.5,'#5a3048');q(0.2,-2.7,0.28,0.5,'#5a3048');
+ frw(q,'#6a445c');
+ q(1.9,-5.6,0.22,3.0,'#6e5234');q(1.78,-5.85,0.34,0.4,'#8a6a44');
+ var g=0.5+0.5*Math.sin(t*9);q(1.7,-6.5,0.5,0.5,'rgba(60,255,90,'+g.toFixed(2)+')');
+ for(var k=0;k<4;k++){var p=((t*1.6+k*0.25)%1);q(1.6+Math.sin(t*5+k)*0.3,-6.3-p*2.2,0.4-p*0.2,0.4,'rgba(60,255,90,'+(1-p).toFixed(2)+')');}}
+function dFreddy(q,t){
+ q(-1,-5,2,1,'#d6a472');q(-1.5,-4,3,1,'#e6bc8e');q(-1.5,-3,3,1,'#efc89e');
+ q(-1.5,-4,0.5,2,'rgba(255,235,200,0.5)');
+ q(-1.18,-3.0,0.34,1.05,'#f2f2ec');q(0.84,-3.0,0.34,1.05,'#f2f2ec');
+ q(-1.5,-2,3,1,'#f2f2ec');q(-1,-1,2,1,'#e8e8e0');q(-0.5,0,1,1,'#f2f2ec');
+ q(-1.1,-2,0.12,3,'#d6d6ce');q(-0.5,-2,0.12,3,'#d6d6ce');q(0.1,-2,0.12,3,'#d6d6ce');q(0.7,-2,0.12,3,'#d6d6ce');
+ brw(q,'#6a3e12');
+ if((t%3)>2.75)q(-0.8,-3.4,1.6,0.3,'#2a1c0a');
+ else{q(-0.8,-4.1,1.6,1.4,'#fff');q(-0.35,-3.85,0.75,0.95,'#2a1c0a');q(-0.2,-3.95,0.3,0.3,'#fff');}
+ q(-1.15,-2.5,2.3,0.45,'#16110a');q(-1.35,-2.15,0.45,0.5,'#16110a');q(0.9,-2.15,0.45,0.5,'#16110a');q(-0.15,-2.5,0.3,0.55,'#16110a');
+ q(-0.5,-1.55,1.0,0.4,'#7a1e1e');q(-0.35,-1.5,0.7,0.22,'#e8e0d8');}
+function dBival(q,t){
+ var bcs=Math.sin(t*8)*0.08;
+ for(var ci=0;ci<3;ci++){var cxa=-2.55+ci*0.52;q(cxa,-5.6+bcs,0.32,2.7,'#c4ccd8');q(cxa+0.04,-5.6+bcs,0.12,2.7,'#eef2f8');q(cxa,-5.95+bcs,0.32,0.4,'#fbfdff');var cxb=1.5+ci*0.52;q(cxb,-5.6+bcs,0.32,2.7,'#c4ccd8');q(cxb+0.04,-5.6+bcs,0.12,2.7,'#eef2f8');q(cxb,-5.95+bcs,0.32,0.4,'#fbfdff');}
+ shp(q,['#d4a012','#f0c020','#ffd84a','#f0c020','#c89010','#9a6e08']);
+ q(-1.5,-4,0.5,4,'rgba(255,245,200,.45)');
+ q(-1.75,-3.9,0.45,1.7,'#15110c');q(-1.5,-2.3,0.4,0.5,'#15110c');q(1.3,-3.9,0.45,1.7,'#15110c');q(1.1,-2.3,0.4,0.5,'#15110c');
+ q(-1.15,-4.85,0.8,0.4,'#5a3a06');q(0.35,-4.85,0.8,0.4,'#5a3a06');q(-0.45,-4.45,0.9,0.3,'#5a3a06');
+ if((t%3.4)>3.15)q(-0.8,-3.35,1.6,0.3,'#2a1c04');
+ else{q(-0.8,-4.05,1.6,1.3,'#fff');q(-0.3,-3.8,0.7,0.9,'#2a1c04');q(-0.18,-3.9,0.28,0.28,'#fff');}
+ q(-0.78,-1.72,1.56,0.98,'#3a0808');q(-0.62,-1.68,0.28,0.4,'#fff');q(-0.22,-1.68,0.26,0.46,'#fff');q(0.2,-1.68,0.28,0.4,'#fff');q(0.5,-1.68,0.22,0.4,'#fff');q(-0.6,-0.82,1.2,0.3,'#7a1e1e');}
+function dCoq(q,t){
+ shp(q,['#1a2a6e','#24378e','#2e44a8','#24378e','#182464','#101848']);
+ q(-1.5,-4,0.5,4,'rgba(200,215,255,.4)');
+ brw(q,'#0a1230');
+ if((t%3)>2.8)q(-0.8,-3.4,1.6,0.3,'#0a1230');
+ else{q(-0.8,-4.1,1.6,1.4,'#fff');q(-0.3,-3.85,0.7,0.95,'#0a1230');q(-0.18,-3.95,0.28,0.28,'#fff');}
+ q(-0.55,-1.75,1.1,0.3,'#0a1230');q(-0.7,-2.0,0.32,0.3,'#0a1230');q(0.38,-2.0,0.32,0.3,'#0a1230');
+ q(-0.55,-1.0,0.18,0.95,'#f2f2ec');q(-0.72,-1.0,0.2,0.2,'#f2f2ec');q(0.0,-1.0,0.55,0.95,'#f2f2ec');q(0.14,-0.78,0.27,0.5,'#24378e');
+ var bx=1.9,by=-0.4,br=0.55;q(bx-br,by-br,br*2,br*2,'#f2f2ec');q(bx-br*0.95,by-br*0.3,br*0.5,br*0.6,'#d0d0c8');q(bx-0.16,by-0.16,0.32,0.32,'#1a1a1a');q(bx-br*0.9,by-br*0.7,0.22,0.22,'#1a1a1a');q(bx+br*0.55,by-br*0.6,0.22,0.22,'#1a1a1a');q(bx+br*0.5,by+br*0.4,0.22,0.22,'#1a1a1a');}
 var PERSOS=[
  {id:'disco',n:'MOULE DISCO',d:dDisco},
  {id:'golden',n:'GOLDEN MOULE',d:dGold},
  {id:'rainbow',n:'RAINBOW MOULE',d:dRain},
  {id:'houd',n:'MOULE HOUD',d:dHoud},
  {id:'f1',n:'FORMOULE 1',d:dF1},
- {id:'moulock',n:'MOULOCK HOLMES',d:dMoulock},
  {id:'moulin',n:'MOULIN ROUGE',d:dMoulin},
  {id:'cosmo',n:'COSMOULE',d:dCosmo},
- {id:'sparmoule',n:'JACK SPARMOULE',d:dSpar},
  {id:'mariniere',n:'MOULE MARINIERE',d:dMarin},
  {id:'bigoudene',n:'BIGOUDENE',d:dBigou},
- {id:'cire',n:'CIRE JAUNE',d:dCire},
  {id:'garou',n:'MOULE-GAROU',d:dGarou},
- {id:'super',n:'SUPER MOULE',d:dSuper}];
+ {id:'super',n:'SUPER MOULE',d:dSuper},
+ {id:'voldemoule',n:'LORD VOLDEMOULE',d:dVolde},
+ {id:'freddy',n:'FREDDY AU CURRY',d:dFreddy},
+ {id:'bivalverine',n:'BIVALVERINE',d:dBival},
+ {id:'coquillan',n:'COQUILLAN MBAPPE',d:dCoq}];
 var perso='disco';
 try{var sv=localStorage.getItem('mvf_perso');if(PERSOS.some(function(p){return p.id===sv;}))perso=sv;}catch(e){}
 var idx=Math.max(0,PERSOS.map(function(p){return p.id;}).indexOf(perso)),SLIDE=0;
