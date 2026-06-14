@@ -47,8 +47,6 @@ input:focus{border-color:var(--gold)}
     <div id="ptit">Manette · choisis ta moule</div>
     <div id="car">
       <canvas id="big" width="88" height="104"></canvas>
-      <div class="arr" style="left:0" id="aL">&#9664;</div>
-      <div class="arr" style="right:0" id="aR">&#9654;</div>
     </div>
     <div id="pnom"></div>
     <div id="pdots"></div>
@@ -256,8 +254,6 @@ function setPerso(i,sl){idx=(i+PERSOS.length)%PERSOS.length;SLIDE=sl||0;perso=PE
  if(navigator.vibrate)navigator.vibrate(15);
  if(joined)send({t:'perso',id:ID,v:perso});
  syncUI();}
-document.getElementById('aL').addEventListener('pointerdown',function(e){e.preventDefault();setPerso(idx-1,-4.5);});
-document.getElementById('aR').addEventListener('pointerdown',function(e){e.preventDefault();setPerso(idx+1,4.5);});
 var swx=null,carEl=document.getElementById('car');
 carEl.addEventListener('pointerdown',function(e){swx=e.clientX;});
 window.addEventListener('pointerup',function(e){if(swx===null)return;var d=e.clientX-swx;swx=null;if(Math.abs(d)>35)setPerso(idx+(d<0?1:-1),d<0?4.5:-4.5);});
