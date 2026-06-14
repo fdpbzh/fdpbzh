@@ -208,6 +208,18 @@ function dCoq(q,t){
  q(-0.55,-1.75,1.1,0.3,'#0a1230');q(-0.7,-2.0,0.32,0.3,'#0a1230');q(0.38,-2.0,0.32,0.3,'#0a1230');
  q(-0.55,-1.0,0.18,0.95,'#f2f2ec');q(-0.72,-1.0,0.2,0.2,'#f2f2ec');q(0.0,-1.0,0.55,0.95,'#f2f2ec');q(0.14,-0.78,0.27,0.5,'#24378e');
  var bx=1.9,by=-0.4,br=0.55;q(bx-br,by-br,br*2,br*2,'#f2f2ec');q(bx-br*0.95,by-br*0.3,br*0.5,br*0.6,'#d0d0c8');q(bx-0.16,by-0.16,0.32,0.32,'#1a1a1a');q(bx-br*0.9,by-br*0.7,0.22,0.22,'#1a1a1a');q(bx+br*0.55,by-br*0.6,0.22,0.22,'#1a1a1a');q(bx+br*0.5,by+br*0.4,0.22,0.22,'#1a1a1a');}
+function dMollu(q,t){
+ shp(q,['#6e4a2a','#84592f','#9a6a38','#84592f','#5e3e22','#48301a']);
+ q(-1.5,-2,3,1.33,'#2348c4');q(-1,-1,2,1,'#1d3aa0');
+ q(-0.18,-2.0,0.36,1.33,'#f2f2ec');q(-0.7,-1.2,1.4,0.32,'#f2f2ec');
+ q(-1.5,-4,0.5,4,'rgba(255,235,200,.35)');
+ q(-2.05,-5.2,4.1,0.45,'#2a1d10');q(-1.95,-5.62,1.1,0.5,'#2a1d10');q(-1.0,-6.05,2.0,0.7,'#4a3424');q(-1.0,-5.5,2.0,0.3,'#3a2814');
+ var fw=Math.sin(t*2)*0.18;q(0.7,-6.35,0.5,0.4,'#f0ece0');q(1.15+fw,-6.6,0.55,0.4,'#f4f0e6');q(1.7+fw,-6.45,0.55,0.4,'#f0ece0');q(2.15+fw*1.3,-6.0,0.5,0.4,'#e8e2d4');q(2.45+fw*1.6,-5.5,0.42,0.38,'#d4373a');
+ brw(q,'#2a1c0c');
+ if((t%3)>2.78)q(-0.8,-3.4,1.6,0.3,'#2a1c0c');
+ else{q(-0.8,-4.1,1.6,1.4,'#fff');q(-0.3,-3.85,0.7,0.95,'#2a1c0c');q(-0.18,-3.95,0.28,0.28,'#fff');}
+ q(-0.95,-2.4,1.9,0.32,'#1a1410');q(-1.15,-2.12,0.4,0.34,'#1a1410');q(0.75,-2.12,0.4,0.34,'#1a1410');q(-0.2,-1.45,0.4,0.6,'#1a1410');
+ var bx=1.2,by=-1.4;q(bx,by,0.7,0.24,'#d8a82a');q(bx+0.24,by-0.55,0.24,0.7,'#5a3a1a');for(var ri=0;ri<6;ri++){q(bx+0.5+ri*0.26,by-0.7-ri*0.5,0.24,0.5,ri<5?'#d8dce4':'#fbfdff');q(bx+0.56+ri*0.26,by-0.7-ri*0.5,0.08,0.5,'#f4f6fa');}}
 var PERSOS=[
  {id:'disco',n:'MOULE DISCO',d:dDisco},
  {id:'golden',n:'GOLDEN MOULE',d:dGold},
@@ -221,7 +233,8 @@ var PERSOS=[
  {id:'voldemoule',n:'LORD VOLDEMOULE',d:dVolde},
  {id:'freddy',n:'FREDDIE MOULAUCURY',d:dFreddy},
  {id:'bivalverine',n:'BIVALVERINE',d:dBival},
- {id:'coquillan',n:'COQUILLAN MBAPPE',d:dCoq}];
+ {id:'coquillan',n:'COQUILLAN MBAPPE',d:dCoq},
+ {id:'mollusquetaire',n:'LE MOLLUSQUETAIRE',d:dMollu}];
 var perso='disco';
 try{var sv=localStorage.getItem('mvf_perso');if(PERSOS.some(function(p){return p.id===sv;}))perso=sv;}catch(e){}
 var idx=Math.max(0,PERSOS.map(function(p){return p.id;}).indexOf(perso)),SLIDE=0;
