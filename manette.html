@@ -7,52 +7,57 @@
 <meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#0F0628">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;background:#0a0712;color:#FFF5E1;font-family:'Press Start 2P',monospace;overflow:hidden}
-#app{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:16px;text-align:center;overflow-y:auto}
-h1{font-size:13px;color:#ffd24a;text-shadow:2px 2px #000;line-height:1.6}
-#status{font-size:9px;color:#9fe8ff;line-height:1.8;min-height:36px}
-input{font-family:inherit;font-size:12px;padding:12px;width:240px;background:#1a1430;border:1px solid #6b21a8;color:#fff;text-align:center;text-transform:uppercase;outline:none}
-#join{font-family:inherit;font-size:12px;padding:14px 24px;background:#6b21a8;color:#fff;border:1px solid #f0abfc;cursor:pointer}
-#fire{width:190px;height:118px;background:#3a1010;border:5px solid;border-color:#7a4a4a #2a0808 #2a0808 #7a4a4a;color:#7c6f9e;font-family:inherit;font-size:16px;cursor:pointer;position:relative;overflow:hidden;box-shadow:0 8px 0 #1a0404;transition:transform .06s,box-shadow .06s;flex:none}
-#fire::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,0.28) 0 2px,transparent 2px 4px);pointer-events:none}
-#fire.on{background:#d23c3c;border-color:#ff8a78 #6e1414 #6e1414 #ff8a78;color:#fff;box-shadow:0 8px 0 #3a0a0a,0 0 25px rgba(255,80,60,0.4);animation:pulse 1s infinite}
-#fire.on:active{animation:none;transform:translateY(8px);box-shadow:0 0 0 #3a0a0a,0 0 40px rgba(255,80,60,0.6)}
-@keyframes pulse{0%,100%{box-shadow:0 8px 0 #3a0a0a,0 0 25px rgba(255,80,60,0.4)}50%{box-shadow:0 8px 0 #3a0a0a,0 0 55px rgba(255,80,60,0.8)}}
-#pos{font-size:10px;color:#7CFC9B;line-height:1.8}
+:root{--ink:#15110a;--cream:#f3ede0;--card:#fffdf7;--yellow:#ffd24a;--pink:#ff5e7e;--cyan:#37c0ff}
+html,body{height:100%;background:var(--cream);color:var(--ink);font-family:'Manrope',system-ui,sans-serif;overflow:hidden}
+#app{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:18px 16px;text-align:center;overflow-y:auto}
+h1{font-family:'Press Start 2P',monospace;font-size:9px;line-height:1.9;color:var(--ink);background:var(--yellow);border:3px solid var(--ink);box-shadow:5px 5px 0 var(--ink);padding:11px 14px}
 #persos{width:100%;max-width:300px;user-select:none}
-#ptit{font-size:8px;color:#f0abfc;margin-bottom:8px;line-height:1.6}
-#car{position:relative;height:130px;touch-action:pan-y;cursor:grab}
-#car canvas{width:110px;image-rendering:pixelated}
-.arr{position:absolute;top:42px;width:30px;height:40px;background:#1a1430;color:#f0abfc;border:2px solid #6b21a8;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-#pnom{font-size:9px;color:#9fe8ff;min-height:18px;line-height:1.7;margin:6px 0 2px}
-#pdots i{display:inline-block;width:6px;height:6px;background:#2a2040;margin:0 2px;font-style:normal}
-#pdots i.on{background:#ffd24a}
+#ptit{font-family:'Press Start 2P',monospace;font-size:7px;letter-spacing:.04em;color:#8a8270;margin-bottom:12px;line-height:1.8}
+#car{position:relative;background:var(--card);border:3px solid var(--ink);box-shadow:6px 6px 0 var(--ink);padding:16px 48px 12px;display:flex;flex-direction:column;align-items:center}
+#car canvas{width:108px;image-rendering:pixelated;display:block}
+.arr{position:absolute;top:50%;transform:translateY(-55%);width:32px;height:44px;background:var(--yellow);color:var(--ink);border:3px solid var(--ink);box-shadow:3px 3px 0 var(--ink);font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.arr:active{transform:translateY(-55%) translate(3px,3px);box-shadow:none}
+#pnom{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--ink);min-height:16px;line-height:1.7;margin:12px 0 0}
+#pdots{margin-top:10px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+#pdots i{width:8px;height:8px;background:#fff;border:2px solid var(--ink);font-style:normal}
+#pdots i.on{background:var(--ink)}
+#joinbox{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;max-width:300px}
+input{font-family:'Manrope',sans-serif;font-size:15px;font-weight:700;padding:13px;width:100%;background:var(--card);border:3px solid var(--ink);box-shadow:4px 4px 0 var(--ink);color:var(--ink);text-align:center;text-transform:uppercase;outline:none}
+input::placeholder{color:#b3ab98;font-weight:600}
+#join{font-family:'Press Start 2P',monospace;font-size:10px;padding:16px 18px;width:100%;background:var(--cyan);color:var(--ink);border:3px solid var(--ink);box-shadow:5px 5px 0 var(--ink);cursor:pointer;line-height:1.5}
+#join:active{transform:translate(5px,5px);box-shadow:none}
+#pos{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--ink);background:#fff;border:3px solid var(--ink);box-shadow:3px 3px 0 var(--ink);padding:9px 12px;line-height:1.7}
+#fire{font-family:'Press Start 2P',monospace;width:100%;max-width:300px;height:124px;font-size:20px;color:#8a8270;background:#d8d1bf;border:4px solid var(--ink);box-shadow:7px 7px 0 var(--ink);cursor:pointer;flex:none}
+#fire.on{background:var(--pink);color:#fff;animation:beat .9s infinite}
+#fire.on:active{transform:translate(7px,7px);box-shadow:none;animation:none}
+@keyframes beat{0%,100%{box-shadow:7px 7px 0 var(--ink)}50%{box-shadow:7px 7px 0 var(--ink),0 0 0 4px var(--yellow)}}
+#status{font-family:'Manrope',sans-serif;font-size:12px;font-weight:600;color:#6e6857;line-height:1.5;min-height:34px;max-width:300px}
 .hide{display:none}
 </style>
 </head>
 <body>
 <div id="app">
-  <h1>★ LA MOULE VOLANTE ★<br>MANETTE</h1>
+  <h1>LA MOULE VOLANTE<br>★ MANETTE ★</h1>
   <div id="persos">
-    <div id="ptit">CHOISIS TA MOULE — SWIPE !</div>
+    <div id="ptit">CHOISIS TA MOULE — SWIPE</div>
     <div id="car">
       <canvas id="big" width="88" height="104"></canvas>
-      <div class="arr" style="left:4px" id="aL">&#9664;</div>
-      <div class="arr" style="right:4px" id="aR">&#9654;</div>
+      <div class="arr" style="left:8px" id="aL">&#9664;</div>
+      <div class="arr" style="right:8px" id="aR">&#9654;</div>
     </div>
     <div id="pnom"></div>
     <div id="pdots"></div>
   </div>
   <div id="joinbox">
-    <input id="pseudo" maxlength="10" placeholder="TON PSEUDO" autocomplete="off"><br><br>
+    <input id="pseudo" maxlength="10" placeholder="TON PSEUDO" autocomplete="off">
     <button id="join">REJOINDRE LA FILE</button>
   </div>
   <div id="pos" class="hide"></div>
   <button id="fire" class="hide" disabled>TIRE !</button>
-  <div id="status">Connexion à la façade...</div>
+  <div id="status">Connexion à la façade…</div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
