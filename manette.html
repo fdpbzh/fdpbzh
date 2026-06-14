@@ -7,56 +7,57 @@
 <meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#0F0628">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-:root{--ink:#15110a;--cream:#f3ede0;--card:#fffdf7;--yellow:#ffd24a;--pink:#ff5e7e;--cyan:#37c0ff}
-html,body{height:100%;background:var(--cream);color:var(--ink);font-family:'Manrope',system-ui,sans-serif;overflow:hidden}
-#app{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:18px 16px;text-align:center;overflow-y:auto}
-h1{font-family:'Press Start 2P',monospace;font-size:9px;line-height:1.9;color:var(--ink);background:var(--yellow);border:3px solid var(--ink);box-shadow:5px 5px 0 var(--ink);padding:11px 14px}
+:root{--bg:#0d0d0f;--ink:#f4f4f0;--mut:#7a7a80;--line:#1f1f23;--accent:#ffd24a}
+html,body{height:100%;background:var(--bg);color:var(--ink);font-family:'Manrope',system-ui,sans-serif;overflow:hidden}
+#app{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:24px 20px;text-align:center;overflow-y:auto}
+h1{font-size:10px;font-weight:600;letter-spacing:.26em;text-transform:uppercase;color:var(--mut);line-height:2}
 #persos{width:100%;max-width:300px;user-select:none}
-#ptit{font-family:'Press Start 2P',monospace;font-size:7px;letter-spacing:.04em;color:#8a8270;margin-bottom:12px;line-height:1.8}
-#car{position:relative;background:var(--card);border:3px solid var(--ink);box-shadow:6px 6px 0 var(--ink);padding:16px 48px 12px;display:flex;flex-direction:column;align-items:center}
-#car canvas{width:108px;image-rendering:pixelated;display:block}
-.arr{position:absolute;top:50%;transform:translateY(-55%);width:32px;height:44px;background:var(--yellow);color:var(--ink);border:3px solid var(--ink);box-shadow:3px 3px 0 var(--ink);font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.arr:active{transform:translateY(-55%) translate(3px,3px);box-shadow:none}
-#pnom{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--ink);min-height:16px;line-height:1.7;margin:12px 0 0}
-#pdots{margin-top:10px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
-#pdots i{width:8px;height:8px;background:#fff;border:2px solid var(--ink);font-style:normal}
-#pdots i.on{background:var(--ink)}
+#ptit{font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--mut);margin-bottom:18px}
+#car{position:relative;display:flex;flex-direction:column;align-items:center}
+#car canvas{width:140px;image-rendering:pixelated;display:block}
+.arr{position:absolute;top:50%;transform:translateY(-55%);width:42px;height:42px;border-radius:50%;background:transparent;color:var(--mut);border:1px solid var(--line);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.arr:active{background:#17171b;color:var(--ink)}
+#pnom{font-size:15px;font-weight:600;letter-spacing:.03em;color:var(--ink);min-height:20px;margin:16px 0 0}
+#pdots{margin-top:12px;display:flex;gap:7px;justify-content:center;flex-wrap:wrap}
+#pdots i{width:6px;height:6px;border-radius:50%;background:#2a2a2e;font-style:normal}
+#pdots i.on{background:var(--accent)}
 #joinbox{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;max-width:300px}
-input{font-family:'Manrope',sans-serif;font-size:15px;font-weight:700;padding:13px;width:100%;background:var(--card);border:3px solid var(--ink);box-shadow:4px 4px 0 var(--ink);color:var(--ink);text-align:center;text-transform:uppercase;outline:none}
-input::placeholder{color:#b3ab98;font-weight:600}
-#join{font-family:'Press Start 2P',monospace;font-size:10px;padding:16px 18px;width:100%;background:var(--cyan);color:var(--ink);border:3px solid var(--ink);box-shadow:5px 5px 0 var(--ink);cursor:pointer;line-height:1.5}
-#join:active{transform:translate(5px,5px);box-shadow:none}
-#pos{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--ink);background:#fff;border:3px solid var(--ink);box-shadow:3px 3px 0 var(--ink);padding:9px 12px;line-height:1.7}
-#fire{font-family:'Press Start 2P',monospace;width:100%;max-width:300px;height:124px;font-size:20px;color:#8a8270;background:#d8d1bf;border:4px solid var(--ink);box-shadow:7px 7px 0 var(--ink);cursor:pointer;flex:none}
-#fire.on{background:var(--pink);color:#fff;animation:beat .9s infinite}
-#fire.on:active{transform:translate(7px,7px);box-shadow:none;animation:none}
-@keyframes beat{0%,100%{box-shadow:7px 7px 0 var(--ink)}50%{box-shadow:7px 7px 0 var(--ink),0 0 0 4px var(--yellow)}}
-#status{font-family:'Manrope',sans-serif;font-size:12px;font-weight:600;color:#6e6857;line-height:1.5;min-height:34px;max-width:300px}
+input{font-family:inherit;font-size:15px;font-weight:600;padding:14px;width:100%;background:#16161a;border:1px solid var(--line);border-radius:14px;color:var(--ink);text-align:center;text-transform:uppercase;outline:none}
+input::placeholder{color:#54545a;letter-spacing:.04em}
+input:focus{border-color:var(--accent)}
+#join{font-family:inherit;font-size:14px;font-weight:700;padding:15px;width:100%;background:var(--accent);color:#0d0d0f;border:none;border-radius:14px;cursor:pointer;letter-spacing:.02em}
+#join:active{opacity:.85}
+#pos{font-size:11px;font-weight:600;letter-spacing:.05em;color:var(--mut);background:#16161a;border:1px solid var(--line);border-radius:999px;padding:8px 16px}
+#fire{font-family:inherit;width:100%;max-width:300px;height:74px;font-size:17px;font-weight:700;letter-spacing:.1em;color:#54545a;background:#16161a;border:1px solid var(--line);border-radius:16px;cursor:pointer;flex:none;transition:transform .08s}
+#fire.on{background:var(--accent);color:#0d0d0f;border-color:var(--accent);animation:glow 1.1s infinite}
+#fire.on:active{transform:scale(.97)}
+@keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(255,210,74,0)}50%{box-shadow:0 0 0 6px rgba(255,210,74,.16)}}
+#status{font-size:12px;font-weight:500;color:var(--mut);line-height:1.5;min-height:34px;max-width:300px}
 .hide{display:none}
 </style>
 </head>
 <body>
 <div id="app">
-  <h1>LA MOULE VOLANTE<br>★ MANETTE ★</h1>
+  <h1>La Moule Volante · Manette</h1>
   <div id="persos">
-    <div id="ptit">CHOISIS TA MOULE — SWIPE</div>
+    <div id="ptit">Choisis ta moule</div>
     <div id="car">
       <canvas id="big" width="88" height="104"></canvas>
-      <div class="arr" style="left:8px" id="aL">&#9664;</div>
-      <div class="arr" style="right:8px" id="aR">&#9654;</div>
+      <div class="arr" style="left:0" id="aL">&#9664;</div>
+      <div class="arr" style="right:0" id="aR">&#9654;</div>
     </div>
     <div id="pnom"></div>
     <div id="pdots"></div>
   </div>
   <div id="joinbox">
-    <input id="pseudo" maxlength="10" placeholder="TON PSEUDO" autocomplete="off">
-    <button id="join">REJOINDRE LA FILE</button>
+    <input id="pseudo" maxlength="10" placeholder="Ton pseudo" autocomplete="off">
+    <button id="join">Rejoindre la file</button>
   </div>
   <div id="pos" class="hide"></div>
-  <button id="fire" class="hide" disabled>TIRE !</button>
+  <button id="fire" class="hide" disabled>TIRE</button>
   <div id="status">Connexion à la façade…</div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
