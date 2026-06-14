@@ -72,7 +72,7 @@ const PSPEC=[{k:'res',l:'Netteté (px interne)',a:320,b:1080,s:20},{k:'speed',l:
 
 let cfg=load(), img=null, videoEl=null, usingVideo=false, mode='edit', curType='win';const LOCKED=!!(window.__MVF_LOCKED__);
 const WEBMODE=!!(window.__MVF_WEB__),SBC=window.__MVF_SB__||null;
-let RQ=[],RCUR=null,RCURN='',RCURV=null,RCH=null,rLastFire=0,overAt=0,RSB=null;const PERSOK={disco:4,golden:5,rainbow:6,houd:7,f1:8,voldemoule:9,moulin:10,cosmo:11,freddy:12,mariniere:13,bigoudene:14,bivalverine:15,garou:16,super:17,coquillan:18};function persoOk(x){return (typeof x==='string'&&PERSOK[x]!==undefined)?x:null;}
+let RQ=[],RCUR=null,RCURN='',RCURV=null,RCH=null,rLastFire=0,overAt=0,RSB=null;const PERSOK={disco:4,golden:5,rainbow:6,houd:7,f1:8,voldemoule:9,freddy:12,mariniere:13,bigoudene:14,bivalverine:15,garou:16,super:17,coquillan:18};function persoOk(x){return (typeof x==='string'&&PERSOK[x]!==undefined)?x:null;}
 function remOn(){return LOCKED&&!WEBMODE&&!!SBC&&(P.remote===undefined||P.remote>0);}
 function remoteInit(){var sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';sc.onload=function(){try{RSB=window.supabase.createClient(SBC.url,SBC.key);RCH=RSB.channel('manette-fdp');RCH.on('broadcast',{event:'msg'},function(pp){remoteMsg(pp.payload||{});}).subscribe();setInterval(remoteState,2500);}catch(e){}};document.head.appendChild(sc);}
 function remoteSend(o){try{if(RCH)RCH.send({type:'broadcast',event:'msg',payload:o});}catch(e){}}
