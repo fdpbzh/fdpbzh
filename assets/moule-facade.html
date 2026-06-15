@@ -882,7 +882,7 @@ function updateBoss(){var B=BOSS;B.t++;if(B.hitT>0)B.hitT--;var sz=(P.bossSize==
  else {B.dark=0.5;B.rise=1;}
  var rise=B.rise,bob=Math.sin(bt*1.1)*4*k;
  var lift=PH*((P.bossY===undefined?12:P.bossY)/100);
- B.R=134*k;B.cx=PW*0.62;B.cy=PH+70*k+bob+(1-rise)*B.R*1.2-lift*rise;
+ B.R=134*k;B.cx=PW*0.62;B.cy=PH-96*k+bob+(1-rise)*B.R*1.2-lift*rise;
  B.ex=B.cx-B.R*0.3;B.ey=B.cy+B.R*0.05;B.er=B.R*0.4;
  B.tents=[];
  var tsz=(P.bossTentSz||1),tsp=(P.bossTentX||1);
