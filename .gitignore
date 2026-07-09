@@ -15,3 +15,7 @@ desktop.ini
 
 # Node (au cas où)
 node_modules/
+
+# Fichiers de travail refonte V2 (ne pas publier)
+*.zip
+refonte-v2/_*.png
