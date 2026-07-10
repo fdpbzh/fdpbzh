@@ -230,6 +230,38 @@ details a{color:var(--yellow)}
 .partner .nm{font-family:'DK Longreach',var(--ff);font-size:28px;color:var(--yellow);line-height:1.02;margin-bottom:10px}
 .partner p{color:var(--lav2);font-size:14.5px;line-height:1.6}
 .partner a{color:var(--yellow);text-decoration:none}
+/* boutique */
+.shop{display:grid;grid-template-columns:1.05fr 1fr;gap:clamp(24px,4vw,48px);align-items:start}
+.shop-visual{position:relative;background:#fff;border:1px solid var(--line2);border-radius:22px;padding:clamp(12px,2.2vw,24px);display:flex;align-items:center;justify-content:center;min-height:280px;overflow:hidden}
+.shop-visual img{width:100%;display:block;border-radius:10px}
+.shop-info h1{font-family:'DK Longreach',var(--ff);font-size:clamp(34px,4.6vw,54px);color:var(--yellow);line-height:1;margin:12px 0}
+.shop-price{display:flex;align-items:baseline;gap:12px;margin-bottom:18px}
+.shop-price .amt{font-family:'DK Longreach',var(--ff);font-size:44px;color:var(--cream);line-height:1}
+.shop-price .tag{font-weight:700;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--pink)}
+.shop-info p.desc{color:var(--lav2);font-size:15.5px;line-height:1.7;margin-bottom:22px}
+.shop-block{margin-bottom:22px}
+.shop-block .lbl{font-weight:700;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--lav);margin-bottom:12px}
+.swatches{display:flex;flex-wrap:wrap;gap:12px}
+.swatch{display:flex;flex-direction:column;align-items:center;gap:6px;width:58px;text-align:center;cursor:pointer;background:none;border:0;padding:2px;font:inherit}
+.swatch .dot{width:34px;height:34px;border-radius:50%;border:2px solid rgba(255,245,225,.3);box-shadow:0 2px 8px rgba(0,0,0,.4);transition:.15s}
+.swatch:hover .dot{border-color:rgba(255,201,60,.6)}
+.swatch.sel .dot{border-color:var(--yellow);box-shadow:0 0 0 3px rgba(255,201,60,.4)}
+.swatch small{font-size:10px;color:var(--lav2);line-height:1.2}
+.swatch.sel small{color:var(--cream)}
+.sizes{display:flex;flex-wrap:wrap;gap:8px}
+.size{font-weight:700;font-size:13px;letter-spacing:.5px;color:var(--cream);border:1px solid var(--line2);border-radius:8px;padding:8px 12px;min-width:46px;text-align:center}
+.size.out{opacity:.4;text-decoration:line-through;border-style:dashed;color:var(--lav)}
+.deliv{display:flex;flex-direction:column;gap:10px}
+.deliv .opt{background:var(--card1);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.deliv .opt .t{font-weight:700;font-size:14px;color:var(--cream)}
+.deliv .opt .d{color:var(--lav2);font-size:13px;margin-top:2px}
+.shop-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:6px}
+.shop-note{color:var(--lav2);font-size:12.5px;line-height:1.55;margin-top:12px}
+@media(max-width:820px){.shop{grid-template-columns:1fr}}
+.quals{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px}
+.qual{background:var(--card1);border:1px solid var(--line);border-radius:16px;padding:22px}
+.qual .qh{font-family:'DK Longreach',var(--ff);font-size:20px;color:var(--yellow);line-height:1.05;margin-bottom:8px}
+.qual p{color:var(--lav2);font-size:14px;line-height:1.6}
 
 /* page championnats (gag) */
 .gag{position:relative;text-align:center;padding:clamp(64px,11vh,130px) clamp(22px,4vw,46px) clamp(50px,8vh,90px);overflow:hidden}
@@ -271,7 +303,7 @@ footer .lg{font-family:'DK Longreach',var(--ff);font-size:28px;color:var(--yello
   .feat .ph{min-height:220px;order:-1}
   .lieu{grid-template-columns:1fr}
 }
-@media(max-width:1200px){
+@media(max-width:1280px){
   .burger{display:flex}
   .nav{position:fixed;inset:0 0 0 auto;width:min(80vw,320px);flex-direction:column;justify-content:center;align-items:flex-start;gap:26px;padding:0 34px;background:rgba(15,6,40,.97);backdrop-filter:blur(10px);transform:translateX(100%);transition:transform .3s ease;box-shadow:-20px 0 60px rgba(0,0,0,.5);z-index:45}
   .nav.open{transform:translateX(0)}
