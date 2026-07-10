@@ -44,7 +44,7 @@ input[type=text]::placeholder{color:#7c3f9e;}
 #btnMenu:active{color:#f0abfc;}
 /* ── Accueil « drapeau à damier » ── */
 .damier{position:absolute;left:0;right:0;height:26px;background:repeating-conic-gradient(#f0f0f0 0% 25%,#0a0a0a 0% 50%) 0 0/26px 26px;}
-#logoCanvas{width:min(76vw,280px);image-rendering:pixelated;filter:drop-shadow(0 0 10px #c026d366);}
+#logoCanvas{width:min(56vw,210px);height:auto;image-rendering:pixelated;filter:drop-shadow(0 0 10px #c026d366);}
 #sMenu .sub{letter-spacing:1px;}
 /* Rampe de départ F1 : 5 feux rouges qui s'allument un à un, puis extinction = GO */
 #startLight{display:flex;gap:9px;background:#1e0030;border:1px solid #6b21a8;padding:7px 12px;margin:4px 0;}
@@ -61,7 +61,9 @@ input[type=text]::placeholder{color:#7c3f9e;}
 @keyframes feu5{0%,41%{opacity:.13}42%,69%{opacity:1}70%,100%{opacity:.13}}
 #btnPlay{background:#1e0030;border-color:#ffd700;color:#ffd700;}
 #btnPlay:active{background:#ffd700;color:#0d0014;}
-#btnPlay:disabled{opacity:.3;animation:none;cursor:default;}
+input.need{border-color:#ff4d6d !important;animation:shake .3s;}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+#verTag{position:absolute;bottom:4px;right:6px;font-size:5px;color:#3a0a5c;}
 </style>
 </head>
 <body>
@@ -82,9 +84,10 @@ input[type=text]::placeholder{color:#7c3f9e;}
     <p class="sub">CHAMPIONNATS DU MONDE INUTILES<br>ÉPREUVE OFFICIELLE</p>
     <div id="startLight"><span></span><span></span><span></span><span></span><span></span></div>
     <input type="text" id="nameInput" maxlength="12" placeholder="TON PSEUDO" autocomplete="off" spellcheck="false">
-    <button class="btn" id="btnPlay" disabled>▶ DEMARRER</button>
+    <button class="btn" id="btnPlay">▶ DEMARRER</button>
     <button class="btn-sm" id="btnLbMenu">★ SCORES</button>
     <p id="gameCount" style="font-size:clamp(4px,1.2vw,6px);color:#c026d3;letter-spacing:1px;">&nbsp;</p>
+    <span id="verTag">V14</span>
   </div>
 
   <div class="screen hidden" id="sResult">
@@ -861,20 +864,20 @@ function show(id){
 function hideAll(){['sMenu','sResult','sLb'].forEach(function(s){document.getElementById(s).classList.add('hidden');});}
 
 document.getElementById('btnPlay').addEventListener('click',function(){
-  var n=document.getElementById('nameInput').value.trim();
-  if(!n)return;                       // pseudo obligatoire
+  var ni=document.getElementById('nameInput');
+  var n=ni.value.trim();
+  if(!n){                             // pseudo obligatoire : feedback explicite
+    ni.classList.add('need'); ni.focus();
+    setTimeout(function(){ni.classList.remove('need');},900);
+    return;
+  }
   playerName=n.toUpperCase().slice(0,12);
   try{localStorage.setItem('td_name',playerName);}catch(e){}
   startBGM(); newSession(); hideAll(); resetRun();
 });
-// DEMARRER grisé tant que le pseudo est vide (prérempli au retour)
-(function(){
-  var ni=document.getElementById('nameInput'), bp=document.getElementById('btnPlay');
-  function sync(){bp.disabled=!ni.value.trim();}
-  ni.addEventListener('input',sync);
-  ni.value=(playerName!=='ANONYME')?playerName:'';
-  sync();
-})();
+// pseudo prérempli au retour
+document.getElementById('nameInput').value=(playerName!=='ANONYME')?playerName:'';
+console.log('TURBO DISCO V14');
 document.getElementById('btnReplay').addEventListener('click',function(){
   newSession(); hideAll(); resetRun();
 });
