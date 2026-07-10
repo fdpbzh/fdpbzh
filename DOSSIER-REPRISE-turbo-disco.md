@@ -18,6 +18,7 @@ Ce qui a changé depuis la rédaction du dossier :
 2. **Leaderboard testé de bout en bout** depuis un navigateur réel (origine fdp.bzh) : GET top10 → 200, POST → 201, PATCH insta → 204, compteur HEAD → 200. Ligne de test supprimée, base propre (0 ligne). Bug #2 : **résolu**.
 3. **`stopBGM()` porté + bouton mute ajouté** (`#btnMute`, coin bas-droit, z-index 30, préférence persistée en `localStorage['td_mute']`, coupe BGM + SFX via `masterGain`). Bug #1 : **résolu**.
 4. **Reste à faire** : déployer sur fdp.bzh (le repo `fdpbzh` est prêt, fichier à la racine), tester sur téléphones réels, révoquer la clé JSONBin (§9), trancher 16:9 vs carré. Le projet Supabase `turbo-disco` en pause peut être supprimé.
+5. **v10 graphique installée** (même jour, plus tard) : la foule de spectateurs devient **~380 crabes** en sprites pré-rendus (`buildCrabSprites`), **nouvelle Corvette** en grille 80×40 à `GP=2` (160×80 px), **16:9 tranché** (bug #8 clos). La collision est réécrite : plus de `inCar`/`inSpec` O(150), mais un champ elliptique normalisé `ellipseF(x,y)` avec bande jouable `F_IN`/`F_OUT` en O(1) (bug #5 clos). Mute intégré différemment (`♪` transparent, coin bas-droit) + persistance `localStorage['td_mute']` ajoutée. Les §3 (cadre), §5 (Corvette 18×24), §6 (géométrie) et §7 (conditions d'échec) du dossier sont **obsolètes dans le détail** — la logique de l'accumulateur d'angle (§7) reste identique. Récompenses affichées au menu : top 10 = boisson, 1er = open bar.
 
 ---
 
