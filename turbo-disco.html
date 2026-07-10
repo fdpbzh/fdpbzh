@@ -8,7 +8,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{width:100%;height:100%;background:#0d0014;display:flex;align-items:center;justify-content:center;font-family:'Press Start 2P',monospace;overflow:hidden;touch-action:none;}
-#wrap{position:relative;width:min(100vw,calc(100vh*16/9));height:min(100vh,calc(100vw*9/16));max-width:710px;max-height:400px;}
+#wrap{position:relative;width:min(100vw,calc(100vh*9/16));height:min(100vh,calc(100vw*16/9));max-width:400px;max-height:710px;}
 canvas{width:100%;height:100%;display:block;image-rendering:pixelated;border:2px solid #6b21a8;box-shadow:0 0 30px #c026d355;touch-action:none;}
 .screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(13,0,20,0.93);gap:10px;padding:18px;z-index:20;overflow-y:auto;}
 @media(max-height:300px){.screen{justify-content:flex-start;padding:10px;gap:6px}}
@@ -44,7 +44,7 @@ input[type=text]::placeholder{color:#7c3f9e;}
 </head>
 <body>
 <div id="wrap">
-  <canvas id="c" width="710" height="400"></canvas>
+  <canvas id="c" width="400" height="710"></canvas>
 
   <div id="hudTimer">00.000</div>
   <div id="hudLap">TOUR 0%</div>
@@ -54,12 +54,8 @@ input[type=text]::placeholder{color:#7c3f9e;}
 
   <div class="screen" id="sMenu">
     <h1>★ TURBO DISCO ★</h1>
-    <p class="sub">FAIS LE TOUR DE LA CORVETTE · ENTRE ELLE ET LES CRABES</p>
-    <p id="gameCount" style="font-size:clamp(4px,1.2vw,6px);color:#c026d3;letter-spacing:1px;">...</p>
-    <input type="text" id="nameInput" maxlength="12" placeholder="TON PSEUDO" autocomplete="off" spellcheck="false">
     <button class="btn" id="btnPlay">▶ DEMARRER</button>
     <button class="btn-sm" id="btnLbMenu">★ SCORES</button>
-    <p style="font-size:clamp(8px,2.4vw,14px);font-weight:800;color:#ffd700;text-shadow:0 0 8px #c026d3,2px 2px #6b21a8;letter-spacing:1.5px;line-height:1.6;border-top:1px solid #6b21a8;padding-top:6px;margin-top:4px;text-align:center;">TOP 10 = BOISSON OFFERTE<br>1ER = OPEN BAR<br><span style="font-size:.42em;font-weight:400;letter-spacing:1px;text-shadow:none;color:#ffd700;">À RÉCUPÉRER SUR PLACE LE 8 AOÛT</span><br><span style="font-size:.36em;font-weight:400;letter-spacing:1px;text-shadow:none;color:#7c3f9e;">+18 ANS · DANS LA LIMITE DU RAISONNABLE</span></p>
   </div>
 
   <div class="screen hidden" id="sResult">
@@ -72,6 +68,10 @@ input[type=text]::placeholder{color:#7c3f9e;}
       <input type="text" id="instaInput" maxlength="30" placeholder="@TON_INSTA" autocomplete="off" spellcheck="false">
       <button class="btn-sm" id="btnConfirmInsta">CONFIRMER</button>
     </div>
+    <div id="saveBox" class="hidden" style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+      <input type="text" id="nameInput" maxlength="12" placeholder="TON PSEUDO" autocomplete="off" spellcheck="false">
+      <button class="btn-sm" id="btnSaveScore">✔ ENREGISTRER MON TEMPS</button>
+    </div>
     <button class="btn" id="btnReplay">▶ REJOUER</button>
     <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;">
       <button class="btn-sm" id="btnShare">→ PARTAGER</button>
@@ -82,6 +82,7 @@ input[type=text]::placeholder{color:#7c3f9e;}
   <div class="screen hidden" id="sLb">
     <p style="font-size:clamp(8px,2vw,13px);color:#ffd700">★ HALL OF FAME ★</p>
     <p class="sub">Tour le plus rapide</p>
+    <p class="sub" style="color:#ffd700;">TOP 10 = BOISSON · 1ER = OPEN BAR<br>À RÉCUPÉRER SUR PLACE LE 8 AOÛT</p>
     <div id="lbContent"><p class="loader">CHARGEMENT...</p></div>
     <button class="btn-sm" id="btnBack">← RETOUR</button>
   </div>
@@ -254,17 +255,17 @@ document.getElementById('btnMute').addEventListener('click',function(e){
 var canvas=document.getElementById('c');
 var ctx=canvas.getContext('2d');
 ctx.imageSmoothingEnabled=false;
-var W=710,H=400,CX=W/2,CY=H/2;
+var W=400,H=710,CX=W/2,CY=H/2;
 
-// ══════ PISTE ELLIPTIQUE — ANTI-VISSEUSE ══════
+// ══════ PISTE ELLIPTIQUE (PORTRAIT) — ANTI-VISSEUSE ══════
 // Couloir : la bande F_IN <= f <= F_OUT, avec f = sqrt((dx/RX)^2 + (dy/RY)^2).
-// Un cercle de rayon R survit ssi R >= F_IN·RX (passe les côtés) ET
-// R <= F_OUT·RY (passe haut/bas). Blocage garanti ssi F_IN·RX > F_OUT·RY.
-// Ici : 0.71×144 = 102.2 > 1.26×78 = 98.3  →  AUCUN cercle ne passe (marge 4px).
-// Bornes calées au plus près du visuel : la carrosserie s'arrête à f=0.679
-// (4.5px de jeu sur les flancs) et la foule se génère au-delà de F_OUT+0.02.
-var RX=144, RY=78;
-var F_IN=0.71, F_OUT=1.26;
+// En portrait (RX < RY) un cercle de rayon R survit ssi R >= F_IN·RY (passe
+// haut/bas) ET R <= F_OUT·RX (passe les flancs). Blocage ssi F_IN·RY > F_OUT·RX.
+// Ici : 0.72×160 = 115.2 > 1.26×90 = 113.4  →  AUCUN cercle ne passe (marge ~2px).
+// Difficulté 1b : couloir ~49px au plus étroit (flancs) contre 43px en v10.
+// La carrosserie tournée s'arrête à f=0.669 ; la foule se génère au-delà de F_OUT+0.02.
+var RX=90, RY=160;
+var F_IN=0.72, F_OUT=1.26;
 
 // ══════ CORVETTE LOWRIDER L3 — 80×40 px dessinés à 2px ══════
 // Rouge, flammes violettes FDP, jantes fil chromées, néons roses sous caisse.
@@ -313,7 +314,9 @@ var CAR_ROWS=[
 '........00000000000.......................................00000000000...........',
 ];
 var CC=80, CR=40, GP=2;
-var CPW=CC*GP, CPH=CR*GP;   // 160 x 80 — f_max carrosserie = 0.679 < 0.76
+// Portrait : la grille (80 colonnes × 40 lignes, voiture horizontale) est
+// dessinée tournée de 90° horaire → à l'écran la voiture est verticale.
+var CPW=CR*GP, CPH=CC*GP;   // 80 x 160 — f_max carrosserie = 0.669 < 0.72
 
 // Pré-rendu de la voiture (ombre incluse) dans un canvas hors écran
 var CAR_CANVAS=document.createElement('canvas');
@@ -326,7 +329,7 @@ CAR_CANVAS.width=CPW+6; CAR_CANVAS.height=CPH+6;
   g.globalAlpha=0.32; g.fillStyle='#000';
   for(r=0;r<CR;r++){var row=CAR_ROWS[r];
     for(c=0;c<CC;c++){ch=row.charAt(c);
-      if(ch!=='.')g.fillRect(c*GP+5,r*GP+5,GP,GP);
+      if(ch!=='.')g.fillRect((CR-1-r)*GP+5,c*GP+5,GP,GP);
     }}
   g.globalAlpha=1;
   // pixels
@@ -335,12 +338,13 @@ CAR_CANVAS.width=CPW+6; CAR_CANVAS.height=CPH+6;
     for(c=0;c<CC;c++){ch=row.charAt(c);
       if(ch==='.')continue;
       g.fillStyle=CAR_PAL[CH.indexOf(ch)];
-      g.fillRect(c*GP,r*GP,GP,GP);
+      g.fillRect((CR-1-r)*GP,c*GP,GP,GP);
     }}
 })();
 
-// Boule disco : côté conducteur (flanc gauche du véhicule = haut de l'écran), légèrement vers l'arrière
-var SB_TH=-105*Math.PI/180;
+// Boule disco : flanc droit de l'écran, légèrement au-dessus du milieu
+// (jeu au pouce droit en portrait ; les gauchers tournent dans l'autre sens, autorisé)
+var SB_TH=-15*Math.PI/180;
 var SBX=CX+RX*Math.cos(SB_TH), SBY=CY+RY*Math.sin(SB_TH), SBR=15;
 
 var COL={
@@ -445,6 +449,7 @@ var phase='menu';
 var t0=0, elapsed=0, acc=0, lastAng=null, startAng=null;
 var trail=[], lapDone=false, discoAng=0;
 var playerName='ANONYME', deathReason='';
+try{playerName=localStorage.getItem('td_name')||'ANONYME';}catch(e){}
 var flashT=0, confetti=[], lastTickPc=-1;
 
 var hudTimer=document.getElementById('hudTimer');
@@ -528,12 +533,13 @@ function drawDiscoBall(t){
   var r=SBR, fr, fq;
   var pulse=.5+.5*Math.sin(t*0.005);
   var g=ctx.createRadialGradient(SBX,SBY,0,SBX,SBY,r*3.4);
-  g.addColorStop(0,'rgba(240,171,252,'+(0.34*pulse)+')');
-  g.addColorStop(.5,'rgba(192,38,211,'+(0.18*pulse)+')');
+  g.addColorStop(0,'rgba(255,255,255,'+(0.30*pulse)+')');
+  g.addColorStop(.5,'rgba(185,190,205,'+(0.14*pulse)+')');
   g.addColorStop(1,'rgba(0,0,0,0)');
   ctx.fillStyle=g;ctx.beginPath();ctx.arc(SBX,SBY,r*3.4,0,Math.PI*2);ctx.fill();
 
-  var fc=['#ffffff','#f0abfc','#ffd700','#60efff','#c026d3','#7effa0'];
+  // Facettes gris/blanc — boule à facettes réaliste, seule la lumière ambiante colore la scène
+  var fc=['#ffffff','#e8eaf0','#c9ccd8','#9aa0b0','#f4f5f8','#b4bac8'];
   var F=7, spin=discoAng;
   for(fr=0;fr<F;fr++){
     for(fq=0;fq<F;fq++){
@@ -547,7 +553,7 @@ function drawDiscoBall(t){
     }
   }
   ctx.globalAlpha=1;
-  ctx.strokeStyle='#f0abfc';ctx.lineWidth=1;
+  ctx.strokeStyle='#e8eaf0';ctx.lineWidth=1;
   ctx.beginPath();ctx.arc(SBX,SBY,r,0,Math.PI*2);ctx.stroke();
   for(var i=0;i<8;i++){
     var ra=(i/8)*Math.PI*2+spin*1.4;
@@ -633,9 +639,14 @@ function stepRun(p){
   trail.push(p); if(trail.length>600)trail.shift();
   discoAng=angOf(p.x,p.y);
 
+  // Zone franche autour de la boule : impossible de mourir sur/près du départ.
+  // Corrige les morts immédiates quand le clic/doigt démarre au bord de la boule
+  // (nearBall accepte 27px du centre, mais la marge du couloir n'est que de ~23px).
   var f=ellipseF(p.x,p.y);
-  if(f<F_IN){die('TROP PRÈS DE LA CORVETTE !');return;}
-  if(f>F_OUT){die('TU AS BOUSCULÉ LES CRABES !');return;}
+  if(Math.hypot(p.x-SBX,p.y-SBY)>SBR*2.4){
+    if(f<F_IN){die('TROP PRÈS DE LA CORVETTE !');return;}
+    if(f>F_OUT){die('TU AS BOUSCULÉ LES CRABES !');return;}
+  }
 
   var a=angOf(p.x,p.y);
   acc+=angDiff(a,lastAng); lastAng=a;
@@ -699,6 +710,8 @@ canvas.addEventListener('mousedown',function(e){
 canvas.addEventListener('mousemove',function(e){
   if(phase!=='running'||!mouseActive)return;
   e.preventDefault();
+  // bouton relâché hors fenêtre : le mouseup de window n'a pas été vu
+  if(e.buttons===0){mouseActive=false;die('DOIGT LEVÉ TROP TÔT !');return;}
   stepRun(toCanvas(e.clientX,e.clientY));
 });
 window.addEventListener('mouseup',function(e){
@@ -737,14 +750,14 @@ function comment(ms){
 }
 function showResult(){
   var ok=(phase==='done');
-  document.getElementById('resName').textContent=playerName;
+  document.getElementById('resName').textContent = ok ? '' : playerName;
   document.getElementById('topInstaBox').classList.add('hidden');
+  document.getElementById('saveBox').classList.toggle('hidden',!ok);
   if(ok){
+    var ni=document.getElementById('nameInput');
+    ni.value = (playerName==='ANONYME') ? '' : playerName;
     document.getElementById('resTime').textContent=fmt(elapsed);
     document.getElementById('resComment').textContent=comment(elapsed);
-    saveScore(playerName,elapsed).then(function(saved){
-      if(saved)checkTop10AndRevealInsta(elapsed);
-    });
   } else {
     document.getElementById('resTime').textContent='ÉLIMINÉ';
     document.getElementById('resComment').textContent=deathReason;
@@ -761,9 +774,19 @@ function show(id){
 function hideAll(){['sMenu','sResult','sLb'].forEach(function(s){document.getElementById(s).classList.add('hidden');});}
 
 document.getElementById('btnPlay').addEventListener('click',function(){
+  startBGM(); newSession(); hideAll(); resetRun();
+});
+document.getElementById('btnSaveScore').addEventListener('click',function(){
   var n=document.getElementById('nameInput').value.trim();
   playerName = n ? n.toUpperCase().slice(0,12) : 'ANONYME';
-  startBGM(); newSession(); hideAll(); resetRun();
+  try{localStorage.setItem('td_name',playerName);}catch(e){}
+  var b=this; b.disabled=true; b.textContent='...';
+  saveScore(playerName,elapsed).then(function(saved){
+    b.disabled=false; b.textContent='✔ ENREGISTRER MON TEMPS';
+    document.getElementById('saveBox').classList.add('hidden');
+    document.getElementById('resName').textContent=playerName;
+    if(saved)checkTop10AndRevealInsta(elapsed);
+  });
 });
 document.getElementById('btnReplay').addEventListener('click',function(){
   newSession(); hideAll(); resetRun();
