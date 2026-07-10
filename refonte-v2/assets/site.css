@@ -81,7 +81,7 @@ img{max-width:100%;display:block}
 
 /* ============ MARQUEE ============ */
 .marquee{background:var(--yellow);overflow:hidden;padding:13px 0;border-top:3px solid var(--orange);border-bottom:3px solid var(--orange)}
-.marquee .run{display:flex;white-space:nowrap;animation:mq 30s linear infinite;will-change:transform}
+.marquee .run{display:flex;white-space:nowrap;animation:mq 15s linear infinite;will-change:transform}
 .marquee .run span{font-family:'DK Longreach',var(--ff);font-size:22px;color:var(--ink2);padding-right:28px}
 
 /* ============ SECTIONS ============ */
