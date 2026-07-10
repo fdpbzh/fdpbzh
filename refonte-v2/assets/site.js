@@ -16,6 +16,14 @@
       });
     });
   }
+  // Plein écran du jeu (page Jeux) : agrandit la partie en cours, sans nouvelle partie
+  var fsBtn=document.getElementById('mv-fs'),fsFrame=document.getElementById('mv-frame');
+  if(fsBtn&&fsFrame){
+    fsBtn.addEventListener('click',function(){
+      var req=fsFrame.requestFullscreen||fsFrame.webkitRequestFullscreen||fsFrame.msRequestFullscreen;
+      if(req){try{var r=req.call(fsFrame);if(r&&r.catch)r.catch(function(){});}catch(e){}}
+    });
+  }
   // Parallax hero (respecte prefers-reduced-motion)
   var bg=document.querySelector('.hero-bg');
   if(bg&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches){

@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/site.css?v=3">
+<link rel="stylesheet" href="assets/site.css?v=4">
 </head>
 <body>
 
@@ -45,11 +45,11 @@
 <!-- LE JEU (jouable) -->
 <section class="wrap" style="padding:10px 0 30px">
   <div class="gwrap">
-    <iframe src="../assets/moule-launcher.html" title="La Moule Volante" loading="lazy" allow="autoplay; fullscreen" allowfullscreen></iframe>
+    <iframe id="mv-frame" src="../assets/moule-launcher.html" title="La Moule Volante" loading="lazy" allow="autoplay; fullscreen" allowfullscreen></iframe>
   </div>
   <div class="gbar">
-    <p class="gnote">Astuce : le jeu est encore plus confortable en plein écran.</p>
-    <a class="btnA" href="../assets/moule-launcher.html" target="_blank" rel="noopener">▸ Jouer en plein écran</a>
+    <p class="gnote">Astuce : passe la partie en cours en plein écran pour plus de confort.</p>
+    <button class="btnA" id="mv-fs" type="button" style="border:0;cursor:pointer;font-family:inherit">▸ Plein écran</button>
   </div>
 </section>
 
@@ -78,6 +78,6 @@
   <div class="foot-legal"><a href="../mentions-legales.html">Mentions légales</a></div>
 </footer>
 
-<script src="assets/site.js?v=3"></script>
+<script src="assets/site.js?v=4"></script>
 </body>
 </html>
