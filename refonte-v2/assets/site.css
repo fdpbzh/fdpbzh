@@ -60,11 +60,11 @@ img{max-width:100%;display:block}
   background:
    linear-gradient(180deg,rgba(15,6,40,.82) 0%,rgba(15,6,40,.42) 24%,rgba(15,6,40,0) 48%,rgba(15,6,40,0) 82%,rgba(15,6,40,.55) 100%),
    radial-gradient(120% 80% at 50% 120%,rgba(233,30,141,.16),transparent 60%)}
-.hero-inner{position:relative;z-index:5;width:100%;max-width:1080px;margin:0 auto;padding:clamp(94px,15vh,156px) clamp(22px,4vw,46px) clamp(40px,6vh,64px);display:flex;flex-direction:column;align-items:center;text-align:center;gap:20px}
+.hero-inner{position:relative;z-index:5;width:100%;max-width:720px;margin:0 auto;padding:clamp(88px,13vh,140px) clamp(22px,4vw,46px) clamp(40px,6vh,64px);display:flex;flex-direction:column;align-items:center;text-align:center;gap:18px}
 @media(min-width:760px){.hero-bg{background-size:contain;background-position:center top}}
 .eyebrow{display:flex;align-items:center;gap:10px;font-weight:800;font-size:12px;line-height:1.2;letter-spacing:2.5px;text-transform:uppercase;color:var(--yellow)}
 .eyebrow .bar{width:26px;height:2px;background:var(--yellow);display:block;flex:none}
-.hero h1{font-size:clamp(30px,5vw,64px);line-height:.94;color:var(--cream);text-shadow:0 3px 26px rgba(0,0,0,.7);max-width:900px}
+.hero h1{font-size:clamp(24px,3.4vw,46px);line-height:.98;color:var(--cream);text-shadow:0 3px 26px rgba(0,0,0,.7);max-width:640px}
 .chips{display:flex;gap:9px;flex-wrap:wrap}
 .chip{font-weight:700;font-size:12px;line-height:1;letter-spacing:1px;padding:10px 15px;border-radius:99px;background:rgba(255,245,225,.10);border:1px solid rgba(255,245,225,.26);backdrop-filter:blur(5px)}
 .chip.hot{background:var(--yellow);color:var(--ink);border-color:var(--yellow)}
