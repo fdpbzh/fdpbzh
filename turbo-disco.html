@@ -408,6 +408,11 @@ CAR_CANVAS.width=CPW+6; CAR_CANVAS.height=CPH+6;
 // (jeu au pouce droit en portrait ; les gauchers tournent dans l'autre sens, autorisé)
 var SB_TH=-15*Math.PI/180;
 var SBX=CX+RX*Math.cos(SB_TH), SBY=CY+RY*Math.sin(SB_TH), SBR=15;
+// Porte de chronométrage : cercle GATE autour de la boule. Le chrono démarre
+// à la SORTIE de la porte et s'arrête à sa traversée en RETOUR (tour complet).
+// L'instant exact de franchissement est interpolé géométriquement sur le
+// segment entre deux événements (comme une cellule de chronométrage réelle).
+var GATE=SBR*1.8;
 
 var COL={
   asphalt1:'#150022', asphalt2:'#1e0030',
@@ -508,7 +513,7 @@ var CRABS=[];
 
 // ══════ ÉTAT ══════
 var phase='menu';
-var t0=0, elapsed=0, acc=0, lastAng=null, startAng=null;
+var t0=0, elapsed=0, acc=0, lastAng=null, startAng=null, lastMoveT=0;
 var trail=[], lapDone=false, discoAng=0;
 var playerName='ANONYME', deathReason='';
 try{playerName=localStorage.getItem('td_name')||'ANONYME';}catch(e){}
@@ -519,9 +524,10 @@ var hudLap=document.getElementById('hudLap');
 var hudBarFill=document.getElementById('hudBarFill');
 var hudMsg=document.getElementById('hudMsg');
 
-function fmt(ms){
-  var s=Math.floor(ms/1000), m=Math.floor(ms%1000);
-  return (s<10?'0':'')+s+'.'+(m<100?(m<10?'00':'0'):'')+m;
+function fmt(ms){   // SS.mmmd — précision au dixième de milliseconde
+  var t=Math.round(ms*10);
+  var s=Math.floor(t/10000), r=t%10000;
+  return (s<10?'0':'')+s+'.'+('000'+r).slice(-4);
 }
 function resetRun(){
   phase='ready'; elapsed=0; acc=0; lastAng=null; startAng=null;
@@ -698,12 +704,27 @@ function findTouch(list,id){
   return null;
 }
 
-function beginRun(p){
-  phase='running'; t0=performance.now();
+function crossT(x0,y0,x1,y1,R){
+  // s ∈ [0,1] où le segment (x0,y0)→(x1,y1) coupe le cercle de rayon R centré boule
+  var dx=x1-x0,dy=y1-y0,fx=x0-SBX,fy=y0-SBY;
+  var a=dx*dx+dy*dy;
+  if(a===0)return 0;
+  var b=2*(fx*dx+fy*dy),c=fx*fx+fy*fy-R*R;
+  var disc=b*b-4*a*c;
+  if(disc<0)return 0.5;
+  var sq=Math.sqrt(disc);
+  var r1=(-b-sq)/(2*a),r2=(-b+sq)/(2*a);
+  if(r1>=0&&r1<=1)return r1;
+  if(r2>=0&&r2<=1)return r2;
+  return 0.5;
+}
+
+function beginRun(p,tNow){
+  phase='running'; t0=0; lastMoveT=tNow;   // chrono armé, il part à la sortie de la boule
   startAng=angOf(p.x,p.y); lastAng=startAng;
   trail=[{x:p.x,y:p.y}]; acc=0;
   hudTimer.className='run';
-  hudMsg.className='go'; hudMsg.textContent='TOURNE ENTRE LA VOITURE ET LES CRABES !';
+  hudMsg.className='go'; hudMsg.textContent='LE CHRONO PART QUAND TU QUITTES LA BOULE !';
   sfxStart();
 }
 

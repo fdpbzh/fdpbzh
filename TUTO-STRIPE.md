@@ -39,6 +39,10 @@ Dans le tableau de bord, Stripe te demande d'**activer les paiements** :
 
 ---
 
+> ✅ **Déjà fait pour toi.** Les deux liens sont déjà créés sur ton compte (retrait + livraison) et branchés sur le site. Les étapes 4 et 5 ci-dessous sont gardées à titre de référence.
+>
+> ⚠️ **Ne rajoute PAS les menus Couleur/Taille dans Stripe.** Le choix se fait sur la page Boutique et arrive dans Stripe via l'« ID de référence client » (voir Étape 8). Si un jour tu recrées les liens, ignore la partie « champs personnalisés » ci-dessous.
+
 ## Étape 4 — Lien de paiement n°1 : « RETRAIT SUR PLACE »
 
 1. Menu **Liens de paiement** (« Payment links ») → **+ Nouveau lien**.
