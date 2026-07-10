@@ -60,7 +60,8 @@ img{max-width:100%;display:block}
   background:
    linear-gradient(180deg,rgba(15,6,40,.82) 0%,rgba(15,6,40,.42) 24%,rgba(15,6,40,0) 48%,rgba(15,6,40,0) 82%,rgba(15,6,40,.55) 100%),
    radial-gradient(120% 80% at 50% 120%,rgba(233,30,141,.16),transparent 60%)}
-.hero-inner{position:relative;z-index:5;width:100%;max-width:720px;margin:0 auto;padding:clamp(88px,13vh,140px) clamp(22px,4vw,46px) clamp(40px,6vh,64px);display:flex;flex-direction:column;align-items:center;text-align:center;gap:18px}
+.hero-inner{position:relative;z-index:5;width:100%;max-width:720px;margin:0 auto;flex:1 1 auto;padding:clamp(88px,13vh,140px) clamp(22px,4vw,46px) clamp(58px,8vh,84px);display:flex;flex-direction:column;align-items:center;text-align:center;justify-content:space-between;gap:24px}
+.hero-top{display:flex;flex-direction:column;align-items:center;gap:18px}
 @media(min-width:760px){.hero-bg{background-size:contain;background-position:center top}}
 .eyebrow{display:flex;align-items:center;gap:10px;font-weight:800;font-size:12px;line-height:1.2;letter-spacing:2.5px;text-transform:uppercase;color:var(--yellow)}
 .eyebrow .bar{width:26px;height:2px;background:var(--yellow);display:block;flex:none}
