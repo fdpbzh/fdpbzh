@@ -70,7 +70,7 @@ input.need{border-color:#ff4d6d !important;animation:shake .3s;}
 <div id="wrap">
   <canvas id="c" width="400" height="710"></canvas>
 
-  <div id="hudTimer">00.000</div>
+  <div id="hudTimer">00.0000</div>
   <div id="hudLap">TOUR 0%</div>
   <div id="hudBar"><div id="hudBarFill"></div></div>
   <div id="hudMsg">POSE TON DOIGT SUR LA BOULE DISCO</div>
@@ -156,7 +156,7 @@ function saveScore(name,ms){
   if(playTime<MIN_PLAY_MS)return Promise.resolve(null);
   if(ms<MIN_TIME_MS||ms>MAX_TIME_MS)return Promise.resolve(null);
   if(actionCount<MIN_ACTIONS)return Promise.resolve(null);
-  var body={name:name.toUpperCase().slice(0,12),time_ms:Math.round(ms),insta:null,
+  var body={name:name.toUpperCase().slice(0,12),time_ms:Math.round(ms*10)/10,insta:null,
             session_id:sessionToken,play_time_ms:playTime,action_count:actionCount};
   return fetch(SB_URL+'/'+TABLE,{method:'POST',
     headers:sbHeaders({'Content-Type':'application/json','Prefer':'return=representation'}),
@@ -530,9 +530,9 @@ function fmt(ms){   // SS.mmmd — précision au dixième de milliseconde
   return (s<10?'0':'')+s+'.'+('000'+r).slice(-4);
 }
 function resetRun(){
-  phase='ready'; elapsed=0; acc=0; lastAng=null; startAng=null;
+  phase='ready'; elapsed=0; acc=0; lastAng=null; startAng=null; t0=0; lastMoveT=0;
   trail=[]; lapDone=false; confetti=[]; flashT=0; deathReason=''; lastTickPc=-1;
-  hudTimer.className=''; hudTimer.textContent='00.000';
+  hudTimer.className=''; hudTimer.textContent='00.0000';
   hudLap.textContent='TOUR 0%';
   hudBarFill.style.width='0%'; hudBarFill.style.background='#c026d3';
   hudMsg.className=''; hudMsg.textContent='POSE TON DOIGT SUR LA BOULE DISCO';
@@ -728,38 +728,48 @@ function beginRun(p,tNow){
   sfxStart();
 }
 
-function stepRun(p){
+function stepRun(p,tNow){
   trackAction();
   var prev=trail[trail.length-1];
+  var tPrev=lastMoveT; lastMoveT=tNow;
   trail.push(p); if(trail.length>600)trail.shift();
   discoAng=angOf(p.x,p.y);
 
-  // Interpolation du segment (anti-tunneling) : collisions ET angle évalués
-  // tous les ~6px entre deux événements, pas seulement au point final.
-  // Zone franche autour de la boule : impossible de mourir sur/près du départ
-  // (nearBall accepte 27px du centre, plus large que la marge du couloir).
+  // Interpolation du segment (anti-tunneling) : collisions, angle ET portes de
+  // chrono évalués tous les ~6px entre deux événements. L'instant de
+  // franchissement de la porte est résolu au sous-pixel (crossT) puis converti
+  // en temps par interpolation linéaire entre les timestamps des deux événements.
   var steps=Math.max(1,Math.ceil(Math.hypot(p.x-prev.x,p.y-prev.y)/6));
   for(var i=1;i<=steps;i++){
-    var ix=prev.x+(p.x-prev.x)*i/steps, iy=prev.y+(p.y-prev.y)*i/steps;
+    var u0=(i-1)/steps, u1=i/steps;
+    var jx=prev.x+(p.x-prev.x)*u0, jy=prev.y+(p.y-prev.y)*u0;
+    var ix=prev.x+(p.x-prev.x)*u1, iy=prev.y+(p.y-prev.y)*u1;
     if(Math.hypot(ix-SBX,iy-SBY)>SBR*2.4){
       if(inCar(ix,iy)){die('TU AS TOUCHÉ LA CORVETTE !');return;}
       if(ellipseF(ix,iy)>F_OUT){die('TU AS BOUSCULÉ LES CRABES !');return;}
     }
     var ia=Math.atan2(iy-CY,ix-CX);
     acc+=angDiff(ia,lastAng); lastAng=ia;
+    var d0=Math.hypot(jx-SBX,jy-SBY), d1=Math.hypot(ix-SBX,iy-SBY);
+    if(t0===0 && d0<=GATE && d1>GATE){
+      // départ : sortie de la porte
+      var s=crossT(jx,jy,ix,iy,GATE);
+      t0=tPrev+(tNow-tPrev)*(u0+(u1-u0)*s);
+      hudMsg.className='go'; hudMsg.textContent='TOURNE ENTRE LA VOITURE ET LES CRABES !';
+    } else if(t0>0 && !lapDone && Math.abs(acc)>=Math.PI*1.9 && d1<=GATE && d0>GATE){
+      // arrivée : contact retour avec la boule après un tour complet
+      var s2=crossT(jx,jy,ix,iy,GATE);
+      lapDone=true;
+      finish(tPrev+(tNow-tPrev)*(u0+(u1-u0)*s2));
+      return;
+    }
   }
-
-  var a=lastAng;
 
   var prog=Math.min(Math.abs(acc)/(Math.PI*2),1);
   var pc=Math.round(prog*100);
   hudBarFill.style.width=pc+'%';
   hudLap.textContent='TOUR '+pc+'%';
   if(pc%25===0 && pc!==lastTickPc && pc>0){lastTickPc=pc;sfxTick();}
-
-  if(!lapDone && Math.abs(acc)>=Math.PI*1.95 && Math.abs(angDiff(a,startAng))<0.35){
-    lapDone=true; finish();
-  }
 }
 
 // ── tactile ──
@@ -772,7 +782,7 @@ canvas.addEventListener('touchstart',function(e){
     var p=toCanvas(t.clientX,t.clientY);
     if(nearBall(p.x,p.y)){
       activeTouchId=t.identifier;
-      beginRun(p);
+      beginRun(p,e.timeStamp||performance.now());
       return;
     }
   }
@@ -783,7 +793,7 @@ canvas.addEventListener('touchmove',function(e){
   if(phase!=='running'||activeTouchId===null)return;
   var t=findTouch(e.touches,activeTouchId);
   if(!t)return;                      // le doigt de jeu n'a pas bougé, ignorer
-  stepRun(toCanvas(t.clientX,t.clientY));
+  stepRun(toCanvas(t.clientX,t.clientY),e.timeStamp||performance.now());
 },{passive:false});
 
 function touchEnd(e){
@@ -805,14 +815,14 @@ canvas.addEventListener('mousedown',function(e){
   var p=toCanvas(e.clientX,e.clientY);
   if(!nearBall(p.x,p.y))return;
   mouseActive=true;
-  beginRun(p);
+  beginRun(p,e.timeStamp||performance.now());
 });
 canvas.addEventListener('mousemove',function(e){
   if(phase!=='running'||!mouseActive)return;
   e.preventDefault();
   // bouton relâché hors fenêtre : le mouseup de window n'a pas été vu
   if(e.buttons===0){mouseActive=false;die('DOIGT LEVÉ TROP TÔT !');return;}
-  stepRun(toCanvas(e.clientX,e.clientY));
+  stepRun(toCanvas(e.clientX,e.clientY),e.timeStamp||performance.now());
 });
 window.addEventListener('mouseup',function(e){
   if(phase!=='running'||!mouseActive)return;
@@ -830,10 +840,10 @@ function die(reason){
   // Pas d'écran résultat : on redonne la main immédiatement (volume de parties)
   setTimeout(function(){if(phase==='dead'){newSession();resetRun();}},1200);
 }
-function finish(){
+function finish(tHit){
   phase='done';
   activeTouchId=null; mouseActive=false;
-  elapsed=performance.now()-t0;
+  elapsed=tHit-t0;   // temps de porte à porte, interpolé au franchissement
   hudTimer.className=''; hudTimer.textContent=fmt(elapsed);
   hudBarFill.style.width='100%'; hudBarFill.style.background='#ffd700';
   hudLap.textContent='TOUR 100%';
@@ -940,7 +950,7 @@ function renderLb(){
 // ══════ BOUCLE ══════
 function loop(t){
   if(phase==='running'){
-    elapsed=performance.now()-t0;
+    elapsed = t0 ? performance.now()-t0 : 0;
     hudTimer.textContent=fmt(elapsed);
   }
   if(phase==='menu'||phase==='ready')discoAng=t*0.0018;
