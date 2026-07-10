@@ -249,8 +249,13 @@ details a{color:var(--yellow)}
 .swatch small{font-size:10px;color:var(--lav2);line-height:1.2}
 .swatch.sel small{color:var(--cream)}
 .sizes{display:flex;flex-wrap:wrap;gap:8px}
-.size{font-weight:700;font-size:13px;letter-spacing:.5px;color:var(--cream);border:1px solid var(--line2);border-radius:8px;padding:8px 12px;min-width:46px;text-align:center}
-.size.out{opacity:.4;text-decoration:line-through;border-style:dashed;color:var(--lav)}
+.size{font-weight:700;font-size:13px;letter-spacing:.5px;color:var(--cream);background:none;border:1px solid var(--line2);border-radius:8px;padding:8px 12px;min-width:46px;text-align:center;font-family:inherit;cursor:pointer;transition:.15s}
+.size:not(.out):hover{border-color:var(--yellow);color:var(--yellow)}
+.size.sel{background:var(--yellow);border-color:var(--yellow);color:var(--ink)}
+.size.out{opacity:.4;text-decoration:line-through;border-style:dashed;color:var(--lav);cursor:not-allowed}
+.sel-summary{margin-top:12px;font-weight:700;font-size:14px;color:var(--lav2)}
+.sel-summary b{color:var(--cream)}
+.shop-cta .btnA.off,.shop-cta .btnB.off{opacity:.4;pointer-events:none;filter:grayscale(.4)}
 .deliv{display:flex;flex-direction:column;gap:10px}
 .deliv .opt{background:var(--card1);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
 .deliv .opt .t{font-weight:700;font-size:14px;color:var(--cream)}

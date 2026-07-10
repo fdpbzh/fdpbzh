@@ -107,9 +107,14 @@ Deux options :
 
 ## Étape 8 — Suivre les commandes
 
-- **Paiements** → chaque commande affiche le client, le montant, et les champs **Couleur / Taille** (+ adresse si livraison).
-- Tu peux **exporter en CSV** pour préparer et cocher les t-shirts.
+> ℹ️ **Important — la couleur et la taille sont choisies sur le site, pas sur Stripe.**
+> Sur la page Boutique, le client sélectionne d'abord son coloris puis sa taille (seules les tailles encore en stock sont cliquables). Ce choix est transmis à Stripe dans le champ **« ID de référence client » (client_reference_id)**, sous la forme `Couleur-Taille` (ex. `Noir-M`, `Vert-XL`). Les menus déroulants Couleur/Taille ont été **retirés** des liens Stripe pour éviter qu'on puisse commander une taille épuisée.
+
+- **Paiements** → ouvre une commande : tu y vois le client, le montant, l'**ID de référence client** (= `Couleur-Taille`) et l'**adresse** (si livraison).
+- Pour l'afficher en colonne dans la liste : bouton **Colonnes** → coche **« ID de référence client »**. Idéal pour préparer les t-shirts d'un coup d'œil.
+- Tu peux **exporter en CSV** (la colonne `client_reference_id` contient le `Couleur-Taille`) pour cocher tes commandes.
 - Stripe envoie automatiquement un **reçu par email** au client.
+- **Stock :** quand une taille/couleur est épuisée, dis-le-moi (ou modifie le tableau `STOCK` en bas de `boutique.html`) : elle devient barrée et non sélectionnable sur le site.
 
 ---
 
