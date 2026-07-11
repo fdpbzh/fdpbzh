@@ -1,113 +1,106 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>L'asso du Port · FDP</title>
-<meta name="description" content="L'asso du Port fait vivre Pors-Poulhan le temps d'une soirée chaque année.">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L'asso du Port · FDP · Fête du Port 2026</title>
+<meta name="description" content="L'asso du Port fait vivre le petit port de Pors-Poulhan le temps d'une soirée chaque été : festif, gratuit, participatif. Notre mission, notre esprit, notre histoire.">
 <meta name="theme-color" content="#0F0628">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="manifest" href="site.webmanifest">
-<meta property="og:title" content="L'asso du Port — FDP Pors-Poulhan">
-<meta property="og:description" content="L'asso qui fait vivre le port de Pors-Poulhan le temps d'une soirée chaque été.">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://fdp.bzh/asso.html">
-<meta property="og:image" content="https://fdp.bzh/Affiche%20VFestival2.png">
-<meta property="og:locale" content="fr_FR">
-<meta property="og:site_name" content="FDP — Fête du Port">
-<meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/site.css?v=10">
 </head>
 <body>
 
-<svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
-  <defs>
-    <filter id="recolor-yellow" color-interpolation-filters="sRGB">
-      <feFlood flood-color="#FFC93C"/>
-      <feComposite in2="SourceGraphic" operator="in"/>
-    </filter>
-  </defs>
-</svg>
-
-<header class="site-header">
-  <div class="site-header-inner">
-    <a href="index.html" class="header-logo" aria-label="Accueil">
-      <img src="assets/Logo-fdp.png" alt="FDP">
-    </a>
-    <button class="nav-toggle" aria-label="Menu" aria-expanded="false">☰</button>
-    <nav class="site-nav">
-      <a href="programme.html">Programme</a>
-      <a href="infos.html">Infos pratiques</a>
-      <a href="asso.html" class="active">L'asso</a>
-      <a href="contact.html">Contact</a>
+<header class="hdr stick">
+  <a class="brand" href="index.html"><span class="lg">FDP</span><span class="t">Fête<br>du Port</span></a>
+  <div class="hdr-right">
+    <nav class="nav" id="nav">
+      <a class="navlink" href="index.html">Accueil</a>
+      <a class="navlink" href="programme.html">Programme</a>
+      <a class="navlink" href="jeux.html">Jeux</a>
+      <a class="navlink" href="boutique.html">Boutique</a>
+      <a class="navlink" href="infos.html">Infos</a>
+      <a class="navlink active" href="asso.html">L'asso</a>
+      <a class="navlink" href="partenaires.html">Partenaires</a>
+      <a class="navlink" href="contact.html">Contact</a>
     </nav>
+    <a class="iglink" href="https://instagram.com/lassoduport" target="_blank" rel="noopener" aria-label="Suivre @lassoduport sur Instagram"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.6" cy="6.4" r="1.3" fill="currentColor" stroke="none"/></svg><span class="iglabel">@lassoduport</span></a>
+    <button class="burger" id="burger" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="nav"><span></span><span></span><span></span></button>
   </div>
 </header>
 
-<main>
-  <header class="page-head">
-    <h1>L'asso du Port</h1>
-    <p class="lead">Une bande de copines et copains qui font vivre le petit port de Pors-Poulhan, le temps d'une soirée chaque été.</p>
-  </header>
+<!-- PAGE HERO -->
+<section class="phero">
+  <div class="glow" style="background:radial-gradient(ellipse at 15% 20%,rgba(181,165,240,.16),transparent 55%),radial-gradient(ellipse at 90% 90%,rgba(255,122,31,.14),transparent 55%)"></div>
+  <span class="star" style="top:40px;left:30%"></span>
+  <span class="star" style="top:90px;left:72%;animation-delay:1.4s"></span>
+  <div class="in">
+    <div class="eyebrow">Une bande de copines et copains</div>
+    <h1 class="disp" style="margin-top:14px">L'asso du Port</h1>
+    <p class="lead">On fait vivre le petit port de Pors-Poulhan, le temps d'une soirée chaque été.</p>
+  </div>
+</section>
 
-  <section class="section">
-    <div class="cards">
-      <div class="card">
-        <span class="ico">🌊</span>
-        <h3>Notre mission</h3>
-        <p>Faire briller le port l'espace d'une soirée. Réunir habitants, vacanciers, pêcheurs, musiciens, et tous ceux qui aiment la fête au bord de l'eau.</p>
-      </div>
-      <div class="card">
-        <span class="ico">🎶</span>
-        <h3>L'esprit FDP</h3>
-        <p>Festif, gratuit, intergénérationnel, un peu absurde, beaucoup breton. Pas de pass, pas de VIP — juste des gens qui ont envie de faire la fête.</p>
-      </div>
-      <div class="card">
-        <span class="ico">🤝</span>
-        <h3>Bénévole &amp; participatif</h3>
-        <p>Tout est porté par des bénévoles. Si tu veux donner un coup de main, monter une scène, tenir la buvette ou organiser une épreuve : on prend.</p>
-      </div>
-    </div>
-  </section>
+<!-- VALEURS -->
+<section class="wrap" style="padding:10px 0 30px">
+  <div class="vals">
+    <article class="val">
+      <div class="k">01 · Notre mission</div>
+      <div class="nm">Faire briller le port</div>
+      <p>Réunir habitants, vacanciers, pêcheurs et musiciens le temps d'une soirée. Que le port vive, ne serait-ce qu'une nuit par an.</p>
+    </article>
+    <article class="val">
+      <div class="k">02 · L'esprit FDP</div>
+      <div class="nm">Festif et gratuit</div>
+      <p>Intergénérationnel, un peu absurde, beaucoup breton. Pas de pass, pas de VIP : juste des gens qui ont envie de faire la fête.</p>
+    </article>
+    <article class="val">
+      <div class="k">03 · Participatif</div>
+      <div class="nm">Porté par des bénévoles</div>
+      <p>Tout repose sur les bénévoles. Monter une scène, tenir la buvette, organiser une épreuve : on prend toutes les bonnes volontés.</p>
+    </article>
+  </div>
+</section>
 
-  <hr class="divider">
-
-  <section class="section">
-    <h2>Notre histoire</h2>
-    <div class="info-block" style="max-width:780px">
+<!-- HISTOIRE -->
+<section class="wrap" style="padding:30px 0">
+  <div class="hist">
+    <div class="in">
+      <h2>Notre histoire</h2>
       <p>L'asso du Port est née d'une envie simple : qu'il se passe quelque chose à Pors-Poulhan, ne serait-ce qu'une soirée par an. Le port est petit, magnifique, et reste souvent silencieux. On s'est dit qu'il méritait une fête à sa hauteur.</p>
-      <p style="margin-top:14px">Depuis, chaque été, le 8 août devient <strong>le</strong> rendez-vous : concerts, championnats absurdes, frites, bières et crêpes. Et tout ça, gratuitement, pour que tout le monde puisse en profiter.</p>
+      <p class="alt">Depuis, chaque été, le 8 août devient <strong style="color:var(--cream)">le</strong> rendez-vous : concerts, championnats absurdes, frites et bières. Et tout ça gratuitement, pour que tout le monde puisse en profiter.</p>
     </div>
-  </section>
+  </div>
+</section>
 
-  <hr class="divider">
-
-  <section class="section">
-    <h2>Rejoindre l'asso</h2>
-    <p class="lead">Tu veux participer, devenir bénévole, ou simplement nous soutenir ?</p>
-    <div class="cta-row">
-      <a href="contact.html" class="btn btn-primary">Nous contacter</a>
-      <a href="https://instagram.com/lassoduport" class="btn btn-secondary" target="_blank" rel="noopener">Suivre sur Instagram</a>
+<!-- REJOINDRE -->
+<section class="band mt-sec">
+  <span class="star" style="top:30px;left:18%"></span>
+  <span class="star" style="top:60px;left:80%;animation-delay:1s"></span>
+  <div class="in">
+    <div class="kick">Nous suivre</div>
+    <h2>On la fait à plusieurs,<br>cette fête.</h2>
+    <p>Envie de suivre l'aventure du port, ou de filer un coup de main le jour J&nbsp;? On en parle avec plaisir.</p>
+    <div class="center-cta">
+      <a class="btnA" href="https://instagram.com/lassoduport" target="_blank" rel="noopener">Suivre @lassoduport</a>
+      <a class="btnB" href="contact.html">Nous contacter</a>
     </div>
-  </section>
+  </div>
+</section>
 
-</main>
-
-<footer class="foot">
-  <a href="mailto:lassoduport@gmail.com">lassoduport@gmail.com</a>
-  <span class="sep">·</span>
-  <a href="https://instagram.com/lassoduport" target="_blank" rel="noopener">@lassoduport</a>
-  <span class="sep">·</span>
-  L'asso du Port — Pors-Poulhan
-  <span class="foot-legal"><a href="mentions-legales.html">Mentions légales</a></span>
+<footer>
+  <div class="lg">FDP</div>
+  <div class="foot-links">
+    <a href="mailto:lassoduport@gmail.com">lassoduport@gmail.com</a><span style="opacity:.4;margin:0 9px">·</span>
+    <a href="https://instagram.com/lassoduport" target="_blank" rel="noopener">@lassoduport</a><span style="opacity:.4;margin:0 9px">·</span>
+    L'asso du Port · Pors-Poulhan
+  </div>
+  <div class="foot-legal"><a href="mentions-legales.html">Mentions légales</a></div>
 </footer>
 
-<script src="assets/script.js"></script>
-<!-- Analytics : GoatCounter (sans cookie, sans tracker) -->
-<script data-goatcounter="https://fdp.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+<script src="assets/site.js?v=4"></script>
 </body>
 </html>

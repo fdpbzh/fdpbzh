@@ -1,267 +1,148 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FDP — Fête du Port · 8 août 2026 · Pors-Poulhan</title>
-<meta name="description" content="La Fête du Port revient le 8 août 2026 à Pors-Poulhan. Concerts, championnats du monde inutiles, buvette. Open air 17h-2h, entrée libre.">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FDP · Fête du Port · 8 août 2026 · Pors-Poulhan</title>
+<meta name="description" content="La Fête du Port revient le samedi 8 août 2026 à Pors-Poulhan. KLEM H, BYE BYE PANKE, DJUNGLE, LUCIA LIBRE, championnats du monde inutiles, buvette. Open air 17h-2h, entrée libre.">
 <meta name="theme-color" content="#0F0628">
-
-<!-- Favicons -->
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="manifest" href="site.webmanifest">
-
-<!-- Open Graph / partage social -->
-<meta property="og:title" content="FDP — Fête du Port · 8 août 2026 · Pors-Poulhan">
-<meta property="og:description" content="Concerts (KLEM H · BYE BYE PANKE · DJUNGLE), championnats du monde inutiles, buvette. Open air 17h–2h, entrée libre.">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://fdp.bzh">
-<meta property="og:image" content="https://fdp.bzh/Affiche%20VFestival2.png">
-<meta property="og:image:width" content="1733">
-<meta property="og:image:height" content="2600">
-<meta property="og:image:alt" content="Affiche FDP 2026 — Fête du Port à Pors-Poulhan">
-<meta property="og:locale" content="fr_FR">
-<meta property="og:site_name" content="FDP — Fête du Port">
-
-<!-- Twitter Card -->
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="FDP — Fête du Port · 8 août 2026">
-<meta name="twitter:description" content="Concerts, championnats du monde inutiles, buvette à Pors-Poulhan. Entrée libre.">
-<meta name="twitter:image" content="https://fdp.bzh/Affiche%20VFestival2.png">
-
-<!-- Schema.org Event (pour Google Events) -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Event",
-  "name": "FDP — Fête du Port 2026",
-  "startDate": "2026-08-08T17:00:00+02:00",
-  "endDate": "2026-08-09T02:00:00+02:00",
-  "eventStatus": "https://schema.org/EventScheduled",
-  "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
-  "location": {
-    "@type": "Place",
-    "name": "Port de Pors-Poulhan",
-    "address": {
-      "@type": "PostalAddress",
-      "addressLocality": "Plouhinec",
-      "postalCode": "29710",
-      "addressRegion": "Bretagne",
-      "addressCountry": "FR"
-    }
-  },
-  "image": ["https://fdp.bzh/Affiche%20VFestival2.png"],
-  "description": "Concerts (KLEM H, BYE BYE PANKE, DJUNGLE), championnats du monde inutiles, buvette à Pors-Poulhan. Open air 17h-2h, entrée libre.",
-  "offers": {
-    "@type": "Offer",
-    "price": "0",
-    "priceCurrency": "EUR",
-    "availability": "https://schema.org/InStock",
-    "url": "https://fdp.bzh",
-    "validFrom": "2026-01-01T00:00:00+01:00"
-  },
-  "organizer": {
-    "@type": "Organization",
-    "name": "L'asso du Port",
-    "url": "https://fdp.bzh",
-    "email": "lassoduport@gmail.com"
-  },
-  "performer": [
-    {"@type": "MusicGroup", "name": "KLEM H"},
-    {"@type": "MusicGroup", "name": "BYE BYE PANKE"},
-    {"@type": "MusicGroup", "name": "DJUNGLE"}
-  ]
-}
-</script>
-
-<!-- Préchargement de l'affiche (LCP) -->
-<link rel="preload" as="image" href="Affiche%20VFestival2.webp" type="image/webp">
-<link rel="preload" as="image" href="Affiche%20VFestival2.png" fetchpriority="high">
-
-<!-- Polices -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
-<style>
-@font-face{
-  font-family:'DK Longreach';
-  src:url('DK%20Longreach.otf') format('opentype');
-  font-display:swap;
-}
-*{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --yellow:#FFC93C;
-  --cream:#FFF5E1;
-  --dark:#0F0628;
-}
-html,body{overflow-x:hidden}
-body{font-family:'Manrope',sans-serif;color:var(--cream);background:var(--dark);min-height:100vh}
-
-/* ============ HERO PLEIN ÉCRAN ============ */
-.hero{
-  position:relative;
-  min-height:100vh;
-  width:100%;
-  overflow:hidden;
-  display:flex;
-  flex-direction:column;
-  justify-content:flex-end;
-  isolation:isolate;
-}
-/* Couche 1 — Affiche en background full bleed (WebP si dispo, PNG sinon) */
-.hero-bg{
-  position:absolute;
-  inset:0;
-  z-index:1;
-  background-image:url('Affiche%20VFestival2.png');
-  background-image:-webkit-image-set(
-    url('Affiche%20VFestival2.webp') type('image/webp'),
-    url('Affiche%20VFestival2.png') type('image/png')
-  );
-  background-image:image-set(
-    url('Affiche%20VFestival2.webp') type('image/webp'),
-    url('Affiche%20VFestival2.png') type('image/png')
-  );
-  background-size:cover;
-  background-position:center;
-  background-repeat:no-repeat;
-  background-color:#0F0628;
-  will-change:transform;
-}
-/* Sur écran large (desktop) : affiche entière + bandes violettes sur les côtés */
-@media(min-width:900px){
-  .hero-bg{
-    background-size:contain;
-  }
-}
-/* Léger voile pour faire ressortir le jeu */
-.hero-bg::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:linear-gradient(180deg,
-    rgba(15,6,40,0) 0%,
-    rgba(15,6,40,0) 40%,
-    rgba(15,6,40,.45) 75%,
-    rgba(15,6,40,.85) 100%);
-  pointer-events:none;
-}
-/* Couche 2 — Contenu (jeu + nav) en bas */
-.hero-content{
-  position:relative;
-  z-index:3;
-  width:100%;
-  padding:0 24px 32px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:20px;
-}
-/* Le jeu, dans un cadre subtil */
-.game-card{
-  width:100%;
-  max-width:720px;
-  aspect-ratio:16 / 9;
-  border-radius:14px;
-  overflow:hidden;
-  background:#0d0014;
-  box-shadow:
-    0 25px 80px rgba(0,0,0,.7),
-    0 0 0 1px rgba(255,201,60,.5),
-    0 0 0 6px rgba(15,6,40,.6);
-}
-.game-card iframe{width:100%;height:100%;border:0;display:block}
-/* Tip + nav minimaliste */
-.game-tip{
-  font-size:13px;
-  color:var(--cream);
-  opacity:.85;
-  letter-spacing:.5px;
-  text-shadow:0 1px 4px rgba(0,0,0,.8);
-  text-align:center;
-}
-.nav-min{
-  display:flex;
-  gap:22px;
-  flex-wrap:wrap;
-  justify-content:center;
-  font-size:13px;
-  letter-spacing:1.5px;
-  text-transform:uppercase;
-  font-weight:700;
-}
-.nav-min a{
-  color:var(--cream);
-  text-decoration:none;
-  opacity:.85;
-  transition:.2s;
-  border-bottom:1px solid transparent;
-  padding-bottom:2px;
-  text-shadow:0 1px 4px rgba(0,0,0,.8);
-}
-.nav-min a:hover{opacity:1;color:var(--yellow);border-bottom-color:var(--yellow)}
-/* Mobile : moins d'espace, jeu compact */
-@media(max-width:700px){
-  .hero{justify-content:flex-end}
-  .hero-content{padding:0 14px 20px;gap:14px}
-  .nav-min{gap:14px;font-size:11px}
-  .game-card{box-shadow:0 15px 40px rgba(0,0,0,.7),0 0 0 1px rgba(255,201,60,.4)}
-}
-@media(max-width:480px){
-  .nav-min{font-size:10px;letter-spacing:1px;gap:10px}
-}
-/* Très petits écrans portrait — affiche tient en hauteur naturellement */
-@media(max-width:700px) and (orientation:portrait){
-  .hero-bg{background-position:center 30%}
-}
-/* Prefers reduced motion */
-@media (prefers-reduced-motion: reduce){
-  .hero-bg{transform:none !important;will-change:auto}
-}
-</style>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/site.css?v=10">
 </head>
 <body>
 
+<header class="hdr over">
+  <a class="brand" href="index.html">
+    <span class="lg">FDP</span>
+    <span class="t">Fête<br>du Port</span>
+  </a>
+  <div class="hdr-right">
+    <nav class="nav" id="nav">
+      <a class="navlink active" href="index.html">Accueil</a>
+      <a class="navlink" href="programme.html">Programme</a>
+      <a class="navlink" href="jeux.html">Jeux</a>
+      <a class="navlink" href="boutique.html">Boutique</a>
+      <a class="navlink" href="infos.html">Infos</a>
+      <a class="navlink" href="asso.html">L'asso</a>
+      <a class="navlink" href="partenaires.html">Partenaires</a>
+      <a class="navlink" href="contact.html">Contact</a>
+    </nav>
+    <a class="iglink" href="https://instagram.com/lassoduport" target="_blank" rel="noopener" aria-label="Suivre @lassoduport sur Instagram"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.6" cy="6.4" r="1.3" fill="currentColor" stroke="none"/></svg><span class="iglabel">@lassoduport</span></a>
+    <button class="burger" id="burger" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="nav"><span></span><span></span><span></span></button>
+  </div>
+</header>
+
+<!-- HERO -->
 <section class="hero">
   <div class="hero-bg" aria-hidden="true"></div>
-
-  <div class="hero-content">
-    <div class="game-card">
-      <iframe src="assets/moule-launcher.html" title="La Moule Volante" loading="lazy" allow="autoplay" allowfullscreen></iframe>
+  <div class="hero-scrim" aria-hidden="true"></div>
+  <div class="hero-inner">
+    <div class="hero-top">
+      <div style="display:flex;flex-direction:column;gap:11px">
+        <div class="eyebrow">Samedi 08 août 2026 · Pors-Poulhan</div>
+        <h1 class="disp">KLEM&nbsp;H · BYE&nbsp;BYE&nbsp;PANKE<br>DJUNGLE · LUCIA&nbsp;LIBRE</h1>
+      </div>
     </div>
-    <nav class="nav-min">
-      <a href="programme.html">Programme</a>
-      <a href="infos.html">Infos pratiques</a>
-      <a href="asso.html">L'asso</a>
-      <a href="contact.html">Contact</a>
-    </nav>
-    <a href="mentions-legales.html" style="font-size:10px;opacity:.45;color:var(--cream);text-decoration:none;letter-spacing:1px;text-transform:uppercase;text-shadow:0 1px 4px rgba(0,0,0,.8);">Mentions légales</a>
+  </div>
+  <div class="scrollcue" aria-hidden="true">▾ défiler</div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee" aria-hidden="true">
+  <div class="run">
+    <span>FÊTE DU PORT ✦ PORS-POULHAN ✦ ENTRÉE LIBRE ✦ 08.08.26 ✦ OPEN AIR 17H→2H ✦ MUSIQUE ✦ BUVETTE ✦ CHAMPIONNATS INUTILES ✦&nbsp;</span>
+    <span>FÊTE DU PORT ✦ PORS-POULHAN ✦ ENTRÉE LIBRE ✦ 08.08.26 ✦ OPEN AIR 17H→2H ✦ MUSIQUE ✦ BUVETTE ✦ CHAMPIONNATS INUTILES ✦&nbsp;</span>
+  </div>
+</div>
+
+<!-- À L'AFFICHE -->
+<section class="sec wrap">
+  <div class="sec-head"><h2 class="disp">À l'affiche</h2><span class="sec-kicker">2 concerts · 3 DJ sets · une nuit</span></div>
+  <p class="lead">Quatre artistes pour faire vibrer le port de 17h jusqu'au bout de la nuit.</p>
+  <div class="grid-art">
+    <article class="art">
+      <img class="ph" src="assets/fdp-artist-klemh.webp" alt="KLEM H en concert" width="632" height="421" loading="lazy">
+      <div class="body"><div class="tag">Tête d'affiche · 20h</div><div class="nm">KLEM H</div><p>Live puis DJ set, 2h de scène pour lancer la nuit.</p></div>
+    </article>
+    <article class="art">
+      <img class="ph" src="assets/fdp-artist-byebye.webp" alt="BYE BYE PANKE, duo rennais" width="632" height="632" loading="lazy">
+      <div class="body"><div class="tag">Concert · 22h30</div><div class="nm">BYE BYE PANKE</div><p>Techno rennaise, synthés modulaires et batterie hybride.</p></div>
+    </article>
+    <article class="art">
+      <img class="ph" src="assets/fdp-artist-djungle.webp" alt="DJUNGLE aux platines" width="632" height="421" loading="lazy">
+      <div class="body"><div class="tag">DJ set · 23h30</div><div class="nm">DJUNGLE</div><p>Le franco-australien qui passe de la drum'n'bass à la house.</p></div>
+    </article>
+    <article class="art">
+      <img class="ph" src="assets/fdp-artist-lucialibre.webp" alt="LUCIA LIBRE aux platines" width="632" height="421" loading="lazy">
+      <div class="body"><div class="tag dj">DJ set · 17h-20h</div><div class="nm">LUCIA LIBRE</div><p>Cumbia, italo et Global Groove : des sets sans grisaille (collectif Nuba).</p></div>
+    </article>
   </div>
 </section>
 
-<script>
-// Léger parallax du background à l'apparition
-(function(){
-  const bg = document.querySelector('.hero-bg');
-  if (!bg) return;
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (reduceMotion) return;
+<!-- LE RENDEZ-VOUS -->
+<section class="wrap" style="padding:40px 0" id="infos">
+  <div class="facts">
+    <div class="fact"><div class="k">Quand</div><div class="v">Sam. 8 août</div><div class="s">de 17h à 2h du matin</div></div>
+    <div class="fact"><div class="k">Où</div><div class="v">Pors-Poulhan</div><div class="s">Plouhinec · 29780 · Bretagne</div></div>
+    <div class="fact"><div class="k">Combien</div><div class="v">Gratuit</div><div class="s">entrée libre, pour tous</div></div>
+    <div class="fact"><div class="k">Sur place</div><div class="v">Buvette</div><div class="s">bières locales, sandwich frites maison</div></div>
+  </div>
+</section>
 
-  let ticking = false;
-  function update(){
-    const y = window.scrollY;
-    bg.style.transform = 'translate3d(0,' + (y * 0.4) + 'px,0)';
-    ticking = false;
-  }
-  window.addEventListener('scroll', function(){
-    if (!ticking){ requestAnimationFrame(update); ticking = true; }
-  }, { passive: true });
-})();
-</script>
+<!-- CHAMPIONNATS -->
+<section class="wrap">
+  <div class="champ">
+    <div class="in">
+      <div class="kick">La spécialité de la maison</div>
+      <h2>Les championnats<br>du monde inutiles</h2>
+      <p>Course, lancer, équilibre, et autres épreuves d'une importance capitale et d'une utilité absolument nulle. Ouvert à tous, médailles garanties, gloire éternelle. Les épreuves 2026 seront dévoilées avec le programme.</p>
+      <div style="margin-top:26px"><a class="btnA" href="championnats.html">Découvrir les épreuves</a></div>
+    </div>
+  </div>
+</section>
 
-<!-- Analytics : GoatCounter (sans cookie, sans tracker) -->
-<script data-goatcounter="https://fdp.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+<!-- LE JEU -->
+<section class="wrap" style="padding-bottom:10px">
+  <div class="game">
+    <div class="txt">
+      <div class="kick">En attendant le 8 août</div>
+      <h2>La Moule Volante</h2>
+      <p>Le mini-jeu maison. Catapulte ta moule le plus loin possible au-dessus du port. Imbattable&nbsp;? Viens nous le prouver sur place.</p>
+      <a class="btnB" href="jeux.html">▸ Jouer maintenant</a>
+    </div>
+    <div class="pic" aria-hidden="true"></div>
+  </div>
+</section>
 
+<!-- ASSO -->
+<section class="band mt-sec">
+  <span class="star" style="top:30px;left:12%"></span>
+  <span class="star" style="top:60px;left:80%;animation-delay:1s"></span>
+  <span class="star" style="top:90px;left:40%;animation-delay:2s"></span>
+  <div class="in">
+    <div class="kick">L'asso du Port</div>
+    <h2>On la fait à plusieurs,<br>cette fête.</h2>
+    <p>Une bande de copines et copains qui a juste envie que le port vive une nuit par an, au bord de l'eau.</p>
+    <div class="center-cta">
+      <a class="btnA" href="https://instagram.com/lassoduport" target="_blank" rel="noopener">Suivre @lassoduport</a>
+      <a class="btnB" href="asso.html">Découvrir l'asso</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="lg">FDP</div>
+  <div class="foot-links">
+    <a href="mailto:lassoduport@gmail.com">lassoduport@gmail.com</a><span style="opacity:.4;margin:0 9px">·</span>
+    <a href="https://instagram.com/lassoduport" target="_blank" rel="noopener">@lassoduport</a><span style="opacity:.4;margin:0 9px">·</span>
+    L'asso du Port · Pors-Poulhan
+  </div>
+  <div class="foot-legal"><a href="mentions-legales.html">Mentions légales</a></div>
+</footer>
+
+<script src="assets/site.js?v=4"></script>
 </body>
 </html>

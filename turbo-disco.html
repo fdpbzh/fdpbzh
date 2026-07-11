@@ -87,7 +87,7 @@ input.need{border-color:#ff4d6d !important;animation:shake .3s;}
     <button class="btn" id="btnPlay">▶ DEMARRER</button>
     <button class="btn-sm" id="btnLbMenu">★ SCORES</button>
     <p id="gameCount" style="font-size:clamp(4px,1.2vw,6px);color:#c026d3;letter-spacing:1px;">&nbsp;</p>
-    <span id="verTag">V14</span>
+    <span id="verTag">V16</span>
   </div>
 
   <div class="screen hidden" id="sResult">
@@ -122,7 +122,12 @@ var SB_URL='https://nhsroymqvwrjflagzznz.supabase.co/rest/v1';  // projet fdp-sc
 var SB_KEY='sb_publishable_UH528FgC5FVbxNFYi9Odlg_jcPZuK4J';
 var TABLE='turbo_scores';
 
-var MIN_TIME_MS=600, MAX_TIME_MS=180000, MIN_PLAY_MS=1500, MIN_ACTIONS=25;
+// Seuils recalibrés pour le chrono porte-à-porte : en rasant la Corvette la
+// piste descend à ~520px, un flick d'élite tient ~100ms (record constaté 240ms).
+// À 60Hz un tour de 150ms ne génère que ~9 événements → MIN_ACTIONS=5 ;
+// l'interpolation 6px garantit quand même les collisions entre événements.
+// Ce sont des ralentisseurs, pas de la sécurité.
+var MIN_TIME_MS=100, MAX_TIME_MS=180000, MIN_PLAY_MS=800, MIN_ACTIONS=5;
 
 function sbHeaders(extra){
   var h={apikey:SB_KEY,'Authorization':'Bearer '+SB_KEY};
@@ -856,7 +861,14 @@ function finish(tHit){
     if(q){
       setTimeout(function(){
         showResult();
-        savedP.then(function(saved){if(saved)checkTop10AndRevealInsta(ms);});
+        savedP.then(function(saved){
+          if(saved){checkTop10AndRevealInsta(ms);}
+          else{
+            // jamais de rejet silencieux : l'anti-triche ou le réseau a refusé
+            var rc=document.getElementById('resComment');
+            rc.textContent=rc.textContent+' · ⚠ TEMPS NON ENREGISTRÉ';
+          }
+        });
       },1500);
     } else {
       hudMsg.textContent='BOUCLÉ EN '+fmt(ms)+' · PAS DE TOP 10, REJOUE !';
@@ -908,7 +920,7 @@ document.getElementById('btnPlay').addEventListener('click',function(){
 });
 // pseudo prérempli au retour
 document.getElementById('nameInput').value=(playerName!=='ANONYME')?playerName:'';
-console.log('TURBO DISCO V14');
+console.log('TURBO DISCO V16');
 document.getElementById('btnReplay').addEventListener('click',function(){
   newSession(); hideAll(); resetRun();
 });

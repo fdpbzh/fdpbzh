@@ -1,142 +1,209 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Boutique · FDP 2026</title>
-<meta name="description" content="T-shirts, totebags et goodies de la Fête du Port — bientôt disponibles.">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Boutique · T-shirt FDP · Fête du Port 2026</title>
+<meta name="description" content="Le t-shirt officiel de la Fête du Port 2026 en précommande : coton bio et recyclé, sérigraphie, 8 coloris, tirage limité. 22 €, retrait sur place ou envoi postal.">
 <meta name="theme-color" content="#0F0628">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="manifest" href="site.webmanifest">
-<meta property="og:title" content="Boutique · FDP 2026">
-<meta property="og:description" content="T-shirts, totebags et goodies de la Fête du Port — bientôt disponibles.">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://fdp.bzh/boutique.html">
-<meta property="og:image" content="https://fdp.bzh/Affiche%20VFestival2.png">
-<meta property="og:locale" content="fr_FR">
-<meta property="og:site_name" content="FDP — Fête du Port">
-<meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/site.css?v=10">
 </head>
 <body>
 
-<svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
-  <defs>
-    <filter id="recolor-yellow" color-interpolation-filters="sRGB">
-      <feFlood flood-color="#FFC93C"/>
-      <feComposite in2="SourceGraphic" operator="in"/>
-    </filter>
-  </defs>
-</svg>
-
-<header class="site-header">
-  <div class="site-header-inner">
-    <a href="index.html" class="header-logo" aria-label="Accueil">
-      <img src="assets/Logo-fdp.png" alt="FDP">
-    </a>
-    <button class="nav-toggle" aria-label="Menu" aria-expanded="false">☰</button>
-    <nav class="site-nav">
-      <a href="programme.html">Programme</a>
-      <a href="infos.html">Infos pratiques</a>
-      <a href="asso.html">L'asso</a>
-      <a href="contact.html">Contact</a>
+<header class="hdr stick">
+  <a class="brand" href="index.html"><span class="lg">FDP</span><span class="t">Fête<br>du Port</span></a>
+  <div class="hdr-right">
+    <nav class="nav" id="nav">
+      <a class="navlink" href="index.html">Accueil</a>
+      <a class="navlink" href="programme.html">Programme</a>
+      <a class="navlink" href="jeux.html">Jeux</a>
+      <a class="navlink active" href="boutique.html">Boutique</a>
+      <a class="navlink" href="infos.html">Infos</a>
+      <a class="navlink" href="asso.html">L'asso</a>
+      <a class="navlink" href="partenaires.html">Partenaires</a>
+      <a class="navlink" href="contact.html">Contact</a>
     </nav>
+    <a class="iglink" href="https://instagram.com/lassoduport" target="_blank" rel="noopener" aria-label="Suivre @lassoduport sur Instagram"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.6" cy="6.4" r="1.3" fill="currentColor" stroke="none"/></svg><span class="iglabel">@lassoduport</span></a>
+    <button class="burger" id="burger" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="nav"><span></span><span></span><span></span></button>
   </div>
 </header>
 
-<main>
-  <header class="page-head">
-    <h1>Boutique</h1>
-    <p class="lead">T-shirts, totebags, stickers, affiches… Le merch officiel de la FDP arrive bientôt.</p>
-  </header>
+<!-- PAGE HERO -->
+<section class="phero" style="padding-bottom:clamp(20px,3vh,32px)">
+  <div class="glow"></div>
+  <span class="star" style="top:40px;left:24%"></span>
+  <span class="star" style="top:90px;left:68%;animation-delay:1.3s"></span>
+  <div class="in">
+    <div class="eyebrow">Précommande · tirage limité</div>
+    <h1 class="disp" style="margin-top:14px">La boutique</h1>
+  </div>
+</section>
 
-  <section class="section">
-    <div class="coming-soon">
-      <div class="coming-soon-icon">🛍️</div>
-      <h3>Bientôt disponible</h3>
-      <p>On prépare une petite collection pour soutenir l'asso : t-shirts, totebags et affiches édition 2026.</p>
-
-      <form id="subForm" style="margin-top:30px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;max-width:480px;margin-left:auto;margin-right:auto;">
-        <input type="email" id="subEmail" required placeholder="ton@email.com"
-          style="flex:1;min-width:220px;padding:13px 18px;border-radius:99px;border:2px solid var(--line);background:var(--bg);color:var(--cream);font-family:inherit;font-size:15px;outline:none;">
-        <button type="submit" class="btn btn-primary" id="subBtn">M'inscrire</button>
-      </form>
-      <p id="subStatus" style="margin-top:14px;font-size:13px;color:var(--lavender);min-height:18px;"></p>
-      <p style="margin-top:8px;font-size:11px;opacity:.55;letter-spacing:.5px">Un seul email à la sortie. Ton adresse n'est partagée avec personne.</p>
-
-      <p style="margin-top:24px;font-size:13px;color:var(--lavender);opacity:.7;">Ou suis-nous :</p>
-      <div class="cta-row" style="justify-content:center;margin-top:10px">
-        <a href="https://instagram.com/lassoduport" class="btn btn-secondary" target="_blank" rel="noopener">@lassoduport</a>
-      </div>
+<!-- PRODUIT -->
+<section class="wrap" style="padding:10px 0 30px">
+  <div class="shop">
+    <div class="shop-visual">
+      <img id="tee-img" src="assets/tee-noir.webp" alt="T-shirt FDP - Noir (avant et dos)">
     </div>
-  </section>
+    <div class="shop-info">
+      <div class="eyebrow">T-shirt officiel FDP 2026</div>
+      <h1>Le t-shirt de la fête</h1>
+      <div class="shop-price"><span class="amt">22 €</span><span class="tag">précommande</span></div>
+      <p class="desc"><strong style="color:var(--cream)">Coton bio et recyclé</strong> (70 % biologique, 30 % recyclé), 180 g/m², coupe unisexe. Logo <strong style="color:var(--cream)">FDP</strong> sérigraphié blanc sur le cœur, motif moules en grand dans le dos. Édition limitée à la Fête du Port 2026.</p>
 
-</main>
+      <div class="shop-block">
+        <div class="lbl">Coloris — <span id="col-label">Noir</span></div>
+        <div class="swatches">
+          <button class="swatch" type="button" data-c="noir" data-name="Noir"><span class="dot" style="background:#1a1a1a"></span><small>Noir</small></button>
+          <button class="swatch" type="button" data-c="anthracite" data-name="Anthracite"><span class="dot" style="background:#45464a"></span><small>Anthracite</small></button>
+          <button class="swatch" type="button" data-c="lavande" data-name="Lavande"><span class="dot" style="background:#c9b8e8"></span><small>Lavande</small></button>
+          <button class="swatch" type="button" data-c="beige" data-name="Beige"><span class="dot" style="background:#d9c9a8"></span><small>Beige</small></button>
+          <button class="swatch" type="button" data-c="creme" data-name="Blanc crème"><span class="dot" style="background:#f1ebdd"></span><small>Blanc crème</small></button>
+          <button class="swatch" type="button" data-c="jaune" data-name="Jaune clair"><span class="dot" style="background:#f3edad"></span><small>Jaune clair</small></button>
+          <button class="swatch" type="button" data-c="rose" data-name="Rose pâle"><span class="dot" style="background:#f4dde1"></span><small>Rose pâle</small></button>
+          <button class="swatch" type="button" data-c="vert" data-name="Vert pâle"><span class="dot" style="background:#c8e3da"></span><small>Vert pâle</small></button>
+        </div>
+      </div>
 
-<script>
-(function(){
-  var SB_URL='https://nhsroymqvwrjflagzznz.supabase.co/rest/v1';
-  var SB_KEY='sb_publishable_UH528FgC5FVbxNFYi9Odlg_jcPZuK4J';
-  var form=document.getElementById('subForm');
-  var emailInput=document.getElementById('subEmail');
-  var status=document.getElementById('subStatus');
-  var btn=document.getElementById('subBtn');
-  if(!form)return;
-  form.addEventListener('submit',function(e){
-    e.preventDefault();
-    var email=emailInput.value.trim().toLowerCase();
-    if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
-      status.textContent='Email invalide';
-      status.style.color='#ff6b6b';
-      return;
-    }
-    btn.disabled=true;btn.textContent='Envoi...';
-    fetch(SB_URL+'/subscribers',{
-      method:'POST',
-      headers:{
-        'apikey':SB_KEY,
-        'Authorization':'Bearer '+SB_KEY,
-        'Content-Type':'application/json',
-        'Prefer':'return=minimal'
-      },
-      body:JSON.stringify({email:email})
-    }).then(function(r){
-      if(r.ok){
-        status.textContent='✓ Inscrit ! On te tient au courant.';
-        status.style.color='var(--yellow)';
-        emailInput.value='';
-      }else if(r.status===409||r.status===400){
-        status.textContent='✓ Tu es déjà inscrit·e !';
-        status.style.color='var(--lavender)';
-      }else{
-        status.textContent='Erreur, réessaie plus tard.';
-        status.style.color='#ff6b6b';
-      }
-    }).catch(function(){
-      status.textContent='Erreur réseau, réessaie.';
-      status.style.color='#ff6b6b';
-    }).finally(function(){
-      btn.disabled=false;btn.textContent='M\'inscrire';
-    });
-  });
-})();
-</script>
+      <div class="shop-block">
+        <div class="lbl">Choisis ta taille</div>
+        <div class="sizes" id="sizes"></div>
+        <p class="shop-note" style="margin-top:8px">Barré = épuisé dans ce coloris. Stock limité, premier arrivé premier servi.</p>
+        <div class="sel-summary" id="sel-summary">Sélection : <b id="sel-color">Noir</b> · <span id="sel-size">choisis une taille</span></div>
+      </div>
 
-<footer class="foot">
-  <a href="mailto:lassoduport@gmail.com">lassoduport@gmail.com</a>
-  <span class="sep">·</span>
-  <a href="https://instagram.com/lassoduport" target="_blank" rel="noopener">@lassoduport</a>
-  <span class="sep">·</span>
-  L'asso du Port — Pors-Poulhan
-  <span class="foot-legal"><a href="mentions-legales.html">Mentions légales</a></span>
+      <div class="shop-block">
+        <div class="lbl">Récupération</div>
+        <div class="deliv">
+          <div class="opt"><div class="t">Retrait sur place · gratuit</div><div class="d">À la fête, le 8 août à Pors-Poulhan.</div></div>
+          <div class="opt"><div class="t">Envoi postal · +5 € de port</div><div class="d">Reçois ton t-shirt chez toi en France (adresse demandée au paiement).</div></div>
+        </div>
+      </div>
+
+      <!-- Liens Stripe Payment Link (compte lassoduport) : retrait = 22 €, livraison = 22 € + 5 € de port.
+           La couleur + taille choisies ci-dessus sont transmises à Stripe via ?client_reference_id=Couleur-Taille -->
+      <div class="shop-cta">
+        <a class="btnA off" id="buy-retrait" data-base="https://buy.stripe.com/14A14obLZ2bsdVY0QF3Ru00" href="#" target="_blank" rel="noopener">Précommander · retrait sur place</a>
+        <a class="btnB off" id="buy-livraison" data-base="https://buy.stripe.com/4gM9AUdU7bM28BE8j73Ru01" href="#" target="_blank" rel="noopener">Précommander · livraison (+5 €)</a>
+      </div>
+      <p class="shop-note" id="cta-hint">Choisis d'abord un coloris et une taille pour activer la précommande. Paiement sécurisé par Stripe.</p>
+    </div>
+  </div>
+</section>
+
+<!-- MATIÈRE RESPONSABLE -->
+<section class="wrap" style="padding:26px 0 10px">
+  <div class="sec-head cream"><h2 class="disp">Une matière responsable</h2></div>
+  <p class="lead" style="margin-bottom:26px">Pas juste un t-shirt de fête : un textile éco-conçu, doux et fait pour durer.</p>
+  <div class="quals">
+    <div class="qual"><div class="qh">Coton bio &amp; recyclé</div><p>100 % coton — 70 % biologique et 30 % issu de fibres recyclées, en 180 g/m² bien dense.</p></div>
+    <div class="qual"><div class="qh">Certifié OEKO-TEX® 100</div><p>Testé sans substances nocives pour la peau. Tu peux le porter toute la nuit l'esprit tranquille.</p></div>
+    <div class="qual"><div class="qh">Empreinte réduite</div><p>Moins de CO₂ et d'eau qu'un t-shirt classique, grâce aux fibres recyclées.</p></div>
+    <div class="qual"><div class="qh">Fibres tracées</div><p>Matières recyclées authentifiées et traçables : une mode plus transparente.</p></div>
+    <div class="qual"><div class="qh">Coupe unisexe</div><p>Col rond, côtes 1×1, coupe classique qui va à tout le monde.</p></div>
+    <div class="qual"><div class="qh">Édition limitée</div><p>Sérigraphie maison, quantités limitées : une vraie pièce collector de la FDP 2026.</p></div>
+  </div>
+</section>
+
+<!-- CTA BAND -->
+<section class="band mt-sec">
+  <div class="in">
+    <div class="kick">Une question sur ta commande ?</div>
+    <h2>On est là pour t'aider</h2>
+    <p>Taille, couleur, retrait, envoi : si tu as le moindre doute, écris-nous, on répond avec plaisir.</p>
+    <div class="center-cta">
+      <a class="btnA" href="contact.html">Nous contacter</a>
+      <a class="btnB" href="https://instagram.com/lassoduport" target="_blank" rel="noopener">Suivre @lassoduport</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="lg">FDP</div>
+  <div class="foot-links">
+    <a href="mailto:lassoduport@gmail.com">lassoduport@gmail.com</a><span style="opacity:.4;margin:0 9px">·</span>
+    <a href="https://instagram.com/lassoduport" target="_blank" rel="noopener">@lassoduport</a><span style="opacity:.4;margin:0 9px">·</span>
+    L'asso du Port · Pors-Poulhan
+  </div>
+  <div class="foot-legal"><a href="mentions-legales.html">Mentions légales</a></div>
 </footer>
 
-<script src="assets/script.js"></script>
-<!-- Analytics : GoatCounter (sans cookie, sans tracker) -->
-<script data-goatcounter="https://fdp.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+<script src="assets/site.js?v=4"></script>
+<script>
+(function(){
+  var STOCK={
+    noir:{img:'assets/tee-noir.webp',s:{XXS:1,XS:1,S:2,M:4,L:4,XL:2,XXL:1}},
+    anthracite:{img:'assets/tee-anthracite.webp',s:{XXS:1,XS:1,S:4,M:7,L:8,XL:4,XXL:2}},
+    lavande:{img:'assets/tee-lavande.webp',s:{XXS:1,XS:3,S:4,M:4,L:3,XL:1}},
+    beige:{img:'assets/tee-beige.webp',s:{XXS:1,XS:1,S:2,M:3,L:3,XL:1}},
+    creme:{img:'assets/tee-creme.webp',s:{S:1,M:1,L:1}},
+    jaune:{img:'assets/tee-jaune.webp',s:{XXS:1,XS:1,S:2,M:3,L:3}},
+    rose:{img:'assets/tee-rose.webp',s:{XS:1,S:1,M:1}},
+    vert:{img:'assets/tee-vert.webp',s:{XXS:1,XS:3,S:3,M:3,L:3,XL:1}}
+  };
+  // Nom "propre" (sans accent/espace) envoyé à Stripe dans client_reference_id
+  var REF={noir:'Noir',anthracite:'Anthracite',lavande:'Lavande',beige:'Beige',creme:'Creme',jaune:'Jaune',rose:'Rose',vert:'Vert'};
+  var ALL=['XXS','XS','S','M','L','XL','XXL'];
+  var img=document.getElementById('tee-img'),sizesEl=document.getElementById('sizes'),lab=document.getElementById('col-label');
+  var selColor=document.getElementById('sel-color'),selSize=document.getElementById('sel-size'),hint=document.getElementById('cta-hint');
+  var btnR=document.getElementById('buy-retrait'),btnL=document.getElementById('buy-livraison');
+  var sw=document.querySelectorAll('.swatch');
+  var curC='noir',curName='Noir',curSize=null;
+
+  function updateCTA(){
+    var ready=!!curSize;
+    [btnR,btnL].forEach(function(b){
+      b.classList.toggle('off',!ready);
+      if(ready){
+        var ref=REF[curC]+'-'+curSize; // ex: Noir-M
+        b.href=b.getAttribute('data-base')+'?client_reference_id='+encodeURIComponent(ref);
+      } else { b.href='#'; }
+    });
+    hint.textContent = ready
+      ? 'Sélection : '+curName+' · taille '+curSize+'. Paiement sécurisé par Stripe — la couleur et la taille sont transmises automatiquement.'
+      : 'Choisis d’abord un coloris et une taille pour activer la précommande. Paiement sécurisé par Stripe.';
+  }
+
+  function renderSizes(){
+    var d=STOCK[curC];
+    sizesEl.innerHTML='';
+    ALL.forEach(function(sz){
+      var avail=d.s[sz]>0;
+      var el=document.createElement(avail?'button':'span');
+      el.className='size'+(avail?'':' out')+((avail&&sz===curSize)?' sel':'');
+      el.textContent=sz;
+      if(avail){
+        el.type='button';
+        el.addEventListener('click',function(){
+          curSize=sz;
+          renderSizes();
+          selSize.textContent='taille '+sz;
+          updateCTA();
+        });
+      }
+      sizesEl.appendChild(el);
+    });
+  }
+
+  function selectColor(c,name){
+    var d=STOCK[c]; if(!d)return;
+    curC=c; curName=name; curSize=null;
+    img.src=d.img; img.alt='T-shirt FDP - '+name+' (avant et dos)';
+    lab.textContent=name;
+    selColor.textContent=name;
+    selSize.textContent='choisis une taille';
+    sw.forEach(function(b){ b.classList.toggle('sel', b.getAttribute('data-c')===c); });
+    renderSizes();
+    updateCTA();
+  }
+
+  sw.forEach(function(b){ b.addEventListener('click',function(){ selectColor(b.getAttribute('data-c'), b.getAttribute('data-name')); }); });
+  selectColor('noir','Noir');
+})();
+</script>
 </body>
 </html>
