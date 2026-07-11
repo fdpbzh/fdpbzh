@@ -87,7 +87,7 @@ input.need{border-color:#ff4d6d !important;animation:shake .3s;}
     <button class="btn" id="btnPlay">▶ DEMARRER</button>
     <button class="btn-sm" id="btnLbMenu">★ SCORES</button>
     <p id="gameCount" style="font-size:clamp(4px,1.2vw,6px);color:#c026d3;letter-spacing:1px;">&nbsp;</p>
-    <span id="verTag">V16</span>
+    <span id="verTag">V17</span>
   </div>
 
   <div class="screen hidden" id="sResult">
@@ -119,6 +119,7 @@ input.need{border-color:#ff4d6d !important;animation:shake .3s;}
 <script>
 // ══════ SUPABASE ══════
 var SB_URL='https://nhsroymqvwrjflagzznz.supabase.co/rest/v1';  // projet fdp-scores (commun a tous les jeux FDP)
+var SB_FN='https://nhsroymqvwrjflagzznz.supabase.co/functions/v1'; // Edge Functions (anti-triche par rejeu)
 var SB_KEY='sb_publishable_UH528FgC5FVbxNFYi9Odlg_jcPZuK4J';
 var TABLE='turbo_scores';
 
@@ -156,21 +157,25 @@ function loadTopScore(){
     .then(function(d){if(d&&d.length)topScore=d[0];}).catch(function(){});
 }
 function saveScore(name,ms){
+  // L'écriture passe par l'Edge Function submit-score : elle REJOUE la trace
+  // complète du doigt côté serveur (collisions, angle, portes, vitesse) et
+  // recalcule elle-même le temps. La table n'accepte plus d'INSERT direct.
   if(!sessionToken)return Promise.resolve(null);
   var playTime=Date.now()-sessionStartTime;
   if(playTime<MIN_PLAY_MS)return Promise.resolve(null);
   if(ms<MIN_TIME_MS||ms>MAX_TIME_MS)return Promise.resolve(null);
   if(actionCount<MIN_ACTIONS)return Promise.resolve(null);
-  var body={name:name.toUpperCase().slice(0,12),time_ms:Math.round(ms*10)/10,insta:null,
-            session_id:sessionToken,play_time_ms:playTime,action_count:actionCount};
-  return fetch(SB_URL+'/'+TABLE,{method:'POST',
-    headers:sbHeaders({'Content-Type':'application/json','Prefer':'return=representation'}),
+  var body={name:name.toUpperCase().slice(0,12),
+            session_id:sessionToken,play_time_ms:playTime,action_count:actionCount,
+            client_ms:Math.round(ms*10)/10,trace:trace};
+  return fetch(SB_FN+'/submit-score',{method:'POST',
+    headers:sbHeaders({'Content-Type':'application/json'}),
     body:JSON.stringify(body)
   }).then(function(r){return r.json();}).then(function(d){
     sessionToken=null;
-    if(d&&d[0]&&d[0].id)lastScoreId=d[0].id;
-    loadCount(); loadTopScore();
-    return d&&d[0]?d[0]:null;
+    if(d&&d.id){lastScoreId=d.id;loadCount();loadTopScore();return d;}
+    if(d&&d.error)console.warn('submit-score:',d.error);
+    return null;
   }).catch(function(){return null;});
 }
 function updateInsta(insta){
@@ -519,6 +524,7 @@ var CRABS=[];
 // ══════ ÉTAT ══════
 var phase='menu';
 var t0=0, elapsed=0, acc=0, lastAng=null, startAng=null, lastMoveT=0;
+var trace=[];   // trace complète [x,y,t] du run, envoyée au serveur pour rejeu
 var trail=[], lapDone=false, discoAng=0;
 var playerName='ANONYME', deathReason='';
 try{playerName=localStorage.getItem('td_name')||'ANONYME';}catch(e){}
@@ -728,6 +734,7 @@ function beginRun(p,tNow){
   phase='running'; t0=0; lastMoveT=tNow;   // chrono armé, il part à la sortie de la boule
   startAng=angOf(p.x,p.y); lastAng=startAng;
   trail=[{x:p.x,y:p.y}]; acc=0;
+  trace=[[Math.round(p.x*10)/10,Math.round(p.y*10)/10,Math.round(tNow*10)/10]];
   hudTimer.className='run';
   hudMsg.className='go'; hudMsg.textContent='LE CHRONO PART QUAND TU QUITTES LA BOULE !';
   sfxStart();
@@ -738,6 +745,10 @@ function stepRun(p,tNow){
   var prev=trail[trail.length-1];
   var tPrev=lastMoveT; lastMoveT=tNow;
   trail.push(p); if(trail.length>600)trail.shift();
+  // trace pour le rejeu serveur ; si elle déborde (tour très lent), on l'éclaircit
+  // d'un point sur deux — le chemin reste identique, juste échantillonné plus large.
+  if(trace.length>=6000){var th=[],z;for(z=0;z<trace.length;z+=2)th.push(trace[z]);trace=th;}
+  trace.push([Math.round(p.x*10)/10,Math.round(p.y*10)/10,Math.round(tNow*10)/10]);
   discoAng=angOf(p.x,p.y);
 
   // Interpolation du segment (anti-tunneling) : collisions, angle ET portes de
@@ -920,7 +931,7 @@ document.getElementById('btnPlay').addEventListener('click',function(){
 });
 // pseudo prérempli au retour
 document.getElementById('nameInput').value=(playerName!=='ANONYME')?playerName:'';
-console.log('TURBO DISCO V16');
+console.log('TURBO DISCO V17');
 document.getElementById('btnReplay').addEventListener('click',function(){
   newSession(); hideAll(); resetRun();
 });
