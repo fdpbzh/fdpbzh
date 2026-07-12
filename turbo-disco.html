@@ -399,8 +399,8 @@ function sfxAlarm(){
   // wiip-wiip d'alarme de Corvette froissée
   if(muted)return;getAC();
   for(var i=0;i<3;i++){
-    oscNote(920,ac.currentTime+.25+i*.28,.13,'square',.11);
-    oscNote(690,ac.currentTime+.39+i*.28,.13,'square',.11);
+    oscNote(920,ac.currentTime+.25+i*.28,.13,'square',.05);
+    oscNote(690,ac.currentTime+.39+i*.28,.13,'square',.05);
   }
 }
 
