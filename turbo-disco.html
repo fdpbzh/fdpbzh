@@ -24,6 +24,15 @@ h1{font-size:clamp(13px,3.5vw,20px);color:#f0abfc;text-align:center;text-shadow:
 input[type=text]{font-family:'Press Start 2P',monospace;font-size:clamp(7px,1.8vw,10px);padding:8px;background:#1e0030;color:#f0abfc;border:2px solid #6b21a8;outline:none;width:min(180px,60%);text-align:center;}
 input[type=text]::placeholder{color:#7c3f9e;}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+/* ── Podium championnat ── */
+#lbContent{display:flex;flex-direction:column;gap:7px;align-items:center;width:100%;}
+.pod{display:flex;align-items:center;gap:8px;width:min(240px,84%);padding:8px 10px;border:1px solid;font-size:clamp(6px,1.7vw,9px);}
+.pod .prank{width:16px;}
+.pod .pname{flex:1;text-align:left;overflow:hidden;}
+.pod.gold{color:#ffd700;border-color:#ffd700;box-shadow:0 0 12px #ffd70033;}
+.pod.silver{color:#c9ccd8;border-color:#8a8fa0;}
+.pod.bronze{color:#cd7f32;border-color:#8a5220;}
+.pod.lant{color:#ff4d6d;border-color:#5c1020;background:#1a0510;}
 .lb-table{width:100%;border-collapse:collapse;font-size:clamp(5px,1.3vw,7px);color:#f0abfc;}
 .lb-table th{color:#ffd700;padding:3px 5px;border-bottom:1px solid #6b21a8;}
 .lb-table td{padding:4px 5px;border-bottom:1px solid #2a004a;}
@@ -89,13 +98,13 @@ input.need{border-color:#ff4d6d !important;animation:shake .3s;}
     <div class="damier" style="top:11%;"></div>
     <div class="damier" style="bottom:11%;"></div>
     <canvas id="logoCanvas" width="352" height="112" role="img" aria-label="Turbo Disco"></canvas>
-    <p class="sub">CHAMPIONNATS DU MONDE INUTILES<br>ÉPREUVE OFFICIELLE · FDP 2026</p>
+    <p class="sub">CHAMPIONNAT DU MONDE INUTILE<br>FINALE 2025 · COURONNEMENT LE 8 AOÛT</p>
     <div id="startLight"><span></span><span></span><span></span><span></span><span></span></div>
     <input type="text" id="nameInput" maxlength="12" placeholder="TON PSEUDO" autocomplete="off" spellcheck="false">
     <button class="btn" id="btnPlay">▶ DEMARRER</button>
     <button class="btn-sm" id="btnLbMenu">★ SCORES</button>
     <p id="gameCount" style="font-size:clamp(4px,1.2vw,6px);color:#c026d3;letter-spacing:1px;">&nbsp;</p>
-    <span id="verTag">V20</span>
+    <span id="verTag">V22</span>
   </div>
 
   <div class="screen hidden" id="sResult">
@@ -116,10 +125,10 @@ input.need{border-color:#ff4d6d !important;animation:shake .3s;}
   </div>
 
   <div class="screen hidden" id="sLb">
-    <p style="font-size:clamp(8px,2vw,13px);color:#ffd700">★ HALL OF FAME ★</p>
-    <p class="sub">Tour le plus rapide</p>
-    <p class="sub" style="color:#ffd700;">TOP 10 = BOISSON · 1ER = OPEN BAR<br>À RÉCUPÉRER SUR PLACE LE 8 AOÛT</p>
+    <p style="font-size:clamp(8px,2vw,13px);color:#ffd700">★ FINALE MONDIALE 2025 ★</p>
+    <p class="sub">LA FINALE N'A JAMAIS PU ÊTRE COURUE.<br>LE MEILLEUR TEMPS AU 8 AOÛT 2026 SERA<br>COURONNÉ CHAMPION DU MONDE 2025.</p>
     <div id="lbContent"><p class="loader">CHARGEMENT...</p></div>
+    <p class="sub" style="color:#ffd700;">1ER = TITRE MONDIAL + OPEN BAR · TOP 10 = BOISSON<br>REMISE DES PRIX LE 8 AOÛT SUR PLACE</p>
     <button class="btn-sm" id="btnBack">← RETOUR</button>
   </div>
 </div>
@@ -214,6 +223,15 @@ function isTop10(ms){
     return ms<=s[s.length-1].time_ms;
   }).catch(function(){return true;});   // réseau KO → on montre la cérémonie
 }
+function fetchRank(ms){
+  // rang global : nb de temps plus rapides + 1
+  return fetch(SB_URL+'/'+TABLE+'?select=*&time_ms=lt.'+ms,{method:'HEAD',
+    headers:sbHeaders({'Prefer':'count=exact','Range':'0-0'})
+  }).then(function(r){
+    var m=(r.headers.get('content-range')||'').match(/\/(\d+)/);
+    return m?parseInt(m[1])+1:null;
+  }).catch(function(){return null;});
+}
 var totalGames=0;
 function loadCount(){
   // Compteur = TOUTES les parties (ratées comprises), via la table turbo_plays
@@ -240,8 +258,8 @@ try{muted=localStorage.getItem('td_mute')==='1';}catch(e){}
 // BGM = V8 au ralenti + kick disco 124 BPM (son n°5 retenu le 10/07).
 // Le moteur est un ensemble de nœuds continus (engineNodes), le kick passe
 // par le scheduler look-ahead classique (kickT).
-var BEAT=60/124, kickT=0, engineNodes=[];
-function getAC(){if(!ac){ac=new(window.AudioContext||window.webkitAudioContext)();masterGain=ac.createGain();masterGain.gain.value=0.42;masterGain.connect(ac.destination);}return ac;}
+var BEAT=60/124, kickT=0, engineNodes=[], engineTimers=[];
+function getAC(){if(!ac){ac=new(window.AudioContext||window.webkitAudioContext)();masterGain=ac.createGain();masterGain.gain.value=0.38;masterGain.connect(ac.destination);}return ac;}
 function oscNote(f,st,dur,ty,vol){
   if(!f)return;
   var o=ac.createOscillator(),g=ac.createGain();
@@ -272,15 +290,16 @@ function kick(at){
   k.type='sine';
   k.frequency.setValueAtTime(120,at);
   k.frequency.exponentialRampToValueAtTime(45,at+0.10);
-  g.gain.setValueAtTime(0.5,at);
+  g.gain.setValueAtTime(0.44,at);
   g.gain.exponentialRampToValueAtTime(0.01,at+0.16);
   k.connect(g);g.connect(masterGain);
   k.start(at);k.stop(at+0.18);
 }
+function hat(at){noiseHit(at,.05,9000,0.045);}   // contretemps discret, groove sans fatigue
 function scheduleBGM(){
   if(!bgmPlaying)return;
   var now=ac.currentTime,LA=0.25;
-  while(kickT<now+LA){kick(kickT);kickT+=BEAT;}
+  while(kickT<now+LA){kick(kickT);hat(kickT+BEAT/2);kickT+=BEAT;}
   bgmTimer=setTimeout(scheduleBGM,60);
 }
 // ── V8 au ralenti : sub + saw filtré + souffle d'échappement + « lope » (double LFO) ──
@@ -310,8 +329,25 @@ function startEngine(){
   var l3g=ac.createGain();l3g.gain.value=SUB*0.06*LOPE;
   l1.connect(l3g);l3g.connect(sub.frequency);
   engineNodes=[sub,sg,body,bg,bf,nz,nf,ng,trem,tg,l1,l1g,l2,l2g,l3g];
+  // respiration : léger coup de gaz toutes les 18-30s, contre la monotonie
+  (function blip(){
+    engineTimers.push(setTimeout(function(){
+      if(!bgmPlaying)return;
+      var n=ac.currentTime;
+      body.frequency.cancelScheduledValues(n);
+      body.frequency.setValueAtTime(FIRE,n);
+      body.frequency.linearRampToValueAtTime(FIRE*1.6,n+0.22);
+      body.frequency.exponentialRampToValueAtTime(FIRE,n+1.1);
+      bf.frequency.cancelScheduledValues(n);
+      bf.frequency.setValueAtTime(BRIGHT,n);
+      bf.frequency.linearRampToValueAtTime(BRIGHT*2.2,n+0.22);
+      bf.frequency.exponentialRampToValueAtTime(BRIGHT,n+1.1);
+      blip();
+    },18000+Math.random()*12000));
+  })();
 }
 function stopEngine(){
+  engineTimers.forEach(clearTimeout); engineTimers=[];
   engineNodes.forEach(function(nd){
     try{if(nd.stop)nd.stop();}catch(e){}
     try{nd.disconnect();}catch(e){}
@@ -331,6 +367,12 @@ function sfxStart(){if(muted)return;getAC();[523,659,784].forEach(function(f,i){
 function sfxCrash(){if(muted)return;getAC();noiseHit(ac.currentTime,.25,300,0.30);oscNote(120,ac.currentTime,.22,'sawtooth',.16);oscNote(70,ac.currentTime+.1,.25,'square',.10);}
 function sfxWin(){if(muted)return;getAC();[523,659,784,1047,1319].forEach(function(f,i){oscNote(f,ac.currentTime+i*.07,.10,'square',.17);});}
 function sfxTick(){if(muted||!ac)return;oscNote(1200,ac.currentTime,.02,'square',.03);}
+function sfxSplat(){
+  if(muted)return;getAC();
+  noiseHit(ac.currentTime,.18,500,0.35);
+  oscNote(160,ac.currentTime,.12,'square',.14);
+  oscNote(90,ac.currentTime+.05,.16,'sawtooth',.10);
+}
 
 document.getElementById('btnMute').addEventListener('click',function(e){
   e.stopPropagation();
@@ -564,6 +606,7 @@ function fmt(ms){   // SS.mmmd — précision au dixième de milliseconde
 function resetRun(){
   phase='ready'; elapsed=0; acc=0; lastAng=null; startAng=null; t0=0; lastMoveT=0;
   trail=[]; lapDone=false; confetti=[]; flashT=0; deathReason=''; lastTickPc=-1;
+  gibs=[]; for(var ci=0;ci<CRABS.length;ci++)CRABS[ci].dead=false;   // les crabes ressuscitent
   hudTimer.className=''; hudTimer.textContent='00.0000';
   hudLap.textContent='TOUR 0%';
   hudBarFill.style.width='0%'; hudBarFill.style.background='#c026d3';
@@ -602,10 +645,41 @@ function drawCar(){
 function drawCrowd(t){
   for(var i=0;i<CRABS.length;i++){
     var cb=CRABS[i];
+    if(cb.dead)continue;
     var f=((t*0.004*cb.sp+cb.ph*6)|0)%6;
     var w=SPR_W*cb.sc, h=SPR_H*cb.sc;
     ctx.drawImage(SPRITES[cb.dir][f], cb.x-w*0.45, cb.y-h*0.6, w, h);
   }
+}
+
+// ══════ EXPLOSION DE CRABES ══════
+var gibs=[];
+function explodeCrabs(x,y){
+  var n=0;
+  for(var i=0;i<CRABS.length;i++){
+    var cb=CRABS[i];
+    if(cb.dead)continue;
+    if((cb.x-x)*(cb.x-x)+(cb.y-y)*(cb.y-y)<2025){   // rayon 45px autour de l'impact
+      cb.dead=true; n++;
+      for(var g=0;g<12;g++){
+        var a=Math.random()*Math.PI*2, v=1.5+Math.random()*3.5;
+        gibs.push({x:cb.x,y:cb.y-6,vx:Math.cos(a)*v,vy:Math.sin(a)*v-1.5,
+                   s:2+Math.random()*3,life:1,
+                   c:['#b02010','#c82810','#ff5530','#902010','#e03020'][(Math.random()*5)|0]});
+      }
+    }
+  }
+  if(n)sfxSplat(); else sfxCrash();
+}
+function drawGibs(){
+  for(var i=gibs.length-1;i>=0;i--){
+    var g=gibs[i];
+    g.x+=g.vx; g.y+=g.vy; g.vy+=0.18; g.life-=0.02;
+    if(g.life<=0||g.y>H+10){gibs.splice(i,1);continue;}
+    ctx.globalAlpha=Math.min(1,g.life*1.5);
+    px(g.x,g.y,g.s,g.s,g.c);
+  }
+  ctx.globalAlpha=1;
 }
 
 function drawTrail(){
@@ -776,14 +850,16 @@ function stepRun(p,tNow){
   // chrono évalués tous les ~6px entre deux événements. L'instant de
   // franchissement de la porte est résolu au sous-pixel (crossT) puis converti
   // en temps par interpolation linéaire entre les timestamps des deux événements.
-  var steps=Math.max(1,Math.ceil(Math.hypot(p.x-prev.x,p.y-prev.y)/6));
+  var evDist=Math.hypot(p.x-prev.x,p.y-prev.y);
+  var evSpd=evDist/Math.max(1,tNow-tPrev)*1000;   // px/s — vitesse à l'impact éventuel
+  var steps=Math.max(1,Math.ceil(evDist/6));
   for(var i=1;i<=steps;i++){
     var u0=(i-1)/steps, u1=i/steps;
     var jx=prev.x+(p.x-prev.x)*u0, jy=prev.y+(p.y-prev.y)*u0;
     var ix=prev.x+(p.x-prev.x)*u1, iy=prev.y+(p.y-prev.y)*u1;
     if(Math.hypot(ix-SBX,iy-SBY)>SBR*2.4){
       if(inCar(ix,iy)){die('TU AS TOUCHÉ LA CORVETTE !');return;}
-      if(ellipseF(ix,iy)>F_OUT){die('TU AS BOUSCULÉ LES CRABES !');return;}
+      if(ellipseF(ix,iy)>F_OUT){die('TU AS BOUSCULÉ LES CRABES !',ix,iy,evSpd);return;}
     }
     var ia=Math.atan2(iy-CY,ix-CX);
     acc+=angDiff(ia,lastAng); lastAng=ia;
@@ -873,12 +949,14 @@ window.addEventListener('mouseup',function(e){
 });
 
 // ══════ FIN DE PARTIE ══════
-function die(reason){
+function die(reason,x,y,spd){
   phase='dead'; deathReason=reason; flashT=20;
   activeTouchId=null; mouseActive=false;
   hudTimer.className='';
   hudMsg.className='bad'; hudMsg.textContent=reason+' · ENCORE !';
-  sfxCrash();
+  // percuté trop vite → les crabes explosent (hommage à la Moule Shooter)
+  if(x!==undefined && spd>1500 && reason.indexOf('CRABES')>-1){explodeCrabs(x,y);}
+  else sfxCrash();
   logPlay('dead');
   // Pas d'écran résultat : on redonne la main immédiatement (volume de parties)
   setTimeout(function(){if(phase==='dead'){newSession();resetRun();}},1200);
@@ -901,7 +979,12 @@ function finish(tHit){
       setTimeout(function(){
         showResult();
         savedP.then(function(saved){
-          if(saved){checkTop10AndRevealInsta(ms);}
+          if(saved){
+            checkTop10AndRevealInsta(ms);
+            fetchRank(ms).then(function(rk){
+              if(rk){var rc=document.getElementById('resComment');rc.textContent+=' · '+rk+'e TEMPS';}
+            });
+          }
           else{
             // jamais de rejet silencieux : l'anti-triche ou le réseau a refusé
             var rc=document.getElementById('resComment');
@@ -910,8 +993,15 @@ function finish(tHit){
         });
       },1500);
     } else {
-      hudMsg.textContent='BOUCLÉ EN '+fmt(ms)+' · PAS DE TOP 10, REJOUE !';
-      setTimeout(function(){if(phase==='done'){newSession();resetRun();}},2200);
+      hudMsg.textContent='BOUCLÉ EN '+fmt(ms)+' · REJOUE !';
+      // rang global affiché dès que le serveur a avalé le score
+      savedP.then(function(d){
+        if(!d)return;
+        fetchRank(ms).then(function(rk){
+          if(rk&&phase==='done')hudMsg.textContent='BOUCLÉ EN '+fmt(ms)+' · '+rk+'e TEMPS · REJOUE !';
+        });
+      });
+      setTimeout(function(){if(phase==='done'){newSession();resetRun();}},2600);
     }
   });
 }
@@ -963,7 +1053,7 @@ document.getElementById('btnPlay').addEventListener('click',function(){
 });
 // pseudo prérempli au retour
 document.getElementById('nameInput').value=(playerName!=='ANONYME')?playerName:'';
-console.log('TURBO DISCO V20');
+console.log('TURBO DISCO V22');
 document.getElementById('btnReplay').addEventListener('click',function(){
   newSession(); hideAll(); resetRun();
 });
@@ -987,19 +1077,36 @@ document.getElementById('btnShare').addEventListener('click',function(){
     var b=this,o=b.textContent;b.textContent='✓ COPIÉ';setTimeout(function(){b.textContent=o;},1400);
   }
 });
+function esc(s){return String(s).replace(/[<>&]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;'}[c];});}
 function renderLb(){
+  // Podium or/argent/bronze + lanterne rouge (le temps le plus nul)
   var box=document.getElementById('lbContent');
   box.innerHTML='<p class="loader">CHARGEMENT...</p>';
-  loadScores().then(function(s){
-    if(!s||!s.length){box.innerHTML='<p class="sub">AUCUN SCORE. SOIS LE PREMIER.</p>';return;}
-    var rows='<table class="lb-table"><tr><th>#</th><th>PILOTE</th><th>TEMPS</th></tr>';
-    for(var i=0;i<s.length;i++){
-      var cls = i===0?'rank-gold':i===1?'rank-silver':i===2?'rank-bronze':'';
-      var me = (s[i].name===playerName)?' class="me"':'';
-      rows+='<tr'+me+'><td class="'+cls+'">'+(i+1)+'</td><td>'+s[i].name+'</td><td>'+fmt(s[i].time_ms)+'</td></tr>';
+  Promise.all([
+    fetch(SB_URL+'/'+TABLE+'?select=name,time_ms&order=time_ms.asc&limit=3',{headers:sbHeaders()})
+      .then(function(r){return r.json();}),
+    fetch(SB_URL+'/'+TABLE+'?select=name,time_ms&order=time_ms.desc&limit=1',{headers:sbHeaders()})
+      .then(function(r){return r.json();}),
+    fetch(SB_URL+'/'+TABLE+'?select=*',{method:'HEAD',headers:sbHeaders({'Prefer':'count=exact','Range':'0-0'})})
+      .then(function(r){var m=(r.headers.get('content-range')||'').match(/\/(\d+)/);return m?parseInt(m[1]):0;})
+  ]).then(function(res){
+    var top=res[0]||[], worst=(res[1]||[])[0], total=res[2]||0;
+    if(!top.length){box.innerHTML='<p class="sub">AUCUN TEMPS. LE TRÔNE EST VIDE.</p>';return;}
+    var cls=['gold','silver','bronze'], h='';
+    for(var i=0;i<3;i++){
+      var s=top[i];
+      h+='<div class="pod '+cls[i]+'"><span class="prank">'+(i+1)+'</span>'
+        +'<span class="pname">'+(s?esc(s.name):'———')+'</span>'
+        +'<span>'+(s?fmt(s.time_ms):'--.----')+'</span></div>';
     }
-    box.innerHTML=rows+'</table>';
-  });
+    if(worst&&total>3){
+      h+='<p class="sub" style="color:#7c3f9e;">· LANTERNE ROUGE ·</p>';
+      h+='<div class="pod lant"><span class="prank">'+total+'</span>'
+        +'<span class="pname">'+esc(worst.name)+'</span>'
+        +'<span>'+fmt(worst.time_ms)+'</span></div>';
+    }
+    box.innerHTML=h;
+  }).catch(function(){box.innerHTML='<p class="sub">RÉSEAU EN RADE. RÉESSAIE.</p>';});
 }
 
 // ══════ BOUCLE ══════
@@ -1015,6 +1122,7 @@ function loop(t){
   drawDiscoBeams(t);
   drawTrail();
   drawCrowd(t);
+  drawGibs();
   drawCar();
   drawDiscoBall(t);
   if(phase==='ready'||phase==='running')drawGhostRecord();
