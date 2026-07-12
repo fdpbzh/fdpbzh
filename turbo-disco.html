@@ -95,7 +95,7 @@ input.need{border-color:#ff4d6d !important;animation:shake .3s;}
     <button class="btn" id="btnPlay">▶ DEMARRER</button>
     <button class="btn-sm" id="btnLbMenu">★ SCORES</button>
     <p id="gameCount" style="font-size:clamp(4px,1.2vw,6px);color:#c026d3;letter-spacing:1px;">&nbsp;</p>
-    <span id="verTag">V19</span>
+    <span id="verTag">V20</span>
   </div>
 
   <div class="screen hidden" id="sResult">
@@ -173,7 +173,9 @@ function saveScore(name,ms){
   // recalcule elle-même le temps. La table n'accepte plus d'INSERT direct.
   if(!sessionToken)return Promise.resolve(null);
   var playTime=Date.now()-sessionStartTime;
-  if(playTime<MIN_PLAY_MS)return Promise.resolve(null);
+  // Plus de seuil MIN_PLAY_MS : en mode arcade les relances rapides passaient
+  // sous 800ms de session et perdaient leur score en silence (une sur deux !).
+  // Le serveur rejoue la trace de toute façon — c'est lui le juge.
   if(ms<MIN_TIME_MS||ms>MAX_TIME_MS)return Promise.resolve(null);
   if(actionCount<MIN_ACTIONS)return Promise.resolve(null);
   var body={name:name.toUpperCase().slice(0,12),
@@ -961,7 +963,7 @@ document.getElementById('btnPlay').addEventListener('click',function(){
 });
 // pseudo prérempli au retour
 document.getElementById('nameInput').value=(playerName!=='ANONYME')?playerName:'';
-console.log('TURBO DISCO V19');
+console.log('TURBO DISCO V20');
 document.getElementById('btnReplay').addEventListener('click',function(){
   newSession(); hideAll(); resetRun();
 });
