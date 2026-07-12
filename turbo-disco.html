@@ -42,12 +42,20 @@ input[type=text]::placeholder{color:#7c3f9e;}
 #btnMute:active{color:#f0abfc;}
 #btnMenu{position:absolute;bottom:6px;left:8px;z-index:15;font-family:'Press Start 2P',monospace;font-size:7px;background:transparent;border:none;color:#7c3f9e;cursor:pointer;padding:4px;}
 #btnMenu:active{color:#f0abfc;}
-/* ── Accueil « drapeau à damier » ── */
-.damier{position:absolute;left:0;right:0;height:26px;background:repeating-conic-gradient(#f0f0f0 0% 25%,#0a0a0a 0% 50%) 0 0/26px 26px;}
-#logoCanvas{width:min(56vw,210px);height:auto;image-rendering:pixelated;filter:drop-shadow(0 0 10px #c026d366);}
-#sMenu .sub{letter-spacing:1px;}
+/* ── Accueil « drapeau à damier » (polish v19) ── */
+#sMenu{background:linear-gradient(180deg,rgba(13,0,20,.985) 0%,rgba(13,0,20,.90) 35%,rgba(13,0,20,.90) 70%,rgba(13,0,20,.965) 100%);gap:13px;}
+#sMenu::after{content:'';position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.10) 0 1px,transparent 1px 3px);}
+.damier{position:absolute;left:0;right:0;height:18px;background:repeating-conic-gradient(#e8e8e8 0% 25%,#0a0a0a 0% 50%) 0 0/18px 18px;box-shadow:0 0 12px rgba(0,0,0,.5);animation:damierScroll 9s linear infinite;}
+@keyframes damierScroll{from{background-position-x:0}to{background-position-x:180px}}
+#logoCanvas{width:min(64vw,238px);height:auto;image-rendering:pixelated;border:none;box-shadow:none;filter:drop-shadow(0 4px 14px #c026d366);}
+#sMenu .sub{font-size:5.5px;color:#9a7ec2;letter-spacing:1px;line-height:2.4;}
+#sMenu input[type=text]{width:min(190px,64%);background:#12001f;border-color:#6b21a8;letter-spacing:1px;text-transform:uppercase;}
+#sMenu input[type=text]:focus{border-color:#ffd700;box-shadow:0 0 10px #ffd70033;}
+#gameCount{border-top:1px solid #2a004a;padding-top:9px;width:62%;text-align:center;}
+/* le HUD du jeu est masqué tant qu'un écran (menu/résultat/scores) est ouvert */
+.screenOn #hudTimer,.screenOn #hudLap,.screenOn #hudBar,.screenOn #hudMsg{visibility:hidden;}
 /* Rampe de départ F1 : 5 feux rouges qui s'allument un à un, puis extinction = GO */
-#startLight{display:flex;gap:9px;background:#1e0030;border:1px solid #6b21a8;padding:7px 12px;margin:4px 0;}
+#startLight{display:flex;gap:10px;background:#12001f;border:1px solid #3a0a5c;padding:8px 14px;margin:2px 0 4px;}
 #startLight span{width:11px;height:11px;border-radius:50%;background:#ff4d6d;box-shadow:0 0 7px #ff4d6d;opacity:.13;}
 #startLight span:nth-child(1){animation:feu1 4s step-end infinite;}
 #startLight span:nth-child(2){animation:feu2 4s step-end infinite;}
@@ -59,7 +67,7 @@ input[type=text]::placeholder{color:#7c3f9e;}
 @keyframes feu3{0%,25%{opacity:.13}26%,69%{opacity:1}70%,100%{opacity:.13}}
 @keyframes feu4{0%,33%{opacity:.13}34%,69%{opacity:1}70%,100%{opacity:.13}}
 @keyframes feu5{0%,41%{opacity:.13}42%,69%{opacity:1}70%,100%{opacity:.13}}
-#btnPlay{background:#1e0030;border-color:#ffd700;color:#ffd700;}
+#btnPlay{background:#1e0030;border-color:#ffd700;color:#ffd700;padding:13px 26px;letter-spacing:2px;border-width:2px;box-shadow:0 0 16px #ffd70038;}
 #btnPlay:active{background:#ffd700;color:#0d0014;}
 input.need{border-color:#ff4d6d !important;animation:shake .3s;}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
@@ -67,7 +75,7 @@ input.need{border-color:#ff4d6d !important;animation:shake .3s;}
 </style>
 </head>
 <body>
-<div id="wrap">
+<div id="wrap" class="screenOn">
   <canvas id="c" width="400" height="710"></canvas>
 
   <div id="hudTimer">00.0000</div>
@@ -81,13 +89,13 @@ input.need{border-color:#ff4d6d !important;animation:shake .3s;}
     <div class="damier" style="top:11%;"></div>
     <div class="damier" style="bottom:11%;"></div>
     <canvas id="logoCanvas" width="352" height="112" role="img" aria-label="Turbo Disco"></canvas>
-    <p class="sub">CHAMPIONNATS DU MONDE INUTILES<br>ÉPREUVE OFFICIELLE</p>
+    <p class="sub">CHAMPIONNATS DU MONDE INUTILES<br>ÉPREUVE OFFICIELLE · FDP 2026</p>
     <div id="startLight"><span></span><span></span><span></span><span></span><span></span></div>
     <input type="text" id="nameInput" maxlength="12" placeholder="TON PSEUDO" autocomplete="off" spellcheck="false">
     <button class="btn" id="btnPlay">▶ DEMARRER</button>
     <button class="btn-sm" id="btnLbMenu">★ SCORES</button>
     <p id="gameCount" style="font-size:clamp(4px,1.2vw,6px);color:#c026d3;letter-spacing:1px;">&nbsp;</p>
-    <span id="verTag">V18</span>
+    <span id="verTag">V19</span>
   </div>
 
   <div class="screen hidden" id="sResult">
@@ -128,7 +136,10 @@ var TABLE='turbo_scores';
 // À 60Hz un tour de 150ms ne génère que ~9 événements → MIN_ACTIONS=5 ;
 // l'interpolation 6px garantit quand même les collisions entre événements.
 // Ce sont des ralentisseurs, pas de la sécurité.
-var MIN_TIME_MS=100, MAX_TIME_MS=180000, MIN_PLAY_MS=800, MIN_ACTIONS=5;
+// Plancher 60ms : juste au-dessus de la limite PHYSIQUE (chemin optimal 440.3px
+// au plafond de vitesse 8000px/s = 55.0ms). C'est le plafond de vitesse soutenue,
+// côté serveur, qui fait la loi — pas un chiffre rond arbitraire.
+var MIN_TIME_MS=60, MAX_TIME_MS=180000, MIN_PLAY_MS=800, MIN_ACTIONS=5;
 
 function sbHeaders(extra){
   var h={apikey:SB_KEY,'Authorization':'Bearer '+SB_KEY};
@@ -929,8 +940,12 @@ function show(id){
   ['sMenu','sResult','sLb'].forEach(function(s){
     document.getElementById(s).classList.toggle('hidden', s!==id);
   });
+  document.getElementById('wrap').classList.add('screenOn');
 }
-function hideAll(){['sMenu','sResult','sLb'].forEach(function(s){document.getElementById(s).classList.add('hidden');});}
+function hideAll(){
+  ['sMenu','sResult','sLb'].forEach(function(s){document.getElementById(s).classList.add('hidden');});
+  document.getElementById('wrap').classList.remove('screenOn');
+}
 
 document.getElementById('btnPlay').addEventListener('click',function(){
   var ni=document.getElementById('nameInput');
@@ -946,7 +961,7 @@ document.getElementById('btnPlay').addEventListener('click',function(){
 });
 // pseudo prérempli au retour
 document.getElementById('nameInput').value=(playerName!=='ANONYME')?playerName:'';
-console.log('TURBO DISCO V18');
+console.log('TURBO DISCO V19');
 document.getElementById('btnReplay').addEventListener('click',function(){
   newSession(); hideAll(); resetRun();
 });
