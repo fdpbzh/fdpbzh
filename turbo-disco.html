@@ -105,7 +105,7 @@ input.need{border-color:#ff4d6d !important;animation:shake .3s;}
     <button class="btn" id="btnPlay">▶ DEMARRER</button>
     <button class="btn-sm" id="btnLbMenu">★ SCORES</button>
     <p id="gameCount" style="font-size:clamp(4px,1.2vw,6px);color:#c026d3;letter-spacing:1px;">&nbsp;</p>
-    <span id="verTag">V25</span>
+    <span id="verTag">V27</span>
   </div>
 
   <div class="screen hidden" id="sResult">
@@ -268,6 +268,7 @@ try{muted=localStorage.getItem('td_mute')==='1';}catch(e){}
 // Le moteur est un ensemble de nœuds continus (engineNodes), le kick passe
 // par le scheduler look-ahead classique (kickT).
 var BEAT=60/124, kickT=0, engineNodes=[], engineTimers=[];
+var engBody=null, engSub=null, engBf=null, engSpd=0;   // refs pour le Doppler
 function getAC(){if(!ac){ac=new(window.AudioContext||window.webkitAudioContext)();masterGain=ac.createGain();masterGain.gain.value=0.38;masterGain.connect(ac.destination);}return ac;}
 function oscNote(f,st,dur,ty,vol){
   if(!f)return;
@@ -338,10 +339,13 @@ function startEngine(){
   var l3g=ac.createGain();l3g.gain.value=SUB*0.06*LOPE;
   l1.connect(l3g);l3g.connect(sub.frequency);
   engineNodes=[sub,sg,body,bg,bf,nz,nf,ng,trem,tg,l1,l1g,l2,l2g,l3g];
+  engBody=body; engSub=sub; engBf=bf;
   // respiration : léger coup de gaz toutes les 18-30s, contre la monotonie
+  // (suspendu pendant la course : c'est le Doppler qui pilote le régime)
   (function blip(){
     engineTimers.push(setTimeout(function(){
       if(!bgmPlaying)return;
+      if(phase==='running'){blip();return;}
       var n=ac.currentTime;
       body.frequency.cancelScheduledValues(n);
       body.frequency.setValueAtTime(FIRE,n);
@@ -355,7 +359,16 @@ function startEngine(){
     },18000+Math.random()*12000));
   })();
 }
+// ── Doppler : le régime moteur suit la vitesse du doigt ──
+function setEnginePitch(){
+  if(!engBody||!bgmPlaying||muted)return;
+  var m=1+Math.min(engSpd/4000,1.2);           // 4000px/s → moteur à 2.2× le ralenti
+  engBody.frequency.setTargetAtTime(42*m,ac.currentTime,0.08);
+  engSub.frequency.setTargetAtTime(28*m,ac.currentTime,0.08);
+  engBf.frequency.setTargetAtTime(220*(1+(m-1)*1.4),ac.currentTime,0.08);
+}
 function stopEngine(){
+  engBody=engSub=engBf=null; engSpd=0;
   engineTimers.forEach(clearTimeout); engineTimers=[];
   engineNodes.forEach(function(nd){
     try{if(nd.stop)nd.stop();}catch(e){}
@@ -381,6 +394,14 @@ function sfxSplat(){
   noiseHit(ac.currentTime,.18,500,0.35);
   oscNote(160,ac.currentTime,.12,'square',.14);
   oscNote(90,ac.currentTime+.05,.16,'sawtooth',.10);
+}
+function sfxAlarm(){
+  // wiip-wiip d'alarme de Corvette froissée
+  if(muted)return;getAC();
+  for(var i=0;i<3;i++){
+    oscNote(920,ac.currentTime+.25+i*.28,.13,'square',.11);
+    oscNote(690,ac.currentTime+.39+i*.28,.13,'square',.11);
+  }
 }
 
 document.getElementById('btnMute').addEventListener('click',function(e){
@@ -559,6 +580,48 @@ function drawCrabInto(g,cx,cy,s,k,look){
   q( s*0.8+lx,-s*3.3,s*0.4,s*0.4,'#fff');
 }
 
+// ── Sprites de PANIQUE : pinces levées, yeux écarquillés (2 frames de tremblement) ──
+var SPR_PANIC=[[],[]];
+(function buildPanicSprites(){
+  for(var dir=0;dir<2;dir++){
+    for(var f=0;f<2;f++){
+      var oc=document.createElement('canvas');
+      oc.width=SPR_W;oc.height=SPR_H;
+      var g=oc.getContext('2d');
+      g.imageSmoothingEnabled=false;
+      drawCrabPanicInto(g,SPR_OX,SPR_OY,3,f,dir?1:-1);
+      SPR_PANIC[dir].push(oc);
+    }
+  }
+})();
+function drawCrabPanicInto(g,cx,cy,s,f,look){
+  function q(x,y,w,h,col){g.fillStyle=col;g.fillRect(Math.round(cx+x),Math.round(cy+y),Math.max(1,Math.round(w)),Math.max(1,Math.round(h)));}
+  var j=f?0.6:-0.6;   // tremblement
+  // pattes écartées (prêt à détaler)
+  q(-s*4.8,-s*0.5,s,s*1.6,'#902010'); q(-s*4.2,s*0.9,s,s*1.4,'#902010');
+  q(s*3.8,-s*0.5,s,s*1.6,'#902010');  q(s*3.2,s*0.9,s,s*1.4,'#902010');
+  // pinces LEVÉES au ciel, grandes ouvertes
+  q(-s*3.6,-s*3.4,s*0.9,s*1.8,'#a02808');
+  q(-s*4.4,-s*5.1+j,s*2,s*0.9,'#c82810');
+  q(-s*4.4,-s*6.1+j,s*2,s*0.6,'#c82810');
+  q(s*2.7,-s*3.4,s*0.9,s*1.8,'#a02808');
+  q(s*2.4,-s*5.1-j,s*2,s*0.9,'#c82810');
+  q(s*2.4,-s*6.1-j,s*2,s*0.6,'#c82810');
+  // carapace
+  q(-s*2.5,s*1,s*5,s,'#902010');
+  q(-s*3,-s*0.5,s*6,s*1.7,'#b02010');
+  q(-s*2.5,-s*1.5,s*5,s*1.2,'#c82010');
+  q(-s*2,-s*2,s*4,s*0.7,'#e03020');
+  // tiges oculaires tendues
+  q(-s*1.3,-s*3.1,s*0.5,s*1.1,'#902010');
+  q(s*0.8,-s*3.1,s*0.5,s*1.1,'#902010');
+  // yeux écarquillés : grands blancs, pupilles minuscules
+  q(-s*1.9,-s*4.4,s*1.4,s*1.4,'#fff');
+  q(s*0.5,-s*4.4,s*1.4,s*1.4,'#fff');
+  q(-s*1.4+look*s*0.2,-s*3.9,s*0.4,s*0.4,'#0a0a0a');
+  q(s*1.0+look*s*0.2,-s*3.9,s*0.4,s*0.4,'#0a0a0a');
+}
+
 // ══════ FOULE : ~380 crabes, densité uniforme ══════
 // Pas d'anneau rangé : échantillonnage uniforme sur tout le canvas avec
 // espacement minimal, en rejetant tout crabe dont le corps mordrait sur le
@@ -623,7 +686,8 @@ function fmt(ms){   // SS.mmmd — précision au dixième de milliseconde
 function resetRun(){
   phase='ready'; elapsed=0; acc=0; lastAng=null; startAng=null; t0=0; lastMoveT=0;
   trail=[]; lapDone=false; confetti=[]; flashT=0; deathReason=''; lastTickPc=-1;
-  gibs=[]; for(var ci=0;ci<CRABS.length;ci++)CRABS[ci].dead=false;   // les crabes ressuscitent
+  gibs=[]; for(var ci=0;ci<CRABS.length;ci++){CRABS[ci].dead=false;CRABS[ci].panicT=0;}   // les crabes ressuscitent et se calment
+  carOx=carOy=carVx=carVy=0;   // la Corvette se remet en place
   hudTimer.className=''; hudTimer.textContent='00.0000';
   hudLap.textContent='TOUR 0%';
   hudBarFill.style.width='0%'; hudBarFill.style.background='#c026d3';
@@ -655,17 +719,42 @@ function drawDiscoBeams(t){
   ctx.restore();
 }
 
+// ══════ SUSPENSION DE LA CORVETTE ══════
+// Percutée, la voiture encaisse : impulsion proportionnelle à la vitesse du
+// doigt, dans sa direction, puis retour en place par ressort amorti (elle
+// tangue sur ses amortisseurs). Purement visuel — la hitbox ne bouge pas.
+var carOx=0,carOy=0,carVx=0,carVy=0;
+function nudgeCar(spd){
+  var n=trail.length;
+  var a=n>1?Math.atan2(trail[n-1].y-trail[n-2].y,trail[n-1].x-trail[n-2].x):0;
+  var imp=Math.min(9,Math.max(1.5,spd/600));   // ~quelques mm à l'échelle de la voiture
+  carVx+=Math.cos(a)*imp; carVy+=Math.sin(a)*imp;
+  if(spd>1200)sfxAlarm();                       // gros choc → l'alarme se déclenche
+}
+function stepCarSpring(){
+  carVx=(carVx-0.18*carOx)*0.88; carOx+=carVx;
+  carVy=(carVy-0.18*carOy)*0.88; carOy+=carVy;
+  if(Math.abs(carOx)<0.02&&Math.abs(carVx)<0.02)carOx=carVx=0;
+  if(Math.abs(carOy)<0.02&&Math.abs(carVy)<0.02)carOy=carVy=0;
+}
 function drawCar(){
-  ctx.drawImage(CAR_CANVAS, CX-CPW/2, CY-CPH/2);
+  stepCarSpring();
+  ctx.drawImage(CAR_CANVAS, CX-CPW/2+carOx, CY-CPH/2+carOy);
 }
 
 function drawCrowd(t){
+  var nowP=performance.now();
   for(var i=0;i<CRABS.length;i++){
     var cb=CRABS[i];
     if(cb.dead)continue;
-    var f=((t*0.004*cb.sp+cb.ph*6)|0)%6;
     var w=SPR_W*cb.sc, h=SPR_H*cb.sc;
-    ctx.drawImage(SPRITES[cb.dir][f], cb.x-w*0.45, cb.y-h*0.6, w, h);
+    if(cb.panicT&&nowP<cb.panicT){
+      var pf=((t/90)|0)%2;
+      ctx.drawImage(SPR_PANIC[cb.dir][pf], cb.x-w*0.45+(pf?1:-1), cb.y-h*0.6, w, h);
+    } else {
+      var f=((t*0.004*cb.sp+cb.ph*6)|0)%6;
+      ctx.drawImage(SPRITES[cb.dir][f], cb.x-w*0.45, cb.y-h*0.6, w, h);
+    }
   }
 }
 
@@ -869,13 +958,23 @@ function stepRun(p,tNow){
   // en temps par interpolation linéaire entre les timestamps des deux événements.
   var evDist=Math.hypot(p.x-prev.x,p.y-prev.y);
   var evSpd=evDist/Math.max(1,tNow-tPrev)*1000;   // px/s — vitesse à l'impact éventuel
+  engSpd=evSpd; setEnginePitch();                  // Doppler : le moteur suit le doigt
+  // les crabes proches paniquent quand le doigt passe vite à ras
+  if(evSpd>1200){
+    var panicUntil=performance.now()+600;
+    for(var pc2=0;pc2<CRABS.length;pc2++){
+      var cbp=CRABS[pc2];
+      var pdx=cbp.x-p.x,pdy=cbp.y-p.y;
+      if(pdx*pdx+pdy*pdy<3025)cbp.panicT=panicUntil;   // rayon 55px
+    }
+  }
   var steps=Math.max(1,Math.ceil(evDist/6));
   for(var i=1;i<=steps;i++){
     var u0=(i-1)/steps, u1=i/steps;
     var jx=prev.x+(p.x-prev.x)*u0, jy=prev.y+(p.y-prev.y)*u0;
     var ix=prev.x+(p.x-prev.x)*u1, iy=prev.y+(p.y-prev.y)*u1;
     if(Math.hypot(ix-SBX,iy-SBY)>SBR*2.4){
-      if(inCar(ix,iy)){die('TU AS TOUCHÉ LA CORVETTE !');return;}
+      if(inCar(ix,iy)){die('TU AS TOUCHÉ LA CORVETTE !',ix,iy,evSpd);return;}
       if(ellipseF(ix,iy)>F_OUT){die('TU AS BOUSCULÉ LES CRABES !',ix,iy,evSpd);return;}
     }
     var ia=Math.atan2(iy-CY,ix-CX);
@@ -974,6 +1073,8 @@ function die(reason,x,y,spd){
   // percuté trop vite → les crabes explosent (hommage à la Moule Shooter)
   if(x!==undefined && spd>1500 && reason.indexOf('CRABES')>-1){explodeCrabs(x,y);}
   else sfxCrash();
+  // percuter la Corvette → elle encaisse sur ses amortisseurs
+  if(x!==undefined && reason.indexOf('CORVETTE')>-1){nudgeCar(spd||0);}
   logPlay('dead');
   // Pas d'écran résultat : on redonne la main immédiatement (volume de parties)
   setTimeout(function(){if(phase==='dead'){newSession();resetRun();}},1200);
@@ -1084,7 +1185,7 @@ document.getElementById('btnPlay').addEventListener('click',function(){
 });
 // pseudo prérempli au retour
 document.getElementById('nameInput').value=(playerName!=='ANONYME')?playerName:'';
-console.log('TURBO DISCO V25');
+console.log('TURBO DISCO V27');
 document.getElementById('btnReplay').addEventListener('click',function(){
   newSession(); hideAll(); resetRun();
 });
@@ -1145,7 +1246,12 @@ function loop(t){
   if(phase==='running'){
     elapsed = t0 ? performance.now()-t0 : 0;
     hudTimer.textContent=fmt(elapsed);
-  }
+    // doigt immobile → le moteur retombe doucement au ralenti
+    if(engSpd>0&&performance.now()-lastMoveT>150){
+      engSpd*=0.9; if(engSpd<60)engSpd=0;
+      setEnginePitch();
+    }
+  } else if(engSpd>0){ engSpd=0; setEnginePitch(); }
   if(phase==='menu'||phase==='ready')discoAng=t*0.0018;
 
   ctx.clearRect(0,0,W,H);
