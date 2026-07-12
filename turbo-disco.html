@@ -26,7 +26,7 @@ input[type=text]::placeholder{color:#7c3f9e;}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
 /* ── Podium championnat ── */
 #lbContent{display:flex;flex-direction:column;gap:7px;align-items:center;width:100%;}
-.pod{display:flex;align-items:center;gap:8px;width:min(240px,84%);padding:8px 10px;border:1px solid;font-size:clamp(6px,1.7vw,9px);}
+.pod{display:flex;align-items:center;gap:8px;width:min(250px,88%);padding:9px 10px;border:1px solid;font-size:clamp(7px,2vw,11px);}
 .pod .prank{width:16px;}
 .pod .pname{flex:1;text-align:left;overflow:hidden;}
 .pod.gold{color:#ffd700;border-color:#ffd700;box-shadow:0 0 12px #ffd70033;}
@@ -45,6 +45,7 @@ input[type=text]::placeholder{color:#7c3f9e;}
 #hudBar{position:absolute;top:26px;right:10px;z-index:10;width:clamp(60px,18vw,110px);height:5px;background:#1e0030;border:1px solid #6b21a8;pointer-events:none;}
 #hudBarFill{height:100%;width:0%;background:#c026d3;box-shadow:0 0 5px #c026d3;}
 #hudMsg{position:absolute;bottom:0;left:0;right:0;z-index:10;text-align:center;font-size:clamp(6px,1.7vw,10px);color:#d8b4fe;pointer-events:none;line-height:1.9;background:rgba(13,0,20,.86);padding:10px 26px 12px;border-top:1px solid #2a004a;}
+.lastRes{color:#ffd700;font-size:clamp(9px,2.4vw,14px);text-shadow:0 0 8px #c026d355,2px 2px #6b21a8;display:inline-block;margin-bottom:6px;letter-spacing:1px;}
 #hudMsg.go{color:#ffd700}
 #hudMsg.bad{color:#ff4d6d}
 #btnMute{position:absolute;bottom:6px;right:8px;z-index:15;font-family:'Press Start 2P',monospace;font-size:8px;background:transparent;border:none;color:#7c3f9e;cursor:pointer;padding:4px;}
@@ -104,7 +105,7 @@ input.need{border-color:#ff4d6d !important;animation:shake .3s;}
     <button class="btn" id="btnPlay">▶ DEMARRER</button>
     <button class="btn-sm" id="btnLbMenu">★ SCORES</button>
     <p id="gameCount" style="font-size:clamp(4px,1.2vw,6px);color:#c026d3;letter-spacing:1px;">&nbsp;</p>
-    <span id="verTag">V24</span>
+    <span id="verTag">V25</span>
   </div>
 
   <div class="screen hidden" id="sResult">
@@ -605,6 +606,14 @@ var hudTimer=document.getElementById('hudTimer');
 var hudLap=document.getElementById('hudLap');
 var hudBarFill=document.getElementById('hudBarFill');
 var hudMsg=document.getElementById('hudMsg');
+// Le dernier tour bouclé reste affiché (ligne or) au-dessus des consignes,
+// jusqu'à ce qu'un NOUVEAU tour soit bouclé.
+var lastResult='', curInstr='', curCls='';
+function renderHud(){
+  hudMsg.className=curCls;
+  hudMsg.innerHTML=(lastResult?'<span class="lastRes">'+lastResult+'</span><br>':'')+curInstr;
+}
+function setHud(instr,cls){curInstr=instr;curCls=cls||'';renderHud();}
 
 function fmt(ms){   // SS.mmmd — précision au dixième de milliseconde
   var t=Math.round(ms*10);
@@ -618,7 +627,7 @@ function resetRun(){
   hudTimer.className=''; hudTimer.textContent='00.0000';
   hudLap.textContent='TOUR 0%';
   hudBarFill.style.width='0%'; hudBarFill.style.background='#c026d3';
-  hudMsg.className=''; hudMsg.textContent='POSE TON DOIGT SUR LA BOULE DISCO';
+  setHud('POSE TON DOIGT SUR LA BOULE DISCO');
 }
 
 // ══════ DESSIN ══════
@@ -839,7 +848,7 @@ function beginRun(p,tNow){
   trail=[{x:p.x,y:p.y}]; acc=0;
   trace=[[Math.round(p.x*10)/10,Math.round(p.y*10)/10,Math.round(tNow*10)/10]];
   hudTimer.className='run';
-  hudMsg.className='go'; hudMsg.textContent='LE CHRONO PART QUAND TU QUITTES LA BOULE !';
+  setHud('LE CHRONO PART QUAND TU QUITTES LA BOULE !','go');
   sfxStart();
 }
 
@@ -880,7 +889,7 @@ function stepRun(p,tNow){
       var s=crossT(jx,jy,ix,iy,GATE);
       t0=tPrev+(tNow-tPrev)*(u0+(u1-u0)*s);
       acc=0;
-      hudMsg.className='go'; hudMsg.textContent='TOURNE ENTRE LA VOITURE ET LES CRABES !';
+      setHud('TOURNE ENTRE LA VOITURE ET LES CRABES !','go');
     } else if(t0>0 && !lapDone && Math.abs(acc)>=Math.PI*1.8 && d1<=GATE && d0>GATE){
       // arrivée : contact retour avec la boule après un tour complet
       // (seuil 1.8π : minimum géométrique ~1.87π, marge incluse)
@@ -961,7 +970,7 @@ function die(reason,x,y,spd){
   phase='dead'; deathReason=reason; flashT=20;
   activeTouchId=null; mouseActive=false;
   hudTimer.className='';
-  hudMsg.className='bad'; hudMsg.textContent=reason+' · ENCORE !';
+  setHud(reason+' · ENCORE !','bad');
   // percuté trop vite → les crabes explosent (hommage à la Moule Shooter)
   if(x!==undefined && spd>1500 && reason.indexOf('CRABES')>-1){explodeCrabs(x,y);}
   else sfxCrash();
@@ -976,7 +985,8 @@ function finish(tHit){
   hudTimer.className=''; hudTimer.textContent=fmt(elapsed);
   hudBarFill.style.width='100%'; hudBarFill.style.background='#ffd700';
   hudLap.textContent='TOUR 100%';
-  hudMsg.className='go'; hudMsg.textContent='BOUCLÉ EN '+fmt(elapsed)+' !';
+  lastResult='BOUCLÉ EN '+fmt(elapsed);
+  setHud('TOUR VALIDÉ !','go');
   sfxWin(); spawnConfetti();
   logPlay('done');
   // Chaque tour bouclé est enregistré (leaderboard + stats).
@@ -990,7 +1000,10 @@ function finish(tHit){
           if(saved){
             checkTop10AndRevealInsta(ms);
             fetchRank(ms).then(function(rk){
-              if(rk){var rc=document.getElementById('resComment');rc.textContent+=' · '+rk+'e TEMPS';}
+              if(rk){
+                var rc=document.getElementById('resComment');rc.textContent+=' · '+rk+'e TEMPS';
+                lastResult='BOUCLÉ EN '+fmt(ms)+' · '+rk+'e TEMPS'; renderHud();
+              }
             });
           }
           else{
@@ -1001,21 +1014,21 @@ function finish(tHit){
         });
       },1500);
     } else {
-      hudMsg.textContent='BOUCLÉ EN '+fmt(ms)+' · REJOUE !';
-      // rang global affiché dès que le serveur a avalé le score —
+      setHud('REJOUE !','go');
+      // rang global : la ligne or persiste jusqu'au prochain tour bouclé —
       // et si c'est le PIRE temps du championnat, on le célèbre !
       savedP.then(function(d){
         if(!d)return;
         Promise.all([fetchRank(ms),fetchTotalScores()]).then(function(rt){
           var rk=rt[0], tot=rt[1];
-          if(!rk||phase!=='done')return;
+          if(!rk)return;
           if(tot&&rk===tot&&tot>3){
-            hudMsg.className='go';
-            hudMsg.textContent='BOUCLÉ EN '+fmt(ms)+' · DERNIER MONDIAL · ★ LANTERNE ROUGE ! ★';
-            spawnConfetti();
+            lastResult='BOUCLÉ EN '+fmt(ms)+' · DERNIER MONDIAL · ★ LANTERNE ROUGE ! ★';
+            if(phase==='done')spawnConfetti();
           } else {
-            hudMsg.textContent='BOUCLÉ EN '+fmt(ms)+' · '+rk+'e TEMPS · REJOUE !';
+            lastResult='BOUCLÉ EN '+fmt(ms)+' · '+rk+'e TEMPS';
           }
+          renderHud();
         });
       });
       setTimeout(function(){if(phase==='done'){newSession();resetRun();}},2600);
@@ -1071,7 +1084,7 @@ document.getElementById('btnPlay').addEventListener('click',function(){
 });
 // pseudo prérempli au retour
 document.getElementById('nameInput').value=(playerName!=='ANONYME')?playerName:'';
-console.log('TURBO DISCO V24');
+console.log('TURBO DISCO V25');
 document.getElementById('btnReplay').addEventListener('click',function(){
   newSession(); hideAll(); resetRun();
 });
