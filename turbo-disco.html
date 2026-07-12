@@ -32,7 +32,7 @@ input[type=text]::placeholder{color:#7c3f9e;}
 .pod.gold{color:#ffd700;border-color:#ffd700;box-shadow:0 0 12px #ffd70033;}
 .pod.silver{color:#c9ccd8;border-color:#8a8fa0;}
 .pod.bronze{color:#cd7f32;border-color:#8a5220;}
-.pod.lant{color:#ff4d6d;border-color:#5c1020;background:#1a0510;}
+.pod.lant{color:#ff4d6d;border-color:#ff4d6d;background:#1a0510;box-shadow:0 0 12px #ff4d6d33;}
 .lb-table{width:100%;border-collapse:collapse;font-size:clamp(5px,1.3vw,7px);color:#f0abfc;}
 .lb-table th{color:#ffd700;padding:3px 5px;border-bottom:1px solid #6b21a8;}
 .lb-table td{padding:4px 5px;border-bottom:1px solid #2a004a;}
@@ -44,7 +44,7 @@ input[type=text]::placeholder{color:#7c3f9e;}
 #hudLap{position:absolute;top:8px;right:10px;z-index:10;font-size:clamp(5px,1.4vw,8px);color:#d8b4fe;pointer-events:none;text-align:right;}
 #hudBar{position:absolute;top:26px;right:10px;z-index:10;width:clamp(60px,18vw,110px);height:5px;background:#1e0030;border:1px solid #6b21a8;pointer-events:none;}
 #hudBarFill{height:100%;width:0%;background:#c026d3;box-shadow:0 0 5px #c026d3;}
-#hudMsg{position:absolute;bottom:8px;left:0;right:0;z-index:10;text-align:center;font-size:clamp(5px,1.4vw,8px);color:#d8b4fe;pointer-events:none;line-height:2;}
+#hudMsg{position:absolute;bottom:0;left:0;right:0;z-index:10;text-align:center;font-size:clamp(6px,1.7vw,10px);color:#d8b4fe;pointer-events:none;line-height:1.9;background:rgba(13,0,20,.86);padding:10px 26px 12px;border-top:1px solid #2a004a;}
 #hudMsg.go{color:#ffd700}
 #hudMsg.bad{color:#ff4d6d}
 #btnMute{position:absolute;bottom:6px;right:8px;z-index:15;font-family:'Press Start 2P',monospace;font-size:8px;background:transparent;border:none;color:#7c3f9e;cursor:pointer;padding:4px;}
@@ -104,7 +104,7 @@ input.need{border-color:#ff4d6d !important;animation:shake .3s;}
     <button class="btn" id="btnPlay">▶ DEMARRER</button>
     <button class="btn-sm" id="btnLbMenu">★ SCORES</button>
     <p id="gameCount" style="font-size:clamp(4px,1.2vw,6px);color:#c026d3;letter-spacing:1px;">&nbsp;</p>
-    <span id="verTag">V22</span>
+    <span id="verTag">V24</span>
   </div>
 
   <div class="screen hidden" id="sResult">
@@ -128,7 +128,7 @@ input.need{border-color:#ff4d6d !important;animation:shake .3s;}
     <p style="font-size:clamp(8px,2vw,13px);color:#ffd700">★ FINALE MONDIALE 2025 ★</p>
     <p class="sub">LA FINALE N'A JAMAIS PU ÊTRE COURUE.<br>LE MEILLEUR TEMPS AU 8 AOÛT 2026 SERA<br>COURONNÉ CHAMPION DU MONDE 2025.</p>
     <div id="lbContent"><p class="loader">CHARGEMENT...</p></div>
-    <p class="sub" style="color:#ffd700;">1ER = TITRE MONDIAL + OPEN BAR · TOP 10 = BOISSON<br>REMISE DES PRIX LE 8 AOÛT SUR PLACE</p>
+    <p class="sub" style="color:#ffd700;">AUCUN LOT. JUSTE LA GLOIRE ÉTERNELLE.<br>SACRE DU CHAMPION LE 8 AOÛT SUR PLACE</p>
     <button class="btn-sm" id="btnBack">← RETOUR</button>
   </div>
 </div>
@@ -148,7 +148,7 @@ var TABLE='turbo_scores';
 // Plancher 60ms : juste au-dessus de la limite PHYSIQUE (chemin optimal 440.3px
 // au plafond de vitesse 8000px/s = 55.0ms). C'est le plafond de vitesse soutenue,
 // côté serveur, qui fait la loi — pas un chiffre rond arbitraire.
-var MIN_TIME_MS=60, MAX_TIME_MS=180000, MIN_PLAY_MS=800, MIN_ACTIONS=5;
+var MIN_TIME_MS=60, MAX_TIME_MS=2592000000, MIN_PLAY_MS=800, MIN_ACTIONS=5;   // 30 JOURS max. Le doigt doit rester collé. La lanterne rouge se mérite.
 
 function sbHeaders(extra){
   var h={apikey:SB_KEY,'Authorization':'Bearer '+SB_KEY};
@@ -230,6 +230,14 @@ function fetchRank(ms){
   }).then(function(r){
     var m=(r.headers.get('content-range')||'').match(/\/(\d+)/);
     return m?parseInt(m[1])+1:null;
+  }).catch(function(){return null;});
+}
+function fetchTotalScores(){
+  return fetch(SB_URL+'/'+TABLE+'?select=*',{method:'HEAD',
+    headers:sbHeaders({'Prefer':'count=exact','Range':'0-0'})
+  }).then(function(r){
+    var m=(r.headers.get('content-range')||'').match(/\/(\d+)/);
+    return m?parseInt(m[1]):null;
   }).catch(function(){return null;});
 }
 var totalGames=0;
@@ -994,11 +1002,20 @@ function finish(tHit){
       },1500);
     } else {
       hudMsg.textContent='BOUCLÉ EN '+fmt(ms)+' · REJOUE !';
-      // rang global affiché dès que le serveur a avalé le score
+      // rang global affiché dès que le serveur a avalé le score —
+      // et si c'est le PIRE temps du championnat, on le célèbre !
       savedP.then(function(d){
         if(!d)return;
-        fetchRank(ms).then(function(rk){
-          if(rk&&phase==='done')hudMsg.textContent='BOUCLÉ EN '+fmt(ms)+' · '+rk+'e TEMPS · REJOUE !';
+        Promise.all([fetchRank(ms),fetchTotalScores()]).then(function(rt){
+          var rk=rt[0], tot=rt[1];
+          if(!rk||phase!=='done')return;
+          if(tot&&rk===tot&&tot>3){
+            hudMsg.className='go';
+            hudMsg.textContent='BOUCLÉ EN '+fmt(ms)+' · DERNIER MONDIAL · ★ LANTERNE ROUGE ! ★';
+            spawnConfetti();
+          } else {
+            hudMsg.textContent='BOUCLÉ EN '+fmt(ms)+' · '+rk+'e TEMPS · REJOUE !';
+          }
         });
       });
       setTimeout(function(){if(phase==='done'){newSession();resetRun();}},2600);
@@ -1011,7 +1028,8 @@ function comment(ms){
   if(ms<5000)return 'PROPRE. TRÈS PROPRE.';
   if(ms<8000)return 'HONORABLE. LES CRABES APPLAUDISSENT.';
   if(ms<15000)return 'TU AS PRIS TON TEMPS. ÇA COMPTE AUSSI.';
-  return 'TU AS VISITÉ LA VOITURE, PAS COURU AUTOUR.';
+  if(ms<120000)return 'TU AS VISITÉ LA VOITURE, PAS COURU AUTOUR.';
+  return 'LA LANTERNE ROUGE SE MÉRITE. RESPECT ÉTERNEL.';
 }
 function showResult(){
   var ok=(phase==='done');
@@ -1053,7 +1071,7 @@ document.getElementById('btnPlay').addEventListener('click',function(){
 });
 // pseudo prérempli au retour
 document.getElementById('nameInput').value=(playerName!=='ANONYME')?playerName:'';
-console.log('TURBO DISCO V22');
+console.log('TURBO DISCO V24');
 document.getElementById('btnReplay').addEventListener('click',function(){
   newSession(); hideAll(); resetRun();
 });
@@ -1100,7 +1118,7 @@ function renderLb(){
         +'<span>'+(s?fmt(s.time_ms):'--.----')+'</span></div>';
     }
     if(worst&&total>3){
-      h+='<p class="sub" style="color:#7c3f9e;">· LANTERNE ROUGE ·</p>';
+      h+='<p class="sub" style="color:#ff9aa8;">★ LANTERNE ROUGE ★<br>TITRE HONORIFIQUE DU TOUR LE PLUS LENT</p>';
       h+='<div class="pod lant"><span class="prank">'+total+'</span>'
         +'<span class="pname">'+esc(worst.name)+'</span>'
         +'<span>'+fmt(worst.time_ms)+'</span></div>';
