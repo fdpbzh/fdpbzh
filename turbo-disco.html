@@ -87,7 +87,7 @@ input.need{border-color:#ff4d6d !important;animation:shake .3s;}
     <button class="btn" id="btnPlay">▶ DEMARRER</button>
     <button class="btn-sm" id="btnLbMenu">★ SCORES</button>
     <p id="gameCount" style="font-size:clamp(4px,1.2vw,6px);color:#c026d3;letter-spacing:1px;">&nbsp;</p>
-    <span id="verTag">V17</span>
+    <span id="verTag">V18</span>
   </div>
 
   <div class="screen hidden" id="sResult">
@@ -203,14 +203,22 @@ function isTop10(ms){
 }
 var totalGames=0;
 function loadCount(){
-  return fetch(SB_URL+'/'+TABLE+'?select=*',{method:'HEAD',
+  // Compteur = TOUTES les parties (ratées comprises), via la table turbo_plays
+  return fetch(SB_URL+'/turbo_plays?select=*',{method:'HEAD',
     headers:sbHeaders({'Prefer':'count=exact','Range':'0-0'})
   }).then(function(r){
     var range=r.headers.get('content-range');
     if(range){var m=range.match(/\/(\d+)/);if(m)totalGames=parseInt(m[1]);}
     var el=document.getElementById('gameCount');
-    if(el)el.textContent=totalGames+' TOURS BOUCLÉS';
+    if(el)el.textContent=totalGames+' PARTIES JOUÉES';
   }).catch(function(){});
+}
+function logPlay(outcome){
+  // fire-and-forget : chaque tentative compte, même ratée
+  fetch(SB_URL+'/turbo_plays',{method:'POST',
+    headers:sbHeaders({'Content-Type':'application/json','Prefer':'return=minimal'}),
+    body:JSON.stringify({session_id:sessionToken,outcome:outcome})
+  }).then(function(){loadCount();}).catch(function(){});
 }
 
 // ══════ AUDIO ══════
@@ -768,12 +776,17 @@ function stepRun(p,tNow){
     acc+=angDiff(ia,lastAng); lastAng=ia;
     var d0=Math.hypot(jx-SBX,jy-SBY), d1=Math.hypot(ix-SBX,iy-SBY);
     if(t0===0 && d0<=GATE && d1>GATE){
-      // départ : sortie de la porte
+      // départ : sortie de la porte. L'angle du tour se compte à partir d'ICI,
+      // pas du point de contact initial — sinon déficit d'angle quand on touche
+      // un côté de la boule et qu'on sort de l'autre → l'arrivée est ignorée,
+      // le doigt traverse la boule et va mourir derrière (bug V17).
       var s=crossT(jx,jy,ix,iy,GATE);
       t0=tPrev+(tNow-tPrev)*(u0+(u1-u0)*s);
+      acc=0;
       hudMsg.className='go'; hudMsg.textContent='TOURNE ENTRE LA VOITURE ET LES CRABES !';
-    } else if(t0>0 && !lapDone && Math.abs(acc)>=Math.PI*1.9 && d1<=GATE && d0>GATE){
+    } else if(t0>0 && !lapDone && Math.abs(acc)>=Math.PI*1.8 && d1<=GATE && d0>GATE){
       // arrivée : contact retour avec la boule après un tour complet
+      // (seuil 1.8π : minimum géométrique ~1.87π, marge incluse)
       var s2=crossT(jx,jy,ix,iy,GATE);
       lapDone=true;
       finish(tPrev+(tNow-tPrev)*(u0+(u1-u0)*s2));
@@ -853,6 +866,7 @@ function die(reason){
   hudTimer.className='';
   hudMsg.className='bad'; hudMsg.textContent=reason+' · ENCORE !';
   sfxCrash();
+  logPlay('dead');
   // Pas d'écran résultat : on redonne la main immédiatement (volume de parties)
   setTimeout(function(){if(phase==='dead'){newSession();resetRun();}},1200);
 }
@@ -865,7 +879,8 @@ function finish(tHit){
   hudLap.textContent='TOUR 100%';
   hudMsg.className='go'; hudMsg.textContent='BOUCLÉ EN '+fmt(elapsed)+' !';
   sfxWin(); spawnConfetti();
-  // Chaque tour bouclé est enregistré (compteur + stats).
+  logPlay('done');
+  // Chaque tour bouclé est enregistré (leaderboard + stats).
   // La cérémonie (écran résultat + insta) est réservée au top 10.
   var ms=elapsed, savedP=saveScore(playerName,ms);
   isTop10(ms).then(function(q){
@@ -931,7 +946,7 @@ document.getElementById('btnPlay').addEventListener('click',function(){
 });
 // pseudo prérempli au retour
 document.getElementById('nameInput').value=(playerName!=='ANONYME')?playerName:'';
-console.log('TURBO DISCO V17');
+console.log('TURBO DISCO V18');
 document.getElementById('btnReplay').addEventListener('click',function(){
   newSession(); hideAll(); resetRun();
 });
