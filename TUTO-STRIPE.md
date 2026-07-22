@@ -118,14 +118,29 @@ Deux options :
 - Pour l'afficher en colonne dans la liste : bouton **Colonnes** → coche **« ID de référence client »**. Idéal pour préparer les t-shirts d'un coup d'œil.
 - Tu peux **exporter en CSV** (la colonne `client_reference_id` contient le `Couleur-Taille`) pour cocher tes commandes.
 - Stripe envoie automatiquement un **reçu par email** au client.
-- **Stock :** quand une taille/couleur est épuisée, dis-le-moi (ou modifie le tableau `STOCK` en bas de `boutique.html`) : elle devient barrée et non sélectionnable sur le site.
+- **Stock :** gère-le toi-même depuis la page **`gestion-stock.html`** (voir plus bas) : retire 1 à chaque vente, télécharge le fichier, Commit → Push. Une taille à 0 devient barrée et non commandable sur la boutique.
 
 ---
 
 ## Bon à savoir
 
 - **Commission Stripe** : environ **1,5 % + 0,25 €** par paiement (carte européenne). Sur 22 € ≈ **0,58 €**. L'asso reçoit ~21,40 € par t-shirt (retrait).
-- **Stock** : Stripe ne bloque pas les quantités par couleur/taille. Surveille tes ventes ; quand une taille/couleur est épuisée, dis-le-moi (je la barre sur la page) ou modifie le petit tableau `STOCK` en bas de `boutique.html`.
+- **Stock** : Stripe ne décompte pas les quantités par couleur/taille. C'est toi qui tiens le stock à jour via **`gestion-stock.html`** — pense à y retirer aussi chaque vente Stripe (pas seulement les ventes en espèces), puis Commit → Push.
+
+---
+
+## Étape 9 — Gérer le stock (page `gestion-stock.html`)
+
+Le stock des t-shirts est stocké dans un seul fichier : **`assets/stock.json`**. Tu n'y touches pas à la main : tu passes par l'outil.
+
+1. Va sur **`fdp.bzh/gestion-stock.html`** (page privée, non listée dans le menu — garde le lien pour toi).
+2. Tu vois un tableau **couleurs × tailles** avec les quantités.
+3. **Une vente** (en ligne **ou** en espèces) = clique sur **−** dans la bonne case (ou tape la nouvelle quantité). Pour un réassort, clique sur **+**.
+4. Clique **« ⬇ Télécharger stock.json »**.
+5. Dans **GitHub Desktop** : glisse le fichier téléchargé dans le dossier **`assets`** (il remplace l'ancien) → **Commit** → **Push**.
+6. La boutique est à jour en 1–2 min. Les tailles à 0 apparaissent **barrées** et ne sont plus commandables.
+
+> ⚠️ Les ventes Stripe **ne se décomptent pas toutes seules** : après chaque commande reçue dans Stripe, pense à retirer la quantité correspondante dans l'outil. La boutique recharge le stock quand on revient sur l'onglet, ce qui limite les doublons, mais tenir le stock à jour rapidement reste le meilleur garde-fou.
 - **Remboursement** : possible en 1 clic depuis le paiement concerné.
 - **Clôturer les précommandes** : quand tu veux arrêter, tu peux **désactiver** les liens de paiement dans Stripe (ils deviennent inaccessibles).
 

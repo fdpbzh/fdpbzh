@@ -1,0 +1,14 @@
+{
+  "updated": "2026-07-23",
+  "sizeOrder": ["XXS", "XS", "S", "M", "L", "XL", "XXL"],
+  "colors": [
+    { "code": "noir",       "name": "Noir",        "ref": "Noir",       "dot": "#1a1a1a", "img": "assets/tee-noir.webp",       "stock": { "XXS": 1, "XS": 1, "S": 2, "M": 4, "L": 4, "XL": 2, "XXL": 1 } },
+    { "code": "anthracite", "name": "Anthracite",  "ref": "Anthracite", "dot": "#45464a", "img": "assets/tee-anthracite.webp", "stock": { "XXS": 1, "XS": 1, "S": 4, "M": 7, "L": 8, "XL": 4, "XXL": 2 } },
+    { "code": "lavande",    "name": "Lavande",     "ref": "Lavande",    "dot": "#c9b8e8", "img": "assets/tee-lavande.webp",    "stock": { "XXS": 1, "XS": 3, "S": 4, "M": 4, "L": 3, "XL": 1, "XXL": 0 } },
+    { "code": "beige",      "name": "Beige",       "ref": "Beige",      "dot": "#d9c9a8", "img": "assets/tee-beige.webp",      "stock": { "XXS": 1, "XS": 1, "S": 2, "M": 3, "L": 3, "XL": 1, "XXL": 0 } },
+    { "code": "creme",      "name": "Blanc crème", "ref": "Creme",      "dot": "#f1ebdd", "img": "assets/tee-creme.webp",      "stock": { "XXS": 0, "XS": 0, "S": 1, "M": 1, "L": 1, "XL": 0, "XXL": 0 } },
+    { "code": "jaune",      "name": "Jaune clair", "ref": "Jaune",      "dot": "#f3edad", "img": "assets/tee-jaune.webp",      "stock": { "XXS": 1, "XS": 1, "S": 2, "M": 3, "L": 3, "XL": 0, "XXL": 0 } },
+    { "code": "rose",       "name": "Rose pâle",   "ref": "Rose",       "dot": "#f4dde1", "img": "assets/tee-rose.webp",       "stock": { "XXS": 0, "XS": 1, "S": 1, "M": 1, "L": 0, "XL": 0, "XXL": 0 } },
+    { "code": "vert",       "name": "Vert pâle",   "ref": "Vert",       "dot": "#c8e3da", "img": "assets/tee-vert.webp",       "stock": { "XXS": 1, "XS": 3, "S": 3, "M": 3, "L": 3, "XL": 1, "XXL": 0 } }
+  ]
+}
