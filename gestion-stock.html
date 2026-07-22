@@ -13,194 +13,203 @@
   .adm{max-width:1000px;margin:0 auto;padding:clamp(24px,5vh,54px) clamp(18px,4vw,40px) 80px}
   .adm h1{font-family:'DK Longreach',var(--ff);font-size:clamp(30px,5vw,46px);color:var(--yellow);line-height:1;margin-bottom:6px}
   .adm .sub{color:var(--lav2);font-size:15px;margin-bottom:22px}
-  .howto{background:var(--card1);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:22px;font-size:14px;line-height:1.6;color:var(--lav2)}
-  .howto b{color:var(--cream)}
-  .bar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:18px}
+  .gate{max-width:360px;margin:40px auto;background:var(--card1);border:1px solid var(--line);border-radius:16px;padding:26px}
+  .gate label{display:block;font-weight:700;font-size:13px;color:var(--lav);margin-bottom:8px;letter-spacing:.5px}
+  .gate input{width:100%;height:44px;border-radius:10px;border:1px solid var(--line2);background:#0d0420;color:var(--cream);font-family:inherit;font-size:15px;padding:0 12px;margin-bottom:12px}
+  .gate .err{color:var(--pink);font-size:13px;min-height:18px;margin-bottom:6px}
   .btn{font-family:inherit;font-weight:800;font-size:14px;letter-spacing:.3px;border:0;border-radius:11px;padding:13px 18px;cursor:pointer;transition:.15s}
-  .btn.primary{background:var(--yellow);color:var(--ink);box-shadow:0 4px 0 var(--orange)}
+  .btn.primary{background:var(--yellow);color:var(--ink);box-shadow:0 4px 0 var(--orange);width:100%}
   .btn.primary:active{transform:translateY(2px);box-shadow:0 2px 0 var(--orange)}
   .btn.ghost{background:none;border:2px solid rgba(255,245,225,.4);color:var(--cream)}
   .btn.ghost:hover{border-color:var(--yellow);color:var(--yellow)}
-  .status{font-weight:700;font-size:13px;margin-left:auto}
-  .status.clean{color:var(--lav)}
-  .status.dirty{color:var(--orange)}
-  .tot-line{font-weight:800;color:var(--cream);font-size:15px;margin:6px 0 18px}
+  .bar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:16px}
+  .status{font-weight:700;font-size:13px;margin-left:auto;transition:.2s}
+  .status.ok{color:#5fd08a}.status.err{color:var(--pink)}.status.idle{color:var(--lav)}
+  .tot-line{font-weight:800;color:var(--cream);font-size:15px;margin:2px 0 18px}
   .tot-line span{color:var(--yellow)}
   .tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:16px}
   table{border-collapse:collapse;width:100%;min-width:640px}
   th,td{padding:10px 8px;text-align:center;border-bottom:1px solid var(--line)}
-  thead th{background:var(--card2);color:var(--lav);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;font-weight:800;position:sticky;top:0}
+  thead th{background:var(--card2);color:var(--lav);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;font-weight:800}
   tbody tr:last-child td{border-bottom:0}
   .cname{text-align:left;white-space:nowrap;font-weight:800;color:var(--cream);font-size:14px}
   .cname .dot{display:inline-block;width:16px;height:16px;border-radius:50%;vertical-align:-3px;margin-right:8px;border:1px solid rgba(255,255,255,.3)}
   .cell{display:inline-flex;align-items:center;gap:4px}
   .cell button{width:26px;height:26px;border-radius:7px;border:1px solid var(--line2);background:var(--card1);color:var(--cream);font-weight:800;font-size:15px;cursor:pointer;line-height:1}
   .cell button:hover{border-color:var(--yellow);color:var(--yellow)}
-  .cell input{width:42px;height:28px;text-align:center;font-family:inherit;font-weight:800;font-size:14px;border-radius:7px;border:1px solid var(--line2);background:#0d0420;color:var(--cream)}
+  .cell button:disabled{opacity:.4;cursor:default}
+  .cell input{width:44px;height:28px;text-align:center;font-family:inherit;font-weight:800;font-size:14px;border-radius:7px;border:1px solid var(--line2);background:#0d0420;color:var(--cream)}
   td.zero input{opacity:.5;border-style:dashed}
+  td.saving input{border-color:var(--yellow)}
   td.rowtot{font-weight:800;color:var(--yellow);font-size:15px}
   tfoot td{background:var(--card2);font-weight:800;color:var(--cream);font-size:13px;border-top:2px solid var(--line2)}
   tfoot td.grand{color:var(--yellow)}
   .foot-note{color:var(--lav2);font-size:13px;line-height:1.6;margin-top:20px}
   .foot-note a{color:var(--yellow)}
-  #saved-msg{display:none;background:rgba(255,201,60,.12);border:1px solid var(--yellow);border-radius:12px;padding:14px 16px;margin-top:18px;color:var(--cream);font-size:14px;line-height:1.6}
 </style>
 </head>
 <body>
 <div class="adm">
   <h1>Gestion du stock</h1>
-  <div class="sub">Outil privé de l'asso — page non indexée, ne partage pas ce lien.</div>
+  <div class="sub">Outil privé de l'asso — mises à jour en direct. Ne partage pas ce lien ni le mot de passe.</div>
 
-  <div class="howto">
-    <b>Comment ça marche :</b> une vente (en ligne <em>ou</em> en espèces) = tu retires <b>1</b> à la bonne case avec le bouton <b>−</b> (ou tu tapes la nouvelle quantité). Quand tu as fini, clique <b>« Télécharger stock.json »</b>, puis dans <b>GitHub Desktop</b> : glisse le fichier téléchargé dans le dossier <b>assets</b> (il remplace l'ancien) → <b>Commit</b> → <b>Push</b>. Le site se met à jour en 1–2 min. Pense à décompter les ventes Stripe ici aussi (elles ne s'enlèvent pas toutes seules).
+  <!-- PORTE -->
+  <div class="gate" id="gate">
+    <label for="pw">Mot de passe</label>
+    <input id="pw" type="password" autocomplete="current-password" placeholder="••••••••">
+    <div class="err" id="gate-err"></div>
+    <button class="btn primary" id="login">Entrer</button>
   </div>
 
-  <div class="bar">
-    <button class="btn primary" id="dl">⬇ Télécharger stock.json</button>
-    <button class="btn ghost" id="copy">Copier le code</button>
-    <button class="btn ghost" id="reload">↻ Repartir du stock en ligne</button>
-    <span class="status clean" id="status">à jour</span>
+  <!-- APP -->
+  <div id="app" style="display:none">
+    <div class="bar">
+      <button class="btn ghost" id="reload">↻ Recharger</button>
+      <button class="btn ghost" id="logout">Se déconnecter</button>
+      <span class="status idle" id="status">à jour</span>
+    </div>
+    <div class="tot-line">Total de t-shirts restants : <span id="grand">–</span></div>
+    <div class="tbl-wrap">
+      <table id="tbl"><thead></thead><tbody></tbody><tfoot></tfoot></table>
+    </div>
+    <p class="foot-note">Une vente (Stripe ou espèces) : clique <b>−</b> sur la bonne case — c'est enregistré <b>instantanément</b>, rien d'autre à faire. Les ventes Stripe sont normalement déjà décomptées automatiquement ; utilise cet outil pour les <b>ventes en espèces</b>, les <b>corrections</b> et les <b>réassorts</b> (bouton <b>+</b>). <a href="boutique.html" target="_blank" rel="noopener">Voir la boutique →</a></p>
   </div>
-
-  <div class="tot-line">Total de t-shirts restants : <span id="grand">–</span> · dernière mise à jour du fichier : <span id="updated">–</span></div>
-
-  <div class="tbl-wrap">
-    <table id="tbl"><thead></thead><tbody></tbody><tfoot></tfoot></table>
-  </div>
-
-  <div id="saved-msg"></div>
-
-  <p class="foot-note">Astuce : pour <b>rajouter</b> du stock (réassort, retour), augmente la quantité avec <b>+</b>. Une case à 0 apparaît barrée sur la boutique et n'est plus commandable. <a href="boutique.html" target="_blank" rel="noopener">Voir la boutique →</a></p>
 </div>
 
 <script>
 (function(){
-  var DATA=null, dirty=false;
-  var tbl=document.getElementById('tbl'),
-      thead=tbl.querySelector('thead'), tbody=tbl.querySelector('tbody'), tfoot=tbl.querySelector('tfoot'),
-      statusEl=document.getElementById('status'), grandEl=document.getElementById('grand'),
-      updatedEl=document.getElementById('updated'), savedMsg=document.getElementById('saved-msg');
+  var SB_URL='https://nhsroymqvwrjflagzznz.supabase.co';
+  var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oc3JveW1xdndyamZsYWd6em56Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MTcyNzEsImV4cCI6MjA5MzM5MzI3MX0.9DF3S9rqhyR4UY9W_vVT2xUxyZNhA3wfk4LTOBzRg64';
+  var FN=SB_URL+'/functions/v1/admin-stock';
 
-  function fetchStock(){return fetch('assets/stock.json?t='+Date.now(),{cache:'no-store'}).then(function(r){if(!r.ok)throw 0;return r.json();});}
+  var COLORS=[
+    {code:'noir',name:'Noir',dot:'#1a1a1a'},
+    {code:'anthracite',name:'Anthracite',dot:'#45464a'},
+    {code:'lavande',name:'Lavande',dot:'#c9b8e8'},
+    {code:'beige',name:'Beige',dot:'#d9c9a8'},
+    {code:'creme',name:'Blanc crème',dot:'#f1ebdd'},
+    {code:'jaune',name:'Jaune clair',dot:'#f3edad'},
+    {code:'rose',name:'Rose pâle',dot:'#f4dde1'},
+    {code:'vert',name:'Vert pâle',dot:'#c8e3da'}
+  ];
+  var ALL=['XXS','XS','S','M','L','XL','XXL'];
+  var NAME={}; COLORS.forEach(function(c){NAME[c.code]=c;});
 
-  function setDirty(v){
-    dirty=v;
-    statusEl.textContent=v?'● modifications non enregistrées':'à jour';
-    statusEl.className='status '+(v?'dirty':'clean');
+  function byId(id){return document.getElementById(id);}
+  var gate=byId('gate'),app=byId('app'),pwInput=byId('pw'),gateErr=byId('gate-err'),
+      statusEl=byId('status'),grandEl=byId('grand'),
+      tbl=byId('tbl'),thead=tbl.querySelector('thead'),tbody=tbl.querySelector('tbody'),tfoot=tbl.querySelector('tfoot');
+  var PW='', STOCK={};
+
+  function call(body){
+    return fetch(FN,{method:'POST',headers:{'content-type':'application/json',apikey:SB_KEY},body:JSON.stringify(body)})
+      .then(function(r){return r.json().then(function(j){return {status:r.status,j:j};},function(){return {status:r.status,j:{}};});});
   }
+  function setStatus(txt,cls){ statusEl.textContent=txt; statusEl.className='status '+(cls||'idle'); }
 
-  function colTotal(c){return DATA.sizeOrder.reduce(function(n,s){return n+(c.stock[s]||0);},0);}
-  function sizeTotal(sz){return DATA.colors.reduce(function(n,c){return n+(c.stock[sz]||0);},0);}
-  function grandTotal(){return DATA.colors.reduce(function(n,c){return n+colTotal(c);},0);}
+  function toMap(rows){ var m={}; rows.forEach(function(r){ (m[r.color_code]=m[r.color_code]||{})[r.size]=r.qty; }); return m; }
+  function colTotal(code){ return ALL.reduce(function(n,s){return n+((STOCK[code]&&STOCK[code][s])||0);},0); }
+  function sizeTotal(sz){ return COLORS.reduce(function(n,c){return n+((STOCK[c.code]&&STOCK[c.code][sz])||0);},0); }
+  function grandTotal(){ return COLORS.reduce(function(n,c){return n+colTotal(c.code);},0); }
 
   function refreshTotals(){
     grandEl.textContent=grandTotal();
-    DATA.colors.forEach(function(c,i){
-      var rt=document.getElementById('rt'+i); if(rt)rt.textContent=colTotal(c);
-    });
-    DATA.sizeOrder.forEach(function(sz){
-      var st=document.getElementById('st_'+sz); if(st)st.textContent=sizeTotal(sz);
-    });
-    var gd=document.getElementById('ft-grand'); if(gd)gd.textContent=grandTotal();
-  }
-
-  function setVal(ci,sz,v){
-    v=Math.max(0,Math.floor(Number(v)||0));
-    DATA.colors[ci].stock[sz]=v;
-    var td=document.getElementById('td_'+ci+'_'+sz);
-    var inp=document.getElementById('in_'+ci+'_'+sz);
-    if(inp)inp.value=v;
-    if(td)td.className='cell-td'+(v===0?' zero':'');
-    setDirty(true); refreshTotals();
+    COLORS.forEach(function(c){ var e=byId('rt_'+c.code); if(e)e.textContent=colTotal(c.code); });
+    ALL.forEach(function(sz){ var e=byId('st_'+sz); if(e)e.textContent=sizeTotal(sz); });
+    var g=byId('ft-grand'); if(g)g.textContent=grandTotal();
   }
 
   function build(){
-    // header
     var h='<tr><th class="cname" style="text-align:left">Coloris</th>';
-    DATA.sizeOrder.forEach(function(sz){h+='<th>'+sz+'</th>';});
-    h+='<th>Total</th></tr>';
+    ALL.forEach(function(sz){h+='<th>'+sz+'</th>';}); h+='<th>Total</th></tr>';
     thead.innerHTML=h;
-
-    // body
     var b='';
-    DATA.colors.forEach(function(c,ci){
+    COLORS.forEach(function(c){
       b+='<tr><td class="cname"><span class="dot" style="background:'+c.dot+'"></span>'+c.name+'</td>';
-      DATA.sizeOrder.forEach(function(sz){
-        var v=c.stock[sz]||0;
-        b+='<td id="td_'+ci+'_'+sz+'" class="cell-td'+(v===0?' zero':'')+'">'+
+      ALL.forEach(function(sz){
+        var v=(STOCK[c.code]&&STOCK[c.code][sz])||0;
+        b+='<td id="td_'+c.code+'_'+sz+'" class="'+(v===0?'zero':'')+'">'+
              '<span class="cell">'+
-               '<button type="button" data-a="dec" data-c="'+ci+'" data-s="'+sz+'">−</button>'+
-               '<input id="in_'+ci+'_'+sz+'" type="number" min="0" step="1" value="'+v+'" data-c="'+ci+'" data-s="'+sz+'">'+
-               '<button type="button" data-a="inc" data-c="'+ci+'" data-s="'+sz+'">+</button>'+
+               '<button type="button" data-a="dec" data-c="'+c.code+'" data-s="'+sz+'">−</button>'+
+               '<input id="in_'+c.code+'_'+sz+'" type="number" min="0" step="1" value="'+v+'" data-c="'+c.code+'" data-s="'+sz+'">'+
+               '<button type="button" data-a="inc" data-c="'+c.code+'" data-s="'+sz+'">+</button>'+
              '</span></td>';
       });
-      b+='<td class="rowtot" id="rt'+ci+'">'+colTotal(c)+'</td></tr>';
+      b+='<td class="rowtot" id="rt_'+c.code+'">'+colTotal(c.code)+'</td></tr>';
     });
     tbody.innerHTML=b;
-
-    // footer (per-size totals)
     var f='<tr><td class="cname" style="text-align:left">Total par taille</td>';
-    DATA.sizeOrder.forEach(function(sz){f+='<td id="st_'+sz+'">'+sizeTotal(sz)+'</td>';});
+    ALL.forEach(function(sz){f+='<td id="st_'+sz+'">'+sizeTotal(sz)+'</td>';});
     f+='<td class="grand" id="ft-grand">'+grandTotal()+'</td></tr>';
     tfoot.innerHTML=f;
 
-    // events
     tbody.querySelectorAll('button').forEach(function(btn){
       btn.addEventListener('click',function(){
-        var ci=+btn.getAttribute('data-c'), sz=btn.getAttribute('data-s');
-        var cur=DATA.colors[ci].stock[sz]||0;
-        setVal(ci,sz, btn.getAttribute('data-a')==='inc'?cur+1:cur-1);
+        var code=btn.getAttribute('data-c'), sz=btn.getAttribute('data-s');
+        var cur=(STOCK[code]&&STOCK[code][sz])||0;
+        save(code,sz, btn.getAttribute('data-a')==='inc'?cur+1:Math.max(0,cur-1));
       });
     });
     tbody.querySelectorAll('input').forEach(function(inp){
-      inp.addEventListener('change',function(){ setVal(+inp.getAttribute('data-c'), inp.getAttribute('data-s'), inp.value); });
+      inp.addEventListener('change',function(){
+        var v=Math.max(0,Math.floor(Number(inp.value)||0));
+        save(inp.getAttribute('data-c'), inp.getAttribute('data-s'), v);
+      });
     });
-
-    updatedEl.textContent=DATA.updated||'–';
-    grandEl.textContent=grandTotal();
+    refreshTotals();
   }
 
-  function jsonText(){
-    DATA.updated=new Date().toISOString().slice(0,10);
-    updatedEl.textContent=DATA.updated;
-    return JSON.stringify(DATA,null,2)+'\n';
+  function save(code,sz,qty){
+    var td=byId('td_'+code+'_'+sz), inp=byId('in_'+code+'_'+sz);
+    if(td)td.className=(qty===0?'zero ':'')+'saving';
+    setStatus('enregistrement…','idle');
+    call({password:PW,action:'set',color_code:code,size:sz,qty:qty}).then(function(res){
+      if(res.status===200 && res.j.ok){
+        (STOCK[code]=STOCK[code]||{})[sz]=qty;
+        if(inp)inp.value=qty;
+        if(td)td.className=(qty===0?'zero':'');
+        refreshTotals();
+        setStatus('enregistré ✓','ok');
+      } else if(res.status===401){
+        setStatus('session expirée','err'); logout();
+      } else {
+        setStatus('erreur — rechargé','err'); loadStock();
+      }
+    }).catch(function(){ setStatus('erreur réseau — rechargé','err'); loadStock(); });
   }
 
-  document.getElementById('dl').addEventListener('click',function(){
-    var txt=jsonText();
-    var blob=new Blob([txt],{type:'application/json'});
-    var a=document.createElement('a');
-    a.href=URL.createObjectURL(blob); a.download='stock.json';
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(function(){URL.revokeObjectURL(a.href);},1500);
-    setDirty(false);
-    savedMsg.style.display='block';
-    savedMsg.innerHTML='✓ Fichier <b>stock.json</b> téléchargé. Dernière étape : dans <b>GitHub Desktop</b>, glisse-le dans le dossier <b>assets</b> (il remplace l\'ancien), puis <b>Commit</b> → <b>Push</b>. La boutique sera à jour en 1–2 min.';
-    savedMsg.scrollIntoView({behavior:'smooth',block:'center'});
-  });
-
-  document.getElementById('copy').addEventListener('click',function(){
-    var txt=jsonText();
-    navigator.clipboard.writeText(txt).then(function(){
-      setDirty(false);
-      savedMsg.style.display='block';
-      savedMsg.innerHTML='✓ Code copié. Colle-le dans <b>assets/stock.json</b> (remplace tout le contenu), enregistre, puis Commit → Push.';
-    },function(){ alert('Impossible de copier automatiquement — utilise plutôt le bouton Télécharger.'); });
-  });
-
-  document.getElementById('reload').addEventListener('click',function(){
-    if(dirty && !confirm('Tu as des modifications non enregistrées. Repartir du stock en ligne les effacera. Continuer ?'))return;
-    savedMsg.style.display='none';
-    load();
-  });
-
-  window.addEventListener('beforeunload',function(e){ if(dirty){e.preventDefault();e.returnValue='';} });
-
-  function load(){
-    fetchStock().then(function(d){DATA=d;build();setDirty(false);})
-      .catch(function(){ tbody.innerHTML='<tr><td colspan="9" style="padding:24px;color:var(--pink)">Impossible de charger le stock. Ouvre cette page depuis le site en ligne (fdp.bzh/gestion-stock.html), pas en local.</td></tr>'; });
+  function loadStock(){
+    setStatus('chargement…','idle');
+    return call({password:PW,action:'list'}).then(function(res){
+      if(res.status===200 && res.j.ok){ STOCK=toMap(res.j.stock||[]); build(); setStatus('à jour','idle'); return true; }
+      if(res.status===401){ return false; }
+      setStatus('erreur de chargement','err'); return true;
+    });
   }
-  load();
+
+  function showApp(){ gate.style.display='none'; app.style.display=''; }
+  function showGate(msg){ app.style.display='none'; gate.style.display=''; gateErr.textContent=msg||''; }
+
+  function logout(){ PW=''; localStorage.removeItem('fdp_admin_pw'); pwInput.value=''; showGate(''); }
+
+  byId('login').addEventListener('click',function(){
+    var p=pwInput.value; if(!p){gateErr.textContent='Entre le mot de passe.';return;}
+    gateErr.textContent='Vérification…';
+    call({password:p,action:'list'}).then(function(res){
+      if(res.status===200 && res.j.ok){
+        PW=p; localStorage.setItem('fdp_admin_pw',p);
+        STOCK=toMap(res.j.stock||[]); build(); showApp(); setStatus('à jour','idle');
+      } else if(res.status===401){ gateErr.textContent='Mot de passe incorrect.'; }
+      else { gateErr.textContent='Erreur — réessaie dans un instant.'; }
+    }).catch(function(){ gateErr.textContent='Erreur réseau — réessaie.'; });
+  });
+  pwInput.addEventListener('keydown',function(e){ if(e.key==='Enter')byId('login').click(); });
+  byId('reload').addEventListener('click',loadStock);
+  byId('logout').addEventListener('click',logout);
+
+  // auto-login si mot de passe mémorisé
+  PW=localStorage.getItem('fdp_admin_pw')||'';
+  if(PW){ loadStock().then(function(ok){ if(ok)showApp(); else showGate(''); }); }
 })();
 </script>
 </body>

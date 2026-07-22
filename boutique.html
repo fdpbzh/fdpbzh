@@ -4,18 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Boutique · T-shirt FDP · Fête du Port 2026</title>
-<meta name="description" content="Le t-shirt officiel de la Fête du Port 2026 en précommande : coton bio et recyclé, sérigraphie, 8 coloris, tirage limité. 22 €, retrait sur place ou envoi postal.">
+<meta name="description" content="La boutique du t-shirt officiel de la Fête du Port 2026 rouvrira bientôt. Reviens vite ou suis @lassoduport pour être prévenu de l'ouverture des précommandes.">
+<meta name="robots" content="noindex">
 <meta name="theme-color" content="#0F0628">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/site.css?v=10">
-<style>
-  .swatch.out{opacity:.4;cursor:not-allowed}
-  .swatch.out .dot{filter:grayscale(1)}
-  .swatch.out small{text-decoration:line-through}
-</style>
 </head>
 <body>
 
@@ -26,7 +22,6 @@
       <a class="navlink" href="index.html">Accueil</a>
       <a class="navlink" href="programme.html">Programme</a>
       <a class="navlink" href="jeux.html">Jeux</a>
-      <a class="navlink active" href="boutique.html">Boutique</a>
       <a class="navlink" href="infos.html">Infos</a>
       <a class="navlink" href="asso.html">L'asso</a>
       <a class="navlink" href="partenaires.html">Partenaires</a>
@@ -37,85 +32,18 @@
   </div>
 </header>
 
-<!-- PAGE HERO -->
-<section class="phero" style="padding-bottom:clamp(20px,3vh,32px)">
+<!-- BOUTIQUE FERMÉE -->
+<section class="phero" style="text-align:center">
   <div class="glow"></div>
   <span class="star" style="top:40px;left:24%"></span>
   <span class="star" style="top:90px;left:68%;animation-delay:1.3s"></span>
-  <div class="in">
-    <div class="eyebrow">Précommande · tirage limité</div>
-    <h1 class="disp" style="margin-top:14px">La boutique</h1>
-  </div>
-</section>
-
-<!-- PRODUIT -->
-<section class="wrap" style="padding:10px 0 30px">
-  <div class="shop">
-    <div class="shop-visual">
-      <img id="tee-img" src="assets/tee-noir.webp" alt="T-shirt FDP (avant et dos)">
-    </div>
-    <div class="shop-info">
-      <div class="eyebrow">T-shirt officiel FDP 2026</div>
-      <h1>Le t-shirt de la fête</h1>
-      <div class="shop-price"><span class="amt">22 €</span><span class="tag">précommande</span></div>
-      <p class="desc"><strong style="color:var(--cream)">Coton bio et recyclé</strong> (70 % biologique, 30 % recyclé), 180 g/m², coupe unisexe. Logo <strong style="color:var(--cream)">FDP</strong> sérigraphié blanc sur le cœur, motif moules en grand dans le dos. Édition limitée à la Fête du Port 2026.</p>
-
-      <div id="shop-live">
-        <div class="shop-block">
-          <div class="lbl">Coloris — <span id="col-label">…</span></div>
-          <div class="swatches" id="swatches"></div>
-        </div>
-
-        <div class="shop-block">
-          <div class="lbl">Choisis ta taille</div>
-          <div class="sizes" id="sizes"></div>
-          <p class="shop-note" style="margin-top:8px">Barré = épuisé dans ce coloris. Stock limité, premier arrivé premier servi.</p>
-          <div class="sel-summary" id="sel-summary">Sélection : <b id="sel-color">…</b> · <span id="sel-size">choisis une taille</span></div>
-        </div>
-
-        <div class="shop-block">
-          <div class="lbl">Récupération</div>
-          <div class="deliv">
-            <div class="opt"><div class="t">Retrait sur place · gratuit</div><div class="d">À la fête, le 8 août à Pors-Poulhan.</div></div>
-            <div class="opt"><div class="t">Envoi postal · +5 € de port</div><div class="d">Reçois ton t-shirt chez toi en France (adresse demandée au paiement).</div></div>
-          </div>
-        </div>
-
-        <div class="shop-cta">
-          <a class="btnA off" id="buy-retrait" href="#" target="_blank" rel="noopener">Précommander · retrait sur place</a>
-          <a class="btnB off" id="buy-livraison" href="#" target="_blank" rel="noopener">Précommander · livraison (+5 €)</a>
-        </div>
-        <p class="shop-note" id="cta-hint">Choisis d'abord un coloris et une taille pour activer la précommande. Paiement sécurisé par Stripe.</p>
-      </div>
-
-      <p class="shop-note" id="shop-err" style="display:none;color:var(--pink)">Le stock n'a pas pu être chargé. Recharge la page dans un instant.</p>
-    </div>
-  </div>
-</section>
-
-<!-- MATIÈRE RESPONSABLE -->
-<section class="wrap" style="padding:26px 0 10px">
-  <div class="sec-head cream"><h2 class="disp">Une matière responsable</h2></div>
-  <p class="lead" style="margin-bottom:26px">Pas juste un t-shirt de fête : un textile éco-conçu, doux et fait pour durer.</p>
-  <div class="quals">
-    <div class="qual"><div class="qh">Coton bio &amp; recyclé</div><p>100 % coton — 70 % biologique et 30 % issu de fibres recyclées, en 180 g/m² bien dense.</p></div>
-    <div class="qual"><div class="qh">Certifié OEKO-TEX® 100</div><p>Testé sans substances nocives pour la peau. Tu peux le porter toute la nuit l'esprit tranquille.</p></div>
-    <div class="qual"><div class="qh">Empreinte réduite</div><p>Moins de CO₂ et d'eau qu'un t-shirt classique, grâce aux fibres recyclées.</p></div>
-    <div class="qual"><div class="qh">Fibres tracées</div><p>Matières recyclées authentifiées et traçables : une mode plus transparente.</p></div>
-    <div class="qual"><div class="qh">Coupe unisexe</div><p>Col rond, côtes 1×1, coupe classique qui va à tout le monde.</p></div>
-    <div class="qual"><div class="qh">Édition limitée</div><p>Sérigraphie maison, quantités limitées : une vraie pièce collector de la FDP 2026.</p></div>
-  </div>
-</section>
-
-<!-- CTA BAND -->
-<section class="band mt-sec">
-  <div class="in">
-    <div class="kick">Une question sur ta commande ?</div>
-    <h2>On est là pour t'aider</h2>
-    <p>Taille, couleur, retrait, envoi : si tu as le moindre doute, écris-nous, on répond avec plaisir.</p>
-    <div class="center-cta">
-      <a class="btnA" href="contact.html">Nous contacter</a>
-      <a class="btnB" href="https://instagram.com/lassoduport" target="_blank" rel="noopener">Suivre @lassoduport</a>
+  <div class="in" style="max-width:620px;margin:0 auto">
+    <div class="eyebrow" style="justify-content:center">Précommandes</div>
+    <h1 class="disp" style="margin-top:14px">La boutique rouvre bientôt</h1>
+    <p class="lead" style="margin:18px auto 0">Les précommandes du t-shirt officiel de la Fête du Port sont temporairement fermées, le temps de finaliser la mise en place. On rouvre très vite&nbsp;: suis <strong style="color:var(--cream)">@lassoduport</strong> pour être prévenu·e dès l'ouverture.</p>
+    <div class="center-cta" style="margin-top:30px">
+      <a class="btnA" href="https://instagram.com/lassoduport" target="_blank" rel="noopener">Être prévenu·e</a>
+      <a class="btnB" href="index.html">Retour à l'accueil</a>
     </div>
   </div>
 </section>
@@ -131,82 +59,5 @@
 </footer>
 
 <script src="assets/site.js?v=4"></script>
-<script>
-(function(){
-  var LINK={retrait:'https://buy.stripe.com/14A14obLZ2bsdVY0QF3Ru00',livraison:'https://buy.stripe.com/4gM9AUdU7bM28BE8j73Ru01'};
-  function byId(id){return document.getElementById(id);}
-  var img=byId('tee-img'),swEl=byId('swatches'),sizesEl=byId('sizes'),lab=byId('col-label'),
-      selColor=byId('sel-color'),selSize=byId('sel-size'),hint=byId('cta-hint'),
-      btnR=byId('buy-retrait'),btnL=byId('buy-livraison'),live=byId('shop-live'),err=byId('shop-err');
-  var DATA=null,ALL=[],cur=null,curSize=null;
-
-  function totalOf(c){return ALL.reduce(function(n,s){return n+(c.stock[s]||0);},0);}
-
-  function updateCTA(){
-    var ready=!!curSize;
-    [btnR,btnL].forEach(function(b){
-      b.classList.toggle('off',!ready);
-      var base=(b.id==='buy-retrait')?LINK.retrait:LINK.livraison;
-      b.href=ready?base+'?client_reference_id='+encodeURIComponent(cur.ref+'-'+curSize):'#';
-    });
-    hint.textContent=ready
-      ? 'Sélection : '+cur.name+' · taille '+curSize+'. Paiement sécurisé par Stripe — la couleur et la taille sont transmises automatiquement.'
-      : 'Choisis d’abord un coloris et une taille pour activer la précommande. Paiement sécurisé par Stripe.';
-  }
-
-  function renderSizes(){
-    sizesEl.innerHTML='';
-    ALL.forEach(function(sz){
-      var avail=(cur.stock[sz]||0)>0;
-      var el=document.createElement(avail?'button':'span');
-      el.className='size'+(avail?'':' out')+((avail&&sz===curSize)?' sel':'');
-      el.textContent=sz;
-      if(avail){el.type='button';el.addEventListener('click',function(){curSize=sz;renderSizes();selSize.textContent='taille '+sz;updateCTA();});}
-      sizesEl.appendChild(el);
-    });
-  }
-
-  function renderSwatches(){
-    swEl.innerHTML='';
-    DATA.colors.forEach(function(c){
-      var sold=totalOf(c)===0;
-      var b=document.createElement('button');b.type='button';
-      b.className='swatch'+(cur&&c.code===cur.code?' sel':'')+(sold?' out':'');
-      b.innerHTML='<span class="dot" style="background:'+c.dot+'"></span><small>'+c.name+'</small>';
-      if(!sold){b.addEventListener('click',function(){pickColor(c,null);});}
-      swEl.appendChild(b);
-    });
-  }
-
-  function pickColor(c,keepSize){
-    cur=c;
-    curSize=(keepSize&&(c.stock[keepSize]||0)>0)?keepSize:null;
-    img.src=c.img;img.alt='T-shirt FDP - '+c.name+' (avant et dos)';
-    lab.textContent=c.name;selColor.textContent=c.name;
-    selSize.textContent=curSize?('taille '+curSize):'choisis une taille';
-    renderSwatches();renderSizes();updateCTA();
-  }
-
-  function apply(data){
-    var prevCode=cur&&cur.code,prevSize=curSize;
-    DATA=data;ALL=data.sizeOrder;
-    var keep=DATA.colors.filter(function(x){return x.code===prevCode;})[0];
-    var start=(keep&&totalOf(keep)>0)?keep:(DATA.colors.filter(function(c){return totalOf(c)>0;})[0]||DATA.colors[0]);
-    pickColor(start,start.code===prevCode?prevSize:null);
-    live.style.display='';err.style.display='none';
-  }
-
-  function load(){
-    fetch('assets/stock.json?t='+Date.now(),{cache:'no-store'})
-      .then(function(r){if(!r.ok)throw 0;return r.json();})
-      .then(apply)
-      .catch(function(){live.style.display='none';err.style.display='';});
-  }
-
-  load();
-  document.addEventListener('visibilitychange',function(){if(!document.hidden)load();});
-  window.addEventListener('focus',load);
-})();
-</script>
 </body>
 </html>

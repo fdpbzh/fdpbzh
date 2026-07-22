@@ -118,29 +118,51 @@ Deux options :
 - Pour l'afficher en colonne dans la liste : bouton **Colonnes** → coche **« ID de référence client »**. Idéal pour préparer les t-shirts d'un coup d'œil.
 - Tu peux **exporter en CSV** (la colonne `client_reference_id` contient le `Couleur-Taille`) pour cocher tes commandes.
 - Stripe envoie automatiquement un **reçu par email** au client.
-- **Stock :** gère-le toi-même depuis la page **`gestion-stock.html`** (voir plus bas) : retire 1 à chaque vente, télécharge le fichier, Commit → Push. Une taille à 0 devient barrée et non commandable sur la boutique.
+- **Stock :** il se **décompte tout seul** à chaque paiement Stripe (via Supabase, voir Étape 9). Tu n'as rien à faire pour les ventes en ligne. La page `gestion-stock.html` sert aux **ventes en espèces**, aux **corrections** et aux **réassorts**.
 
 ---
 
 ## Bon à savoir
 
 - **Commission Stripe** : environ **1,5 % + 0,25 €** par paiement (carte européenne). Sur 22 € ≈ **0,58 €**. L'asso reçoit ~21,40 € par t-shirt (retrait).
-- **Stock** : Stripe ne décompte pas les quantités par couleur/taille. C'est toi qui tiens le stock à jour via **`gestion-stock.html`** — pense à y retirer aussi chaque vente Stripe (pas seulement les ventes en espèces), puis Commit → Push.
+- **Stock** : géré dans **Supabase** et **décompté automatiquement** à chaque vente Stripe. La boutique lit le stock en direct ; une taille à 0 apparaît barrée et n'est plus commandable. Voir Étape 9.
 
 ---
 
-## Étape 9 — Gérer le stock (page `gestion-stock.html`)
+## Étape 9 — Le stock automatique (Supabase)
 
-Le stock des t-shirts est stocké dans un seul fichier : **`assets/stock.json`**. Tu n'y touches pas à la main : tu passes par l'outil.
+Le stock vit maintenant dans la base **Supabase** du projet `fdp-scores`. La boutique le lit en direct, et il se **décompte tout seul à chaque paiement Stripe** grâce à un webhook.
 
-1. Va sur **`fdp.bzh/gestion-stock.html`** (page privée, non listée dans le menu — garde le lien pour toi).
-2. Tu vois un tableau **couleurs × tailles** avec les quantités.
-3. **Une vente** (en ligne **ou** en espèces) = clique sur **−** dans la bonne case (ou tape la nouvelle quantité). Pour un réassort, clique sur **+**.
-4. Clique **« ⬇ Télécharger stock.json »**.
-5. Dans **GitHub Desktop** : glisse le fichier téléchargé dans le dossier **`assets`** (il remplace l'ancien) → **Commit** → **Push**.
-6. La boutique est à jour en 1–2 min. Les tailles à 0 apparaissent **barrées** et ne sont plus commandables.
+**Comment ça marche :** quand une commande Stripe est payée → Stripe prévient Supabase → la couleur/taille (lue dans l'« ID de référence client », ex. `Noir-M`) est retirée du stock automatiquement. La quantité commandée est prise en compte (retrait ou livraison). Une taille à 0 devient barrée sur la boutique.
 
-> ⚠️ Les ventes Stripe **ne se décomptent pas toutes seules** : après chaque commande reçue dans Stripe, pense à retirer la quantité correspondante dans l'outil. La boutique recharge le stock quand on revient sur l'onglet, ce qui limite les doublons, mais tenir le stock à jour rapidement reste le meilleur garde-fou.
+### Utilisation au quotidien — page `gestion-stock.html`
+
+- Va sur **`fdp.bzh/gestion-stock.html`** (page privée, non listée — garde le lien pour toi), entre le **mot de passe** (voir réglage ci-dessous).
+- Tableau **couleurs × tailles** : **−** / **+** ou tape la quantité. **Enregistré en direct**, aucun push, la boutique est à jour tout de suite.
+- Sert surtout aux **ventes en espèces**, **corrections** et **réassorts** (les ventes en ligne se décomptent seules).
+
+### Réglage à faire UNE FOIS (2 « secrets » + le webhook)
+
+Ces valeurs sont secrètes : c'est toi qui les saisis (je ne peux pas les taper à ta place).
+
+1. **Mot de passe de gestion** — dans **Supabase → projet `fdp-scores` → Edge Functions → Secrets** (ou Project Settings → Edge Functions), ajoute un secret :
+   - Nom : `ADMIN_PASSWORD` · Valeur : le mot de passe de ton choix.
+   → C'est ce mot de passe qui ouvre `gestion-stock.html`.
+
+2. **Webhook Stripe** — dans **Stripe → Développeurs → Webhooks → Ajouter un endpoint** :
+   - URL : `https://nhsroymqvwrjflagzznz.supabase.co/functions/v1/stripe-webhook`
+   - Événement à écouter : **`checkout.session.completed`**
+   - Valide, puis **révèle et copie la « clé secrète de signature »** (`whsec_…`).
+   - Retourne dans **Supabase → Edge Functions → Secrets** et ajoute :
+     - Nom : `STRIPE_WEBHOOK_SECRET` · Valeur : le `whsec_…` copié.
+   → C'est ce qui autorise Stripe à décompter le stock (et bloque les fausses requêtes).
+
+> 💡 Je peux créer le webhook Stripe pour toi dans ton dashboard (tu n'auras qu'à copier le `whsec_…` dans Supabase). Dis-moi si tu veux.
+
+### Tester
+
+- Ouvre `gestion-stock.html`, connecte-toi, fais **−1** sur une case → recharge la boutique : la quantité a bougé.
+- Fais une **vraie petite commande** (ou une commande de test si tu es encore en mode test) → vérifie que la case correspondante a baissé toute seule dans `gestion-stock.html`.
 - **Remboursement** : possible en 1 clic depuis le paiement concerné.
 - **Clôturer les précommandes** : quand tu veux arrêter, tu peux **désactiver** les liens de paiement dans Stripe (ils deviennent inaccessibles).
 
