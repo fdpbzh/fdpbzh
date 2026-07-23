@@ -133,7 +133,9 @@ Deux options :
 
 Le stock vit maintenant dans la base **Supabase** du projet `fdp-scores`. La boutique le lit en direct, et il se **décompte tout seul à chaque paiement Stripe** grâce à un webhook.
 
-**Comment ça marche :** quand une commande Stripe est payée → Stripe prévient Supabase → la couleur/taille (lue dans l'« ID de référence client », ex. `Noir-M`) est retirée du stock automatiquement. La quantité commandée est prise en compte (retrait ou livraison). Une taille à 0 devient barrée sur la boutique.
+> 🛒 **Nouveau : panier multi-articles.** La boutique n'utilise plus les « liens de paiement » (Étapes 4-5, gardées seulement pour l'historique). Le client remplit un **panier** (plusieurs tailles/couleurs), choisit retrait ou livraison, et une fonction Supabase crée à la volée la page de paiement Stripe (**Stripe Checkout**) avec tous les articles. Chaque article est ensuite décompté automatiquement du stock.
+
+**Comment ça marche :** commande payée → Stripe prévient Supabase → **chaque** ligne du panier (couleur, taille, quantité) est retirée du stock automatiquement. Une taille à 0 devient barrée sur la boutique.
 
 ### Utilisation au quotidien — page `gestion-stock.html`
 
@@ -141,30 +143,35 @@ Le stock vit maintenant dans la base **Supabase** du projet `fdp-scores`. La bou
 - Tableau **couleurs × tailles** : **−** / **+** ou tape la quantité. **Enregistré en direct**, aucun push, la boutique est à jour tout de suite.
 - Sert surtout aux **ventes en espèces**, **corrections** et **réassorts** (les ventes en ligne se décomptent seules).
 
-### Réglage à faire UNE FOIS (2 « secrets » + le webhook)
+### Réglage à faire UNE FOIS (3 « secrets » + le webhook)
 
-Ces valeurs sont secrètes : c'est toi qui les saisis (je ne peux pas les taper à ta place).
+Ces valeurs sont secrètes : c'est **toi** qui les saisis dans Supabase (je ne peux pas taper de clés/mots de passe à ta place). Emplacement : **Supabase → projet `fdp-scores` → Edge Functions → Secrets** (ou Project Settings → Edge Functions → Add secret).
 
-1. **Mot de passe de gestion** — dans **Supabase → projet `fdp-scores` → Edge Functions → Secrets** (ou Project Settings → Edge Functions), ajoute un secret :
+1. **Clé secrète Stripe** — dans **Stripe → Développeurs → Clés API**, copie la **clé secrète** (`sk_live_…` en réel, `sk_test_…` en test). Ajoute dans Supabase :
+   - Nom : `STRIPE_SECRET_KEY` · Valeur : la clé `sk_…`.
+   → C'est ce qui permet de créer les pages de paiement du panier. **Sans elle, le bouton « Passer au paiement » ne marche pas.**
+
+2. **Mot de passe de gestion** — ajoute dans Supabase :
    - Nom : `ADMIN_PASSWORD` · Valeur : le mot de passe de ton choix.
    → C'est ce mot de passe qui ouvre `gestion-stock.html`.
 
-2. **Webhook Stripe** — dans **Stripe → Développeurs → Webhooks → Ajouter un endpoint** :
+3. **Webhook Stripe** — dans **Stripe → Développeurs → Webhooks → Ajouter un endpoint** :
    - URL : `https://nhsroymqvwrjflagzznz.supabase.co/functions/v1/stripe-webhook`
    - Événement à écouter : **`checkout.session.completed`**
-   - Valide, puis **révèle et copie la « clé secrète de signature »** (`whsec_…`).
-   - Retourne dans **Supabase → Edge Functions → Secrets** et ajoute :
+   - Valide, puis **révèle et copie la « clé secrète de signature »** (`whsec_…`). Ajoute dans Supabase :
      - Nom : `STRIPE_WEBHOOK_SECRET` · Valeur : le `whsec_…` copié.
    → C'est ce qui autorise Stripe à décompter le stock (et bloque les fausses requêtes).
 
-> 💡 Je peux créer le webhook Stripe pour toi dans ton dashboard (tu n'auras qu'à copier le `whsec_…` dans Supabase). Dis-moi si tu veux.
+> ⚠️ Les clés `sk_test_…` / `whsec_…` du **mode test** ne marchent qu'en mode test. Pour encaisser en vrai, utilise les clés du **mode réel** (Live) et crée le webhook en mode réel.
+
+> 💡 Je peux créer le webhook Stripe pour toi dans ton dashboard (tu n'auras qu'à copier le `whsec_…` dans Supabase) dès que l'extension Chrome se reconnecte. Dis-moi.
 
 ### Tester
 
 - Ouvre `gestion-stock.html`, connecte-toi, fais **−1** sur une case → recharge la boutique : la quantité a bougé.
-- Fais une **vraie petite commande** (ou une commande de test si tu es encore en mode test) → vérifie que la case correspondante a baissé toute seule dans `gestion-stock.html`.
-- **Remboursement** : possible en 1 clic depuis le paiement concerné.
-- **Clôturer les précommandes** : quand tu veux arrêter, tu peux **désactiver** les liens de paiement dans Stripe (ils deviennent inaccessibles).
+- Ajoute **2 articles différents** au panier, choisis retrait ou livraison, va jusqu'au paiement (carte de test `4242 4242 4242 4242` en mode test) → vérifie que **les deux** cases baissent toutes seules dans `gestion-stock.html`.
+- **Remboursement** : possible en 1 clic depuis le paiement concerné (le stock n'est pas ré-augmenté automatiquement — remets-le à la main dans `gestion-stock.html` si besoin).
+- **Clôturer / mettre en pause** : dis-le-moi pour repasser la boutique en « fermée », ou mets les quantités à 0 dans `gestion-stock.html` (tout devient épuisé et non commandable).
 
 ---
 
