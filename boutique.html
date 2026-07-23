@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Boutique · T-shirt FDP · Fête du Port 2026</title>
-<meta name="description" content="Le t-shirt officiel de la Fête du Port 2026 en précommande : coton bio et recyclé, sérigraphie, 8 coloris, tirage limité. 22 €, panier multi-tailles, retrait sur place ou envoi postal.">
+<meta name="description" content="Le t-shirt officiel de la Fête du Port 2026 : coton bio et recyclé, sérigraphie, 8 coloris, tirage limité. 22 €, panier multi-tailles, retrait sur place.">
 <meta name="theme-color" content="#0F0628">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -69,14 +69,14 @@
   <span class="star" style="top:40px;left:24%"></span>
   <span class="star" style="top:90px;left:68%;animation-delay:1.3s"></span>
   <div class="in">
-    <div class="eyebrow">Précommande · tirage limité</div>
+    <div class="eyebrow">Disponible · tirage limité</div>
     <h1 class="disp" style="margin-top:14px">La boutique</h1>
   </div>
 </section>
 
 <!-- MESSAGE APRÈS PAIEMENT -->
 <section class="wrap" id="paid-wrap" style="display:none;padding:10px 0 0">
-  <div class="paid">✓ <b>Merci pour ta commande&nbsp;!</b> Ton paiement est confirmé. Tu recevras un reçu par email. Rendez-vous le 8 août à Pors-Poulhan pour récupérer ton (ou tes) t-shirt(s) — ou par la poste si tu as choisi la livraison.</div>
+  <div class="paid">✓ <b>Merci pour ta commande&nbsp;!</b> Ton paiement est confirmé. Tu recevras un reçu par email. Retrait le 8 août à Pors-Poulhan (Fête du Port), ou au Bar Les Côtiers dès le lendemain de ta commande.</div>
 </section>
 
 <!-- PRODUIT -->
@@ -88,7 +88,7 @@
     <div class="shop-info">
       <div class="eyebrow">T-shirt officiel FDP 2026</div>
       <h1>Le t-shirt de la fête</h1>
-      <div class="shop-price"><span class="amt">22 €</span><span class="tag">précommande</span></div>
+      <div class="shop-price"><span class="amt">22 €</span><span class="tag">en stock</span></div>
       <p class="desc"><strong style="color:var(--cream)">Coton bio et recyclé</strong> (70 % biologique, 30 % recyclé), 180 g/m², coupe unisexe. Logo <strong style="color:var(--cream)">FDP</strong> sérigraphié blanc sur le cœur, motif moules en grand dans le dos. Édition limitée à la Fête du Port 2026.</p>
 
       <div id="shop-live" style="display:none">
@@ -114,8 +114,7 @@
           <div id="cart-foot" style="display:none">
             <div class="lbl" style="margin-top:18px">Récupération</div>
             <div class="modes">
-              <label class="mode sel" id="mode-retrait"><input type="radio" name="mode" value="retrait" checked><span><span class="t">Retrait sur place · gratuit</span><span class="d">Le 8 août à Pors-Poulhan.</span></span></label>
-              <label class="mode" id="mode-livraison"><input type="radio" name="mode" value="livraison"><span><span class="t">Livraison · +5 €</span><span class="d">Chez toi en France (adresse au paiement).</span></span></label>
+              <div class="mode sel" id="mode-retrait" style="cursor:default"><span><span class="t">Retrait sur place · gratuit</span><span class="d">Le 8 août à Pors-Poulhan (Fête du Port), ou au Bar Les Côtiers dès le lendemain de ta commande.</span></span></div>
             </div>
 
             <div class="summary">
@@ -281,14 +280,7 @@
   }
 
   addBtn.addEventListener('click',function(e){e.preventDefault();addToCart();});
-  Array.prototype.forEach.call(document.getElementsByName('mode'),function(r){
-    r.addEventListener('change',function(){
-      mode=r.value;
-      byId('mode-retrait').classList.toggle('sel',mode==='retrait');
-      byId('mode-livraison').classList.toggle('sel',mode==='livraison');
-      renderCart();
-    });
-  });
+  // Retrait uniquement pour l'instant (livraison désactivée temporairement) : mode fixé à 'retrait'.
 
   checkoutBtn.addEventListener('click',function(e){
     e.preventDefault();
