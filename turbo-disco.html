@@ -62,6 +62,11 @@ input[type=text]::placeholder{color:#7c3f9e;}
 #sMenu input[type=text]{width:min(190px,64%);background:#12001f;border-color:#6b21a8;letter-spacing:1px;text-transform:uppercase;}
 #sMenu input[type=text]:focus{border-color:#ffd700;box-shadow:0 0 10px #ffd70033;}
 #gameCount{border-top:1px solid #2a004a;padding-top:9px;width:62%;text-align:center;}
+/* Crédit partenaire — Menuiserie Le Corre, charpentier officiel (a bâti la scène) */
+#partnerCredit{display:flex;align-items:center;gap:12px;border-top:1px solid #2a004a;padding:11px 0 5px;margin-top:2px;opacity:.92;}
+#partnerLogo{image-rendering:pixelated;flex-shrink:0;border:none !important;box-shadow:none !important;}
+#partnerCredit p{font-size:clamp(4px,1.1vw,6px);color:#ffd700;letter-spacing:1px;line-height:1.9;text-align:left;}
+#partnerCredit .pname{color:#c8bca3;letter-spacing:1.5px;}
 /* le HUD du jeu est masqué tant qu'un écran (menu/résultat/scores) est ouvert */
 .screenOn #hudTimer,.screenOn #hudLap,.screenOn #hudBar,.screenOn #hudMsg{visibility:hidden;}
 /* Rampe de départ F1 : 5 feux rouges qui s'allument un à un, puis extinction = GO */
@@ -105,7 +110,11 @@ input.need{border-color:#ff4d6d !important;animation:shake .3s;}
     <button class="btn" id="btnPlay">▶ DEMARRER</button>
     <button class="btn-sm" id="btnLbMenu">★ SCORES</button>
     <p id="gameCount" style="font-size:clamp(4px,1.2vw,6px);color:#c026d3;letter-spacing:1px;">&nbsp;</p>
-    <span id="verTag">V27</span>
+    <div id="partnerCredit">
+      <canvas id="partnerLogo" width="38" height="52" aria-label="Menuiserie Le Corre"></canvas>
+      <p>CHARPENTIER OFFICIEL<br>DU CHAMPIONNAT<br><span class="pname">MENUISERIE LE CORRE</span></p>
+    </div>
+    <span id="verTag">V29</span>
   </div>
 
   <div class="screen hidden" id="sResult">
@@ -1185,7 +1194,7 @@ document.getElementById('btnPlay').addEventListener('click',function(){
 });
 // pseudo prérempli au retour
 document.getElementById('nameInput').value=(playerName!=='ANONYME')?playerName:'';
-console.log('TURBO DISCO V27');
+console.log('TURBO DISCO V29');
 document.getElementById('btnReplay').addEventListener('click',function(){
   newSession(); hideAll(); resetRun();
 });
@@ -1305,6 +1314,23 @@ if(document.fonts&&document.fonts.ready){
   document.fonts.load('30px "Press Start 2P"').then(drawLogo);
   document.fonts.ready.then(drawLogo);
 }
+
+// ── Logo partenaire Menuiserie Le Corre (path exact du SVG officiel, pixelisé) ──
+(function(){
+  var lc=document.getElementById('partnerLogo'); if(!lc)return;
+  var MARK="M.01,13.56V0s129.59,55.18,129.59,55.18v13.56S.01,13.56.01,13.56ZM.04,41.04v-13.74s129.59,55.18,129.59,55.18v13.56S.04,41.04.04,41.04ZM.07,68.16v-13.56s129.59,55,129.59,55v13.74S.17,178.59.17,178.59v-13.56s113.62-48.54,113.62-48.54L.07,68.16ZM.12,124.16v-13.56s38.41-16.42,38.41-16.42l16.2,6.68L.12,124.16ZM.15,151.46v-13.56s70.62-30.19,70.62-30.19l15.06,7.21L.15,151.46Z";
+  var svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 178.59"><path fill="%23c8bca3" d="'+MARK+'"/></svg>';
+  var img=new Image();
+  img.onload=function(){
+    var sh=36, sw=Math.round(sh*130/178.59);   // base pixel (agrandi)
+    var off=document.createElement('canvas');off.width=sw;off.height=sh;
+    var og=off.getContext('2d');og.imageSmoothingEnabled=false;og.drawImage(img,0,0,sw,sh);
+    lc.width=sw*2;lc.height=sh*2;
+    var g=lc.getContext('2d');g.imageSmoothingEnabled=false;g.drawImage(off,0,0,lc.width,lc.height);
+    lc.style.width=(sw*2)+'px';lc.style.height=(sh*2)+'px';
+  };
+  img.src='data:image/svg+xml;utf8,'+svg.replace(/#/g,'%23');
+})();
 
 if(muted){var _bm=document.getElementById('btnMute');_bm.textContent='♪̸';_bm.style.color='#4a2470';}
 loadCount();
