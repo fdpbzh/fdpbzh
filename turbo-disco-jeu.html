@@ -1339,6 +1339,20 @@ loadTopScore();
 resetRun();
 phase='menu';
 requestAnimationFrame(loop);
+
+// -- Entree via l'ecran-titre : demarrage direct, sans l'ancien menu --
+(function(){
+  try{
+    var q=new URLSearchParams(location.search);
+    if(q.get('scores')){ renderLb(); show('sLb'); return; }
+    if(q.get('go')){
+      var n=''; try{n=(localStorage.getItem('td_name')||'').trim();}catch(e){}
+      if(!n||n==='ANONYME'){ location.replace('turbo-disco-pseudo.html'); return; }
+      playerName=n.toUpperCase().slice(0,12);
+      startBGM(); newSession(); hideAll(); resetRun();
+    }
+  }catch(e){}
+})();
 </script>
 </body>
 </html>
