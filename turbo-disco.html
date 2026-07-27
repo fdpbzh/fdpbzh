@@ -69,20 +69,18 @@ function drawGround(t){
 // piquet de bois gravé — Menuiserie Le Corre (+50%, cliquable → easter egg)
 var stakeBox={x:0,y:0,w:0,h:0};
 function drawLeCorreStake(t){
-  var pvx=62, pvy=2, ang=Math.sin(t*0.0016)*0.05, pw=92, ph=26, hangY=40, pulse=.5+.5*Math.sin(t*0.004);
-  X.save(); X.translate(pvx,pvy); X.rotate(ang);
-  X.globalAlpha=.10+pulse*.09; var g=X.createRadialGradient(0,hangY+ph/2,2,0,hangY+ph/2,60); g.addColorStop(0,'#ffe0a0'); g.addColorStop(1,'rgba(0,0,0,0)'); X.fillStyle=g; X.fillRect(-pw,hangY-22,pw*2,ph+54); X.globalAlpha=1;
-  P(-pw/2+10,0,2,hangY,'#4a3a22'); P(pw/2-12,0,2,hangY,'#4a3a22');
-  P(-pw/2-3,hangY-3,pw+6,ph+6,'#2a1a0c');
-  P(-pw/2,hangY,pw,ph,'#6b4a2a');
-  for(var i=0;i<pw;i+=5){X.globalAlpha=.35;P(-pw/2+i,hangY,1,ph,'#5a3a1e');}X.globalAlpha=1;
-  P(-pw/2,hangY,pw,3,'#8a6a3a'); P(-pw/2,hangY+ph-3,pw,3,'#3a2410');
-  P(-pw/2+9,hangY-2,4,3,'#3a2a18'); P(pw/2-13,hangY-2,4,3,'#3a2a18');
-  X.textAlign='center';X.textBaseline='middle';X.font='10px "DK Longreach"';
-  X.fillStyle='#241608';X.fillText('MENUISERIE',0,hangY+9);X.fillText('LE CORRE',0,hangY+18);
-  X.fillStyle='#e8d6a9';X.fillText('MENUISERIE',-0.5,hangY+8.4);X.fillText('LE CORRE',-0.5,hangY+17.4);
+  var x=258, y=548, pw=81, ph=24, pulse=.5+.5*Math.sin(t*0.004);
+  X.globalAlpha=.14+pulse*.12;var g=X.createRadialGradient(x+pw/2,y+ph/2,2,x+pw/2,y+ph/2,54);g.addColorStop(0,'#ffe0a0');g.addColorStop(1,'rgba(0,0,0,0)');X.fillStyle=g;X.fillRect(x-20,y-20,pw+40,ph+56);X.globalAlpha=1;
+  P(x+pw/2-2,y+ph,4,40,'#3a2410');P(x+pw/2-3,y+ph,3,40,'#6b4a2a');
+  P(x-3,y-3,pw+6,ph+6,'#2a1a0c');
+  P(x,y,pw,ph,'#6b4a2a');
+  for(var i=0;i<pw;i+=5){X.globalAlpha=.35;P(x+i,y,1,ph,'#5a3a1e');}X.globalAlpha=1;
+  P(x,y,pw,3,'#8a6a3a');P(x,y+ph-3,pw,3,'#3a2410');
+  X.save();X.textAlign='center';X.textBaseline='middle';X.font='10px "DK Longreach"';
+  X.fillStyle='#241608';X.fillText('MENUISERIE',x+pw/2,y+8);X.fillText('LE CORRE',x+pw/2,y+17);
+  X.fillStyle='#e8d6a9';X.fillText('MENUISERIE',x+pw/2-0.5,y+7.4);X.fillText('LE CORRE',x+pw/2-0.5,y+16.4);
   X.restore();
-  stakeBox={x:pvx-pw/2-8,y:pvy,w:pw+16,h:hangY+ph+8};
+  stakeBox={x:x-6,y:y-6,w:pw+12,h:ph+44};
 }
 
 // HÉROS : Corvette de face (zone cliquable = JOUER)
@@ -213,9 +211,10 @@ function loop(t){
     drawGround(t);
     crabs.sort(function(a,b){return a.y-b.y;});
     for(var i=0;i<crabs.length;i++){var cb=crabs[i];cb.x+=cb.sp;cb.dir=cb.sp<0?0:1;if(cb.x<-30)cb.x=W+30;if(cb.x>W+30)cb.x=-30;var f=((t*0.006*Math.abs(cb.sp)*8+cb.ph*6)|0)%6;var w=SPR_W*cb.sc,h=SPR_H*cb.sc;X.drawImage(SPR[cb.dir][f],cb.x-w*0.45,cb.y-h*0.62,w,h);}
+    if(!lcMode)drawLeCorreStake(t);
     drawCar(t);
   });
-  if(lcMode){drawLeCorre(t);} else {drawLogo(t);drawLeCorreStake(t);drawMenu(t);}
+  if(lcMode){drawLeCorre(t);} else {drawLogo(t);drawMenu(t);}
   if(flash>0){X.globalAlpha=flash*0.5;X.fillStyle=flashCol;X.fillRect(0,0,W,H);X.globalAlpha=1;flash-=0.06;}
   requestAnimationFrame(loop);
 }
