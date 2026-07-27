@@ -41,17 +41,14 @@ input[type=text]::placeholder{color:#8a7ac0;}
 .lb-table tr.me td{color:#fff;background:#2a004a;}
 .rank-gold{color:#ffd700}.rank-silver{color:#c0c0c0}.rank-bronze{color:#cd7f32}
 .loader{font-size:6px;color:#7c3f9e;animation:blink .6s step-end infinite;}
-#hudTimer{position:absolute;top:8px;left:10px;z-index:10;font-size:clamp(9px,2.4vw,15px);color:#fff;text-shadow:2px 2px #6b21a8;pointer-events:none;}
+#hudTop{position:absolute;top:0;left:0;right:0;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 14px 10px;background:rgba(13,0,20,.86);border-bottom:1px solid #2a004a;pointer-events:none;}
+#hudTimer{font-size:clamp(12px,3.2vw,18px);color:#fff;text-shadow:2px 2px #6b21a8;}
 #hudTimer.run{color:#ffd700;text-shadow:2px 2px #6b21a8,0 0 10px #ffd700;}
-#hudLap{position:absolute;top:8px;right:10px;z-index:10;font-size:clamp(5px,1.4vw,8px);color:#d8b4fe;pointer-events:none;text-align:right;}
-#hudBar{position:absolute;top:26px;right:10px;z-index:10;width:clamp(60px,18vw,110px);height:6px;background:rgba(20,10,40,.55);border:1px solid #6b4a9a;border-radius:4px;pointer-events:none;}
-#hudBarFill{height:100%;width:0%;background:#ffd644;box-shadow:0 0 6px #ffd64488;border-radius:4px;}
+#hudRecord{font-size:clamp(6px,1.7vw,10px);color:#ffd644;text-align:right;letter-spacing:.5px;line-height:1.3;}
 #hudMsg{position:absolute;bottom:0;left:0;right:0;z-index:10;text-align:center;font-size:clamp(6px,1.7vw,10px);color:#d8b4fe;pointer-events:none;line-height:1.9;background:rgba(13,0,20,.86);padding:10px 26px 12px;border-top:1px solid #2a004a;}
 .lastRes{color:#ffd700;font-size:clamp(9px,2.4vw,14px);text-shadow:0 0 8px #c026d355,2px 2px #6b21a8;display:inline-block;margin-bottom:6px;letter-spacing:1px;}
 #hudMsg.go{color:#ffd700}
 #hudMsg.bad{color:#ff4d6d}
-#btnMute{position:absolute;bottom:6px;right:8px;z-index:15;font-family:'Press Start 2P',monospace;font-size:8px;background:transparent;border:none;color:#7c3f9e;cursor:pointer;padding:4px;}
-#btnMute:active{color:#f0abfc;}
 #btnMenu{position:absolute;bottom:6px;left:8px;z-index:15;font-family:'DK Longreach',sans-serif;font-size:14px;background:transparent;border:none;color:#c9b8f0;cursor:pointer;padding:4px;letter-spacing:.5px;}
 #btnMenu:active{color:#f0abfc;}
 /* ── Accueil « drapeau à damier » (polish v19) ── */
@@ -70,7 +67,7 @@ input[type=text]::placeholder{color:#8a7ac0;}
 #partnerCredit p{font-size:clamp(5px,1.5vw,8px);color:#ffd700;letter-spacing:1px;line-height:1.9;text-align:left;}
 #partnerCredit .pname{color:#c8bca3;letter-spacing:1.5px;font-size:.92em;}
 /* le HUD du jeu est masqué tant qu'un écran (menu/résultat/scores) est ouvert */
-.screenOn #hudTimer,.screenOn #hudLap,.screenOn #hudBar,.screenOn #hudMsg{visibility:hidden;}
+.screenOn #hudTop,.screenOn #hudMsg{visibility:hidden;}
 /* Rampe de départ F1 : 5 feux rouges qui s'allument un à un, puis extinction = GO */
 #startLight{display:flex;gap:10px;background:#12001f;border:1px solid #3a0a5c;padding:8px 14px;margin:2px 0 4px;}
 #startLight span{width:11px;height:11px;border-radius:50%;background:#ff4d6d;box-shadow:0 0 7px #ff4d6d;opacity:.13;}
@@ -106,18 +103,18 @@ input.need{border-color:#ff4d6d !important;animation:shake .3s;}
 .pod.lant{color:#ff6b82;border-color:#ff6b82;background:#2a0f1e;box-shadow:0 0 14px #ff6b8244;}
 #sLb .btn-sm,#sResult .btn{font-family:'DK Longreach';}
 #btnBack{font-family:'DK Longreach';font-size:clamp(13px,3.6vw,17px);color:#160f34;background:#ffd644;border:none;border-radius:10px;padding:10px 26px;}
-#hudTimer,#hudLap,#hudMsg,#resTime,#resComment,#resName,.num{font-family:'Bungee','Press Start 2P',monospace!important;}
+#hudTimer,#hudRecord,#hudMsg,#resTime,#resComment,#resName,.num{font-family:'Bungee','Press Start 2P',monospace!important;}
 </style>
 </head>
 <body>
 <div id="wrap" class="screenOn">
   <canvas id="c" width="400" height="710"></canvas>
 
-  <div id="hudTimer">00.0000</div>
-  <div id="hudLap">TOUR 0%</div>
-  <div id="hudBar"><div id="hudBarFill"></div></div>
-  <div id="hudMsg">POSE TON DOIGT SUR LA BOULE DISCO</div>
-  <button id="btnMute">♪</button>
+  <div id="hudTop">
+    <div id="hudTimer">00.0000</div>
+    <div id="hudRecord"></div>
+  </div>
+  <div id="hudMsg">POSE TON DOIGT SUR LA PISTE</div>
   <button id="btnMenu">≡ MENU</button>
 
   <div class="screen" id="sMenu">
@@ -204,7 +201,7 @@ var topScore=null;
 function loadTopScore(){
   return fetch(SB_URL+'/'+TABLE+'?select=name,time_ms&order=time_ms.asc&limit=1',{headers:sbHeaders()})
     .then(function(r){return r.json();})
-    .then(function(d){if(d&&d.length)topScore=d[0];}).catch(function(){});
+    .then(function(d){if(d&&d.length){topScore=d[0];var hr=document.getElementById('hudRecord');if(hr)hr.textContent='RECORD '+topScore.name+' '+fmt(topScore.time_ms);}}).catch(function(){});
 }
 function saveScore(name,ms){
   // L'écriture passe par l'Edge Function submit-score : elle REJOUE la trace
@@ -432,14 +429,7 @@ function sfxAlarm(){
   }
 }
 
-document.getElementById('btnMute').addEventListener('click',function(e){
-  e.stopPropagation();
-  muted=!muted;
-  try{localStorage.setItem('td_mute',muted?'1':'0');}catch(e){}
-  this.textContent=muted?'♪̸':'♪';
-  this.style.color=muted?'#4a2470':'#7c3f9e';
-  if(muted)stopBGM(); else if(phase!=='menu')startBGM();
-});
+// (bouton son retiré : la musique reste active, sans bouton on/off pour désencombrer)
 // Retour menu (changement de pseudo) — seulement à l'attente du départ
 document.getElementById('btnMenu').addEventListener('click',function(e){
   e.stopPropagation();
@@ -699,8 +689,8 @@ try{playerName=localStorage.getItem('td_name')||'ANONYME';}catch(e){}
 var flashT=0, confetti=[], lastTickPc=-1;
 
 var hudTimer=document.getElementById('hudTimer');
-var hudLap=document.getElementById('hudLap');
-var hudBarFill=document.getElementById('hudBarFill');
+var hudRecord=document.getElementById('hudRecord');
+var hudLap={}, hudBarFill={style:{}};   // ancienne jauge « TOUR % » retirée → no-op inoffensif
 var hudMsg=document.getElementById('hudMsg');
 // Le dernier tour bouclé reste affiché (ligne or) au-dessus des consignes,
 // jusqu'à ce qu'un NOUVEAU tour soit bouclé.
@@ -724,7 +714,7 @@ function resetRun(){
   hudTimer.className=''; hudTimer.textContent='00.0000';
   hudLap.textContent='TOUR 0%';
   hudBarFill.style.width='0%'; hudBarFill.style.background='#c026d3';
-  setHud('POSE TON DOIGT SUR LA BOULE DISCO');
+  setHud('POSE TON DOIGT SUR LA PISTE');
 }
 
 // ══════ DESSIN ══════
@@ -906,10 +896,9 @@ function drawOverlayFX(t){
   if(phase==='dead'&&flashT>0){ctx.globalAlpha=.14*(flashT/20);ctx.fillStyle='#ff4d6d';ctx.fillRect(0,0,W,H);ctx.globalAlpha=1;flashT--;}
 }
 function drawGhostRecord(){
-  if(!topScore)return;
-  ctx.globalAlpha=.8;ctx.fillStyle='#ffd644';ctx.font='9px "Bungee"';ctx.textAlign='center';
-  ctx.fillText('RECORD '+topScore.name+' '+fmt(topScore.time_ms),CX,16);
-  ctx.textAlign='left';ctx.globalAlpha=1;
+  // le record s'affiche désormais dans la barre du haut (#hudRecord), pas sur le canvas
+  if(!hudRecord)return;
+  hudRecord.textContent = topScore ? ('RECORD '+topScore.name+' '+fmt(topScore.time_ms)) : '';
 }
 
 // ══════ GÉOMÉTRIE / COLLISION ══════
@@ -1225,8 +1214,8 @@ document.getElementById('btnShare').addEventListener('click',function(){
   var txt = (phase==='done')
     ? 'J\'ai bouclé le tour de la Corvette en '+fmt(elapsed)+' sur TURBO DISCO · FDP 2026 !'
     : 'Je me suis fait éliminer sur TURBO DISCO · FDP 2026. Fais mieux.';
-  // lien qui envoie DIRECTEMENT au jeu (pas par l'écran-titre) : ?go=1
-  var url=location.origin+location.pathname+'?go=1';
+  // lien vers l'écran-titre (dossier /turbo-disco/), PAS directement dans le jeu
+  var url=location.origin+location.pathname.replace(/[^/]*$/,'');
   if(navigator.share){navigator.share({title:'Turbo Disco',text:txt,url:url}).catch(function(){});}
   else if(navigator.clipboard){
     navigator.clipboard.writeText(txt+' '+url);
