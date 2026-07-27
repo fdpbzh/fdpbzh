@@ -2,6 +2,8 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://fdp.bzh/</loc><priority>1.0</priority><changefreq>weekly</changefreq></url>
   <url><loc>https://fdp.bzh/programme.html</loc><priority>0.9</priority><changefreq>weekly</changefreq></url>
+  <url><loc>https://fdp.bzh/turbo-disco/</loc><priority>0.9</priority><changefreq>weekly</changefreq></url>
+  <url><loc>https://fdp.bzh/jeux.html</loc><priority>0.8</priority><changefreq>weekly</changefreq></url>
   <url><loc>https://fdp.bzh/infos.html</loc><priority>0.8</priority><changefreq>weekly</changefreq></url>
   <url><loc>https://fdp.bzh/asso.html</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
   <url><loc>https://fdp.bzh/jeu.html</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>

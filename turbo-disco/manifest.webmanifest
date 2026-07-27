@@ -1,0 +1,17 @@
+{
+  "name": "Turbo Disco — Championnat du Monde Inutile",
+  "short_name": "Turbo Disco",
+  "description": "Trace le tour de la Corvette le plus vite possible. Fête du Port, Pors-Poulhan, 8 août 2026.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#160f34",
+  "theme_color": "#160f34",
+  "lang": "fr",
+  "icons": [
+    { "src": "../apple-touch-icon.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "../icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "../icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
