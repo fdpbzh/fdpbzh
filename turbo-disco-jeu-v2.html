@@ -544,6 +544,11 @@ var SBX=CX+RX*Math.cos(SB_TH), SBY=CY+RY*Math.sin(SB_TH), SBR=15;
 // L'instant exact de franchissement est interpolé géométriquement sur le
 // segment entre deux événements (comme une cellule de chronométrage réelle).
 var GATE=SBR*1.8;
+// Ligne d'arrivée V2 : segment de détection (couloir), TH=SB_TH
+var LN_FI=0.5, LN_FO=1.30;
+var LNx1=CX+RX*LN_FI*Math.cos(SB_TH), LNy1=CY+RY*LN_FI*Math.sin(SB_TH);
+var LNx2=CX+RX*LN_FO*Math.cos(SB_TH), LNy2=CY+RY*LN_FO*Math.sin(SB_TH);
+function segX(ax,ay,bx,by,cx1,cy1,dx1,dy1){var rx=bx-ax,ry=by-ay,sx=dx1-cx1,sy=dy1-cy1,den=rx*sy-ry*sx;if(den===0)return -1;var t=((cx1-ax)*sy-(cy1-ay)*sx)/den,u=((cx1-ax)*ry-(cy1-ay)*rx)/den;if(t>=0&&t<=1&&u>=0&&u<=1)return t;return -1;}
 
 var COL={
   asphalt1:'#150022', asphalt2:'#1e0030',
@@ -1005,15 +1010,16 @@ function stepRun(p,tNow){
     if(inCar(ix,iy)){die('TU AS TOUCHÉ LA CORVETTE !',ix,iy,evSpd);return;}
     if(ellipseF(ix,iy)>F_OUT){die('TU AS BOUSCULÉ LES CRABES !',ix,iy,evSpd);return;}
     var ia=Math.atan2(iy-CY,ix-CX);
-    var frac=lineCross(lastAng,ia);
     acc+=angDiff(ia,lastAng); lastAng=ia;
-    if(frac>=0){
-      var tc=tPrev+(tNow-tPrev)*(u0+(u1-u0)*frac);
-      if(t0===0){ t0=tc; acc=0; setHud('TOURNE ENTRE LA VOITURE ET LES CRABES !','go'); }
-      else if(!lapDone && Math.abs(acc)>=Math.PI*1.9){ lapDone=true; finish(tc); return; }
-    }
   }
 
+  // franchissement de la ligne : intersection du trajet du doigt avec le segment ligne
+  var xt=segX(prev.x,prev.y,p.x,p.y,LNx1,LNy1,LNx2,LNy2);
+  if(xt>=0){
+    var tc=tPrev+(tNow-tPrev)*xt;
+    if(t0===0){ t0=tc; acc=0; setHud('TOURNE ENTRE LA VOITURE ET LES CRABES !','go'); }
+    else if(!lapDone && Math.abs(acc)>=Math.PI*1.9){ lapDone=true; finish(tc); return; }
+  }
   var prog=Math.min(Math.abs(acc)/(Math.PI*2),1);
   var pc=Math.round(prog*100);
   hudBarFill.style.width=pc+'%';
@@ -1278,8 +1284,8 @@ function loop(t){
   drawTrail();
   drawCrowd(t);
   drawGibs();
+  (function(){var c=Math.cos(SB_TH),s=Math.sin(SB_TH),FI=0.10,FO=1.42,ci=CX+RX*FI*c,cyi=CY+RY*FI*s,co=CX+RX*FO*c,cyo=CY+RY*FO*s,dx=co-ci,dy=cyo-cyi,w=Math.hypot(dx,dy),ux=dx/w,uy=dy/w,nx=-uy,ny=ux,cell=8,rows=3;for(var wi=0;wi<w-0.1;wi+=cell){var cw=Math.min(cell,w-wi);for(var ri=0;ri<rows;ri++){ctx.fillStyle=(((wi/cell)|0)+ri)%2?'#f4f4f4':'#0c0c0c';var bx=ci+ux*wi+nx*(ri-rows/2)*cell,by=cyi+uy*wi+ny*(ri-rows/2)*cell;ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(bx+ux*cw,by+uy*cw);ctx.lineTo(bx+ux*cw+nx*cell,by+uy*cw+ny*cell);ctx.lineTo(bx+nx*cell,by+ny*cell);ctx.closePath();ctx.fill();}}})();
   drawCar();
-  (function(){var c=Math.cos(SB_TH),s=Math.sin(SB_TH),FI=0.58,FO=1.36,ci=CX+RX*FI*c,cyi=CY+RY*FI*s,co=CX+RX*FO*c,cyo=CY+RY*FO*s,dx=co-ci,dy=cyo-cyi,w=Math.hypot(dx,dy),ux=dx/w,uy=dy/w,nx=-uy,ny=ux,cell=8,rows=3;for(var wi=0;wi<w-0.1;wi+=cell){var cw=Math.min(cell,w-wi);for(var ri=0;ri<rows;ri++){ctx.fillStyle=(((wi/cell)|0)+ri)%2?'#f4f4f4':'#0c0c0c';var bx=ci+ux*wi+nx*(ri-rows/2)*cell,by=cyi+uy*wi+ny*(ri-rows/2)*cell;ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(bx+ux*cw,by+uy*cw);ctx.lineTo(bx+ux*cw+nx*cell,by+uy*cw+ny*cell);ctx.lineTo(bx+nx*cell,by+ny*cell);ctx.closePath();ctx.fill();}}})();
   if(phase==='ready'||phase==='running')drawGhostRecord();
   if(phase==='done')drawConfetti();
   drawOverlayFX(t);

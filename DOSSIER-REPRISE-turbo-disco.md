@@ -399,3 +399,24 @@ Yo est photographe de mariage et vidéaste documentaire, autodidacte sur le code
 ## 15. Résumé pour une reprise à froid
 
 > `turbo-disco.html` est un jeu single-file complet et jouable. La DA vient de `moule-launcher.html` et doit être respectée à la lettre. Le cœur du jeu est l'accumulateur d'angle dans `onMoveEv()` — c'est robuste, ne pas y toucher. Le leaderboard Supabase est écrit correctement mais **n'a jamais fonctionné une seule fois**, uniquement parce que tous les environnements de test essayés bloquaient les requêtes sortantes. La toute première action utile est donc : créer la table, pousser sur GitHub Pages, ouvrir la page, jouer un tour, regarder la base. Tout le reste en découle.
+
+---
+
+## 16. Consolidation V2 → jeu OFFICIEL (2026-07-27)
+
+**Décision : la V2 (ligne d'arrivée) est validée et devient le jeu officiel.**
+
+Flux de jeu officiel (3 pages, single-file chacune) :
+`turbo-disco.html` (accueil immersif V1) → `turbo-disco-pseudo.html` (pseudo) → `turbo-disco-jeu.html?go=1` (jeu, mécanique LIGNE).
+
+Changements de ce lot :
+- `turbo-disco-jeu.html` : jeu officiel = mécanique **ligne d'arrivée** (segX, intersection géométrique), écrit dans `turbo_scores` via `submit-score`. `SB_TH=0.7` (ligne placée en bas-droite → le joueur choisit de démarrer vers le haut ou vers le bas). Génération des crabes jusqu'au bord de mort (`f<F_OUT-0.05`) → on ne meurt qu'au **contact réel** d'un crabe ou de la voiture (plus de "ligne rouge" à distance).
+- Edge Function **`submit-score` v16** : réécrite en mécanique ligne, `TH=0.7`, miroir exact du client, écrit `turbo_scores`. (L'ancienne `submit-score-v2`/`turbo_scores_v2` reste comme référence de test.)
+- **Compteur de parties + scores remis à zéro** (`turbo_scores` et `turbo_plays` vidées).
+- **Petite musique disco (WebAudio)** ajoutée sur accueil, page pseudo et easter-egg Le Corre. Bouton mute ♪ en haut à droite (mémorise l'état sur la page). Démarre au 1er contact (politique autoplay des navigateurs).
+
+Tests de rejeu (local, math identique client/serveur) : tours valides acceptés à toute vitesse (250 ms, 720 ms, 13,5 s) ; triche par compression du temps (55 ms) rejetée « vitesse surhumaine ». Syntaxe JS des 3 pages OK.
+
+**À faire par Yo** : pousser via GitHub Desktop, puis tester sur mobile (le sandbox ne peut pas rendre le canvas ni joindre Supabase).
+
+> Note URL « Turbo_disco » : l'entrée reste `fdp.bzh/turbo-disco.html`. Un chemin propre `/turbo-disco/` demanderait de déplacer les 3 fichiers dans un sous-dossier — faisable si tu veux, dis-le.

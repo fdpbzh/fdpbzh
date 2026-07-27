@@ -134,7 +134,7 @@ input.need{border-color:#ff4d6d !important;animation:shake .3s;}
       <canvas id="partnerLogo" width="38" height="52" aria-label="Menuiserie Le Corre"></canvas>
       <p>CHARPENTIER OFFICIEL<br>DU CHAMPIONNAT<br><span class="pname">MENUISERIE LE CORRE</span></p>
     </div>
-    <span id="verTag">V30</span>
+    <span id="verTag">V31</span>
   </div>
 
   <div class="screen hidden" id="sResult">
@@ -537,13 +537,18 @@ CAR_CANVAS.width=CPW+6; CAR_CANVAS.height=CPH+6;
 
 // Boule disco : flanc droit de l'écran, légèrement au-dessus du milieu
 // (jeu au pouce droit en portrait ; les gauchers tournent dans l'autre sens, autorisé)
-var SB_TH=-15*Math.PI/180;
+var SB_TH=0.7;   // ligne d'arrivée en bas-droite (choix haut/bas au départ)
 var SBX=CX+RX*Math.cos(SB_TH), SBY=CY+RY*Math.sin(SB_TH), SBR=15;
 // Porte de chronométrage : cercle GATE autour de la boule. Le chrono démarre
 // à la SORTIE de la porte et s'arrête à sa traversée en RETOUR (tour complet).
 // L'instant exact de franchissement est interpolé géométriquement sur le
 // segment entre deux événements (comme une cellule de chronométrage réelle).
 var GATE=SBR*1.8;
+// Ligne d'arrivée V2 : segment de détection (couloir), TH=SB_TH
+var LN_FI=0.5, LN_FO=1.30;
+var LNx1=CX+RX*LN_FI*Math.cos(SB_TH), LNy1=CY+RY*LN_FI*Math.sin(SB_TH);
+var LNx2=CX+RX*LN_FO*Math.cos(SB_TH), LNy2=CY+RY*LN_FO*Math.sin(SB_TH);
+function segX(ax,ay,bx,by,cx1,cy1,dx1,dy1){var rx=bx-ax,ry=by-ay,sx=dx1-cx1,sy=dy1-cy1,den=rx*sy-ry*sx;if(den===0)return -1;var t=((cx1-ax)*sy-(cy1-ay)*sx)/den,u=((cx1-ax)*ry-(cy1-ay)*rx)/den;if(t>=0&&t<=1&&u>=0&&u<=1)return t;return -1;}
 
 var COL={
   asphalt1:'#150022', asphalt2:'#1e0030',
@@ -670,7 +675,7 @@ var CRABS=[];
     var m=22*sc;
     var bx=x-dx/L*m, by=y-dy/L*m;
     var f=Math.hypot((bx-CX)/RX,(by-CY)/RY);
-    if(f<F_OUT+0.02) continue;           // mordrait sur le couloir
+    if(f<F_OUT-0.05) continue;           // les crabes atteignent la ligne de mort (mort = contact)
     var ok=true;                          // espacement minimal
     for(var i=0;i<CRABS.length;i++){
       var o=CRABS[i];
@@ -876,8 +881,7 @@ function drawDiscoBall(t){
   }
   ctx.globalAlpha=1;
   if(phase==='ready'&&((t/450)|0)%2===0){
-    ctx.fillStyle='#ffd644';ctx.font='16px "DK Longreach"';ctx.textAlign='center';
-    ctx.fillText('DÉPART',SBX,SBY-r-10);
+    if(false){}
     ctx.textAlign='left';
   }
 }
@@ -959,13 +963,15 @@ function crossT(x0,y0,x1,y1,R){
   return 0.5;
 }
 
+function lineCross(aP,aC){var g0=angDiff(aP,SB_TH),g1=angDiff(aC,SB_TH);if(g0*g1<0&&Math.abs(g0)<0.7&&Math.abs(g1)<0.7)return g0/(g0-g1);return -1;}
+function inCouloir(p){var fpp=ellipseF(p.x,p.y);return fpp>=F_IN&&fpp<=F_OUT&&!inCar(p.x,p.y);}
 function beginRun(p,tNow){
-  phase='running'; t0=0; lastMoveT=tNow;   // chrono armé, il part à la sortie de la boule
+  phase='running'; t0=0; lastMoveT=tNow;   // chrono armé : il part au franchissement de la ligne
   startAng=angOf(p.x,p.y); lastAng=startAng;
   trail=[{x:p.x,y:p.y}]; acc=0;
   trace=[[Math.round(p.x*10)/10,Math.round(p.y*10)/10,Math.round(tNow*10)/10]];
   hudTimer.className='run';
-  setHud('LE CHRONO PART QUAND TU QUITTES LA BOULE !','go');
+  setHud('FRANCHIS LA LIGNE POUR LANCER LE CHRONO !','go');
   sfxStart();
 }
 
@@ -1001,32 +1007,19 @@ function stepRun(p,tNow){
     var u0=(i-1)/steps, u1=i/steps;
     var jx=prev.x+(p.x-prev.x)*u0, jy=prev.y+(p.y-prev.y)*u0;
     var ix=prev.x+(p.x-prev.x)*u1, iy=prev.y+(p.y-prev.y)*u1;
-    if(Math.hypot(ix-SBX,iy-SBY)>SBR*2.4){
-      if(inCar(ix,iy)){die('TU AS TOUCHÉ LA CORVETTE !',ix,iy,evSpd);return;}
-      if(ellipseF(ix,iy)>F_OUT){die('TU AS BOUSCULÉ LES CRABES !',ix,iy,evSpd);return;}
-    }
+    if(inCar(ix,iy)){die('TU AS TOUCHÉ LA CORVETTE !',ix,iy,evSpd);return;}
+    if(ellipseF(ix,iy)>F_OUT){die('TU AS BOUSCULÉ LES CRABES !',ix,iy,evSpd);return;}
     var ia=Math.atan2(iy-CY,ix-CX);
     acc+=angDiff(ia,lastAng); lastAng=ia;
-    var d0=Math.hypot(jx-SBX,jy-SBY), d1=Math.hypot(ix-SBX,iy-SBY);
-    if(t0===0 && d0<=GATE && d1>GATE){
-      // départ : sortie de la porte. L'angle du tour se compte à partir d'ICI,
-      // pas du point de contact initial — sinon déficit d'angle quand on touche
-      // un côté de la boule et qu'on sort de l'autre → l'arrivée est ignorée,
-      // le doigt traverse la boule et va mourir derrière (bug V17).
-      var s=crossT(jx,jy,ix,iy,GATE);
-      t0=tPrev+(tNow-tPrev)*(u0+(u1-u0)*s);
-      acc=0;
-      setHud('TOURNE ENTRE LA VOITURE ET LES CRABES !','go');
-    } else if(t0>0 && !lapDone && Math.abs(acc)>=Math.PI*1.8 && d1<=GATE && d0>GATE){
-      // arrivée : contact retour avec la boule après un tour complet
-      // (seuil 1.8π : minimum géométrique ~1.87π, marge incluse)
-      var s2=crossT(jx,jy,ix,iy,GATE);
-      lapDone=true;
-      finish(tPrev+(tNow-tPrev)*(u0+(u1-u0)*s2));
-      return;
-    }
   }
 
+  // franchissement de la ligne : intersection du trajet du doigt avec le segment ligne
+  var xt=segX(prev.x,prev.y,p.x,p.y,LNx1,LNy1,LNx2,LNy2);
+  if(xt>=0){
+    var tc=tPrev+(tNow-tPrev)*xt;
+    if(t0===0){ t0=tc; acc=0; setHud('TOURNE ENTRE LA VOITURE ET LES CRABES !','go'); }
+    else if(!lapDone && Math.abs(acc)>=Math.PI*1.9){ lapDone=true; finish(tc); return; }
+  }
   var prog=Math.min(Math.abs(acc)/(Math.PI*2),1);
   var pc=Math.round(prog*100);
   hudBarFill.style.width=pc+'%';
@@ -1042,7 +1035,7 @@ canvas.addEventListener('touchstart',function(e){
   for(var i=0;i<e.changedTouches.length;i++){
     var t=e.changedTouches[i];
     var p=toCanvas(t.clientX,t.clientY);
-    if(nearBall(p.x,p.y)){
+    if(inCouloir(p)){
       activeTouchId=t.identifier;
       beginRun(p,e.timeStamp||performance.now());
       return;
@@ -1075,7 +1068,7 @@ canvas.addEventListener('mousedown',function(e){
   e.preventDefault();
   if(phase!=='ready')return;
   var p=toCanvas(e.clientX,e.clientY);
-  if(!nearBall(p.x,p.y))return;
+  if(!inCouloir(p))return;
   mouseActive=true;
   beginRun(p,e.timeStamp||performance.now());
 });
@@ -1213,7 +1206,7 @@ document.getElementById('btnPlay').addEventListener('click',function(){
 });
 // pseudo prérempli au retour
 document.getElementById('nameInput').value=(playerName!=='ANONYME')?playerName:'';
-console.log('TURBO DISCO V30');
+console.log('TURBO DISCO · OFFICIEL (ligne)');
 document.getElementById('btnReplay').addEventListener('click',function(){
   newSession(); hideAll(); resetRun();
 });
@@ -1291,8 +1284,8 @@ function loop(t){
   drawTrail();
   drawCrowd(t);
   drawGibs();
+  (function(){var c=Math.cos(SB_TH),s=Math.sin(SB_TH),FI=0.10,FO=1.42,ci=CX+RX*FI*c,cyi=CY+RY*FI*s,co=CX+RX*FO*c,cyo=CY+RY*FO*s,dx=co-ci,dy=cyo-cyi,w=Math.hypot(dx,dy),ux=dx/w,uy=dy/w,nx=-uy,ny=ux,cell=8,rows=3;for(var wi=0;wi<w-0.1;wi+=cell){var cw=Math.min(cell,w-wi);for(var ri=0;ri<rows;ri++){ctx.fillStyle=(((wi/cell)|0)+ri)%2?'#f4f4f4':'#0c0c0c';var bx=ci+ux*wi+nx*(ri-rows/2)*cell,by=cyi+uy*wi+ny*(ri-rows/2)*cell;ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(bx+ux*cw,by+uy*cw);ctx.lineTo(bx+ux*cw+nx*cell,by+uy*cw+ny*cell);ctx.lineTo(bx+nx*cell,by+ny*cell);ctx.closePath();ctx.fill();}}})();
   drawCar();
-  drawDiscoBall(t);
   if(phase==='ready'||phase==='running')drawGhostRecord();
   if(phase==='done')drawConfetti();
   drawOverlayFX(t);
@@ -1367,12 +1360,10 @@ requestAnimationFrame(loop);
   try{
     var q=new URLSearchParams(location.search);
     if(q.get('scores')){ renderLb(); show('sLb'); return; }
-    if(q.get('go')){
-      var n=''; try{n=(localStorage.getItem('td_name')||'').trim();}catch(e){}
-      if(!n||n==='ANONYME'){ location.replace('turbo-disco-pseudo.html'); return; }
-      playerName=n.toUpperCase().slice(0,12);
-      startBGM(); newSession(); hideAll(); resetRun();
-    }
+    var n=''; try{n=(localStorage.getItem('td_name')||'').trim();}catch(e){}
+    if(!n||n==='ANONYME'){ location.replace('turbo-disco-pseudo.html'); return; }
+    playerName=n.toUpperCase().slice(0,12);
+    startBGM(); newSession(); hideAll(); resetRun();
   }catch(e){}
 })();
 </script>
