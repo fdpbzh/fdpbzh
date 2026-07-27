@@ -537,7 +537,7 @@ CAR_CANVAS.width=CPW+6; CAR_CANVAS.height=CPH+6;
 
 // Boule disco : flanc droit de l'écran, légèrement au-dessus du milieu
 // (jeu au pouce droit en portrait ; les gauchers tournent dans l'autre sens, autorisé)
-var SB_TH=-15*Math.PI/180;
+var SB_TH=0;   // V2 : ligne d'arrivée horizontale sur la droite (piste dégagée)
 var SBX=CX+RX*Math.cos(SB_TH), SBY=CY+RY*Math.sin(SB_TH), SBR=15;
 // Porte de chronométrage : cercle GATE autour de la boule. Le chrono démarre
 // à la SORTIE de la porte et s'arrête à sa traversée en RETOUR (tour complet).
@@ -1279,8 +1279,7 @@ function loop(t){
   drawCrowd(t);
   drawGibs();
   drawCar();
-  (function(){var ci=CX+RX*F_IN*Math.cos(SB_TH),cyi=CY+RY*F_IN*Math.sin(SB_TH),co=CX+RX*F_OUT*Math.cos(SB_TH),cyo=CY+RY*F_OUT*Math.sin(SB_TH);var dx=co-ci,dy=cyo-cyi,len=Math.hypot(dx,dy),ux=dx/len,uy=dy/len,nx=-uy,ny=ux,seg=6,hf=6;for(var d=0;d<len;d+=seg){var x=ci+ux*d,y=cyi+uy*d;ctx.fillStyle=((d/seg)|0)%2?'#f0f0f0':'#141414';ctx.beginPath();ctx.moveTo(x+nx*hf,y+ny*hf);ctx.lineTo(x-nx*hf,y-ny*hf);ctx.lineTo(x-nx*hf+ux*seg,y-ny*hf+uy*seg);ctx.lineTo(x+nx*hf+ux*seg,y+ny*hf+uy*seg);ctx.closePath();ctx.fill();}})();
-  drawDiscoBall(t);
+  (function(){var c=Math.cos(SB_TH),s=Math.sin(SB_TH),FI=0.58,FO=1.36,ci=CX+RX*FI*c,cyi=CY+RY*FI*s,co=CX+RX*FO*c,cyo=CY+RY*FO*s,dx=co-ci,dy=cyo-cyi,w=Math.hypot(dx,dy),ux=dx/w,uy=dy/w,nx=-uy,ny=ux,cell=8,rows=3;for(var wi=0;wi<w-0.1;wi+=cell){var cw=Math.min(cell,w-wi);for(var ri=0;ri<rows;ri++){ctx.fillStyle=(((wi/cell)|0)+ri)%2?'#f4f4f4':'#0c0c0c';var bx=ci+ux*wi+nx*(ri-rows/2)*cell,by=cyi+uy*wi+ny*(ri-rows/2)*cell;ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(bx+ux*cw,by+uy*cw);ctx.lineTo(bx+ux*cw+nx*cell,by+uy*cw+ny*cell);ctx.lineTo(bx+nx*cell,by+ny*cell);ctx.closePath();ctx.fill();}}})();
   if(phase==='ready'||phase==='running')drawGhostRecord();
   if(phase==='done')drawConfetti();
   drawOverlayFX(t);
