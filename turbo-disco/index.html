@@ -66,7 +66,18 @@ function drawCrabInto(g,cx,cy,s,k,look){
 }
 var SPR=[[],[]];
 (function(){for(var d=0;d<2;d++)for(var f=0;f<6;f++){var oc=document.createElement('canvas');oc.width=SPR_W;oc.height=SPR_H;var g=oc.getContext('2d');drawCrabInto(g,SPR_OX,SPR_OY,CS,f/6,d?1:-1);SPR[d].push(oc);}})();
-var crabs=[]; (function(){var r=rnd(99);for(var i=0;i<5;i++)crabs.push({x:r()*W,y:HORIZON+34+r()*(H-HORIZON-90),sp:(r()<.5?-1:1)*(.10+r()*.16),ph:r()*6.28,sc:.7+r()*.5,dir:0});})();
+// crabes répartis dans toute la bande de sol : proches (bas) = gros & rapides, lointains (haut) = petits & lents
+var crabs=[]; (function(){var r=rnd(99);for(var i=0;i<15;i++){var yy=HORIZON+18+r()*(H-HORIZON-46);var dd=(yy-HORIZON)/(H-HORIZON);crabs.push({x:r()*(W+80)-40,y:yy,sp:(r()<.5?-1:1)*(.06+dd*.30),ph:r()*6.28,dir:0});}})();
+var CAR_BASE_Y=540;   // ligne de sol de la Corvette : crabe plus bas → passe DEVANT ; plus haut → DERRIÈRE
+// dessin d'un crabe, échelle et opacité liées à la profondeur (y) : proche = grand & net
+function drawCrab(cb,t){
+  var d=(cb.y-HORIZON)/(H-HORIZON), sc=0.42+d*1.15;
+  var f=((t*0.006*Math.abs(cb.sp)*8+cb.ph*6)|0)%6;
+  var w=SPR_W*sc, h=SPR_H*sc;
+  X.globalAlpha=0.7+0.3*Math.min(1,d*1.3);
+  X.drawImage(SPR[cb.dir][f], cb.x-w*0.45, cb.y-h*0.62, w, h);
+  X.globalAlpha=1;
+}
 
 var lcLogo=null;
 (function(){
@@ -214,7 +225,8 @@ function drawLeCorre(t){
     X.font='20px "DK Longreach"';X.fillStyle='#ffd644';
     X.fillText('Charpentier des',cx,150);X.fillText('Championnats du Monde',cx,176);
     X.shadowBlur=0;X.font='11px "DK Longreach"';X.fillStyle='#e8d6a9';
-    X.fillText('Menuiserie Le Corre a bâti la scène',cx,200);
+    X.fillText('Menuiserie Le Corre',cx,196);
+    X.fillText('a bâti et offert la scène',cx,212);
     X.restore();X.globalAlpha=1;
   }
   drawPergola(cx,baseY,p,t);
@@ -229,10 +241,12 @@ function loop(t){
   layer(1,t,function(){drawSky(t);drawClouds(t);});
   layer(5,t,function(){
     drawGround(t);
-    crabs.sort(function(a,b){return a.y-b.y;});
-    for(var i=0;i<crabs.length;i++){var cb=crabs[i];cb.x+=cb.sp;cb.dir=cb.sp<0?0:1;if(cb.x<-30)cb.x=W+30;if(cb.x>W+30)cb.x=-30;var f=((t*0.006*Math.abs(cb.sp)*8+cb.ph*6)|0)%6;var w=SPR_W*cb.sc,h=SPR_H*cb.sc;X.drawImage(SPR[cb.dir][f],cb.x-w*0.45,cb.y-h*0.62,w,h);}
+    for(var i=0;i<crabs.length;i++){var cb=crabs[i];cb.x+=cb.sp;cb.dir=cb.sp<0?0:1;if(cb.x<-40)cb.x=W+40;if(cb.x>W+40)cb.x=-40;}
+    crabs.sort(function(a,b){return a.y-b.y;});                                      // du plus loin (haut) au plus proche (bas)
+    for(var i=0;i<crabs.length;i++)if(crabs[i].y<=CAR_BASE_Y)drawCrab(crabs[i],t);   // crabes DERRIÈRE la voiture
     if(!lcMode)drawLeCorreStake(t);
     drawCar(t);
+    for(var i=0;i<crabs.length;i++)if(crabs[i].y>CAR_BASE_Y)drawCrab(crabs[i],t);    // crabes DEVANT la voiture
   });
   if(lcMode){drawLeCorre(t);} else {drawLogo(t);drawMenu(t);}
   if(flash>0){X.globalAlpha=flash*0.5;X.fillStyle=flashCol;X.fillRect(0,0,W,H);X.globalAlpha=1;flash-=0.06;}
