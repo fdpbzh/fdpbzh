@@ -420,3 +420,5 @@ Tests de rejeu (local, math identique client/serveur) : tours valides acceptés 
 **À faire par Yo** : pousser via GitHub Desktop, puis tester sur mobile (le sandbox ne peut pas rendre le canvas ni joindre Supabase).
 
 > Note URL « Turbo_disco » : l'entrée reste `fdp.bzh/turbo-disco.html`. Un chemin propre `/turbo-disco/` demanderait de déplacer les 3 fichiers dans un sous-dossier — faisable si tu veux, dis-le.
+
+**MAJ URL (2026-07-27)** : les fichiers ont été déplacés dans `turbo-disco/` → URL propre **`fdp.bzh/turbo-disco/`** (accueil = `turbo-disco/index.html`, puis `pseudo.html`, `jeu.html` ; `jeu-v2.html` et `stats.html` conservés dans le dossier). L'ancien `turbo-disco.html` à la racine est désormais une **redirection** vers `./turbo-disco/` (préserve QR codes et liens déjà partagés).

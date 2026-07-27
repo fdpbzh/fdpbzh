@@ -22,7 +22,7 @@ button:active{transform:scale(.96);}
 </style>
 </head>
 <body>
-<a class="back" href="turbo-disco.html">‹ retour</a>
+<a class="back" href="index.html">‹ retour</a>
 <div class="wrap">
   <h1>Qui pilote&nbsp;?</h1>
   <p class="sub">Ton pseudo pour le<br>classement mondial <span class="num">2025</span></p>
@@ -62,7 +62,7 @@ setTimeout(function(){try{ps.focus();}catch(e){}},200);
 function launch(){
   var n=ps.value.trim(); if(!n)return;
   try{localStorage.setItem('td_name',n.toUpperCase().slice(0,12));}catch(e){}
-  location.href='turbo-disco-jeu.html?go=1';
+  location.href='jeu.html?go=1';
 }
 go.addEventListener('click',launch);
 ps.addEventListener('keydown',function(e){if(e.key==='Enter')launch();});

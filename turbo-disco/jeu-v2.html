@@ -444,7 +444,7 @@ document.getElementById('btnMute').addEventListener('click',function(e){
 document.getElementById('btnMenu').addEventListener('click',function(e){
   e.stopPropagation();
   if(phase!=='ready')return;
-  location.href='turbo-disco.html';
+  location.href='index.html';
 });
 
 // ══════ CANVAS ══════
@@ -1213,7 +1213,7 @@ document.getElementById('btnReplay').addEventListener('click',function(){
 var lbFrom='home';
 document.getElementById('btnLbMenu').addEventListener('click',function(){lbFrom='home';renderLb();show('sLb');});
 document.getElementById('btnLbRes').addEventListener('click',function(){lbFrom='result';renderLb();show('sLb');});
-document.getElementById('btnBack').addEventListener('click',function(){if(lbFrom==='result'){show('sResult');}else{location.href='turbo-disco.html';}});
+document.getElementById('btnBack').addEventListener('click',function(){if(lbFrom==='result'){show('sResult');}else{location.href='index.html';}});
 document.getElementById('btnConfirmInsta').addEventListener('click',function(){
   var v=document.getElementById('instaInput').value.trim();
   if(!v)return;
