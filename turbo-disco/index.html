@@ -68,7 +68,7 @@ var SPR=[[],[]];
 (function(){for(var d=0;d<2;d++)for(var f=0;f<6;f++){var oc=document.createElement('canvas');oc.width=SPR_W;oc.height=SPR_H;var g=oc.getContext('2d');drawCrabInto(g,SPR_OX,SPR_OY,CS,f/6,d?1:-1);SPR[d].push(oc);}})();
 // crabes répartis dans toute la bande de sol : proches (bas) = gros & rapides, lointains (haut) = petits & lents
 var crabs=[]; (function(){var r=rnd(99);for(var i=0;i<15;i++){var yy=HORIZON+18+r()*(H-HORIZON-46);var dd=(yy-HORIZON)/(H-HORIZON);crabs.push({x:r()*(W+80)-40,y:yy,sp:(r()<.5?-1:1)*(.06+dd*.30),ph:r()*6.28,dir:0});}})();
-var CAR_BASE_Y=540;   // ligne de sol de la Corvette : crabe plus bas → passe DEVANT ; plus haut → DERRIÈRE
+var CAR_BASE_Y=538;   // ligne de sol de la Corvette : pieds du crabe plus bas → passe DEVANT ; plus haut → DERRIÈRE
 // dessin d'un crabe, échelle et opacité liées à la profondeur (y) : proche = grand & net
 function drawCrab(cb,t){
   var d=(cb.y-HORIZON)/(H-HORIZON), sc=0.42+d*1.15;
@@ -241,12 +241,21 @@ function loop(t){
   layer(1,t,function(){drawSky(t);drawClouds(t);});
   layer(5,t,function(){
     drawGround(t);
-    for(var i=0;i<crabs.length;i++){var cb=crabs[i];cb.x+=cb.sp;cb.dir=cb.sp<0?0:1;if(cb.x<-40)cb.x=W+40;if(cb.x>W+40)cb.x=-40;}
-    crabs.sort(function(a,b){return a.y-b.y;});                                      // du plus loin (haut) au plus proche (bas)
-    for(var i=0;i<crabs.length;i++)if(crabs[i].y<=CAR_BASE_Y)drawCrab(crabs[i],t);   // crabes DERRIÈRE la voiture
+    // déplacement + rebond : les crabes font demi-tour au contact de la voiture et du panneau bois
+    var carL=W/2-54, carR=W/2+54;
+    for(var i=0;i<crabs.length;i++){
+      var cb=crabs[i]; cb.x+=cb.sp;
+      var d=(cb.y-HORIZON)/(H-HORIZON), fh=SPR_H*(0.42+d*1.15); cb._feet=cb.y+fh*0.38;   // ligne de sol (pieds) du crabe
+      if(cb._feet>=512&&cb._feet<=568&&cb.x>carL-6&&cb.x<carR+6){ cb.x=cb.sp>0?carL-6:carR+6; cb.sp=-cb.sp; }        // rebond voiture
+      else if(cb._feet>=544&&cb._feet<=606&&cb.x>246&&cb.x<352){ cb.x=cb.sp>0?246:352; cb.sp=-cb.sp; }               // rebond panneau bois
+      cb.dir=cb.sp<0?0:1;
+      if(cb.x<-40)cb.x=W+40; if(cb.x>W+40)cb.x=-40;
+    }
+    crabs.sort(function(a,b){return a._feet-b._feet;});                                // du plus loin au plus proche (tri par les pieds)
+    for(var i=0;i<crabs.length;i++)if(crabs[i]._feet<=CAR_BASE_Y)drawCrab(crabs[i],t); // crabes DERRIÈRE la voiture
     if(!lcMode)drawLeCorreStake(t);
     drawCar(t);
-    for(var i=0;i<crabs.length;i++)if(crabs[i].y>CAR_BASE_Y)drawCrab(crabs[i],t);    // crabes DEVANT la voiture
+    for(var i=0;i<crabs.length;i++)if(crabs[i]._feet>CAR_BASE_Y)drawCrab(crabs[i],t);  // crabes DEVANT la voiture
   });
   if(lcMode){drawLeCorre(t);} else {drawLogo(t);drawMenu(t);}
   if(flash>0){X.globalAlpha=flash*0.5;X.fillStyle=flashCol;X.fillRect(0,0,W,H);X.globalAlpha=1;flash-=0.06;}
