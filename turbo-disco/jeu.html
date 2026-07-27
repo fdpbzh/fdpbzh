@@ -110,6 +110,15 @@ input.need{border-color:#ff4d6d !important;animation:shake .3s;}
 .pod.bronze{color:#e6a56a;border-color:#b0763a;}
 .pod.lant{color:#ff6b82;border-color:#ff6b82;background:#2a0f1e;box-shadow:0 0 14px #ff6b8244;}
 #sLb .btn-sm,#sResult .btn{font-family:'DK Longreach';}
+/* Écran Lanterne Rouge (Dernier Mondial) : célébration du tour le plus lent */
+#sLantern{background:radial-gradient(circle at 50% 24%,#3a1020,#160f34 82%)!important;gap:9px;}
+#sLantern .lantern-ico{font-size:44px;line-height:1;filter:drop-shadow(0 0 14px #ff4d6d);}
+.lant-h{font-family:'DK Longreach';font-size:clamp(24px,7vw,36px);color:#ff6b82;text-shadow:0 0 16px #ff4d6d;line-height:1;letter-spacing:1px;text-align:center;}
+.lant-time{font-family:'Bungee','Press Start 2P',monospace!important;color:#ff9aa8;font-size:clamp(20px,6vw,30px);text-shadow:0 0 10px #ff4d6d66;margin:2px 0;}
+#sLantern .btn{background:#2a0f1e;border:2px solid #ff6b82;color:#ff9aa8;box-shadow:0 0 18px #ff4d6d44;}
+#sLantern .btn:active{background:#ff6b82;color:#160f34;}
+#sLantern .btn-sm{border-color:#ff6b82;color:#ff9aa8;background:rgba(255,107,130,.12);}
+#sLantern input[type=text]{border-bottom-color:#ff6b82;}
 #btnBack{font-family:'DK Longreach';font-size:clamp(13px,3.6vw,17px);color:#160f34;background:#ffd644;border:none;border-radius:10px;padding:10px 26px;}
 #hudTimer,#hudRecord,#hudMsg,#resTime,#resComment,#resName,.num{font-family:'Bungee','Press Start 2P',monospace!important;}
 </style>
@@ -165,6 +174,22 @@ input.need{border-color:#ff4d6d !important;animation:shake .3s;}
     <div id="lbContent"><p class="loader">CHARGEMENT...</p></div>
     <p class="lb-note gold">Aucun lot. Juste la gloire éternelle.<br>Sacre du champion le <span class="num">8</span> août sur place.</p>
     <button class="btn-sm" id="btnBack">‹ Retour</button>
+  </div>
+
+  <div class="screen hidden" id="sLantern">
+    <div class="lantern-ico">🏮</div>
+    <h1 class="lant-h">Lanterne Rouge</h1>
+    <p class="lb-note" style="color:#ffb3c0;" id="lantName"></p>
+    <p class="lant-time" id="lantTime"></p>
+    <p class="lb-note">Bravo. Tu es officiellement le <b>Dernier Mondial</b> : le tour le plus lent de tout le championnat. Un titre honorifique, rare, et profondément respecté.</p>
+    <div id="lantInstaBox" style="border-top:1px solid #ff6b82;border-bottom:1px solid #ff6b82;padding:10px 0;width:100%;display:flex;flex-direction:column;align-items:center;gap:7px;">
+      <p class="lb-note" style="color:#ff9aa8;">Laisse ton insta : si un lot de consolation est prévu,<br>on saura où te trouver.</p>
+      <input type="text" id="lantInstaInput" maxlength="30" placeholder="@TON_INSTA" autocomplete="off" spellcheck="false">
+      <button class="btn-sm" id="btnLantInsta">CONFIRMER</button>
+      <p class="lb-note" id="lantInstaDone" style="color:#ff6b82;display:none;">✓ Enregistré · à bientôt le <span class="num">8</span> août</p>
+    </div>
+    <button class="btn" id="btnLantReplay">▶ REJOUER</button>
+    <button class="btn-sm" id="btnLantLb">★ SCORES</button>
   </div>
 </div>
 
@@ -1134,23 +1159,23 @@ function finish(tHit){
       },1500);
     } else {
       setHud('REJOUE !','go');
+      var lanternShown=false;
       // rang global : la ligne or persiste jusqu'au prochain tour bouclé —
-      // et si c'est le PIRE temps du championnat, on le célèbre !
+      // et si c'est le PIRE temps du championnat, on lui offre une vraie cérémonie.
       savedP.then(function(d){
-        if(!d)return;
+        if(!d){ setTimeout(function(){if(phase==='done'&&!lanternShown){newSession();resetRun();}},2600); return; }
         Promise.all([fetchRank(ms),fetchTotalScores()]).then(function(rt){
           var rk=rt[0], tot=rt[1];
-          if(!rk)return;
           if(tot&&rk===tot&&tot>3){
-            lastResult='BOUCLÉ EN '+fmt(ms)+' · DERNIER MONDIAL · ★ LANTERNE ROUGE ! ★';
-            if(phase==='done')spawnConfetti();
+            // LANTERNE ROUGE : cérémonie dédiée + collecte de l'insta (lot de consolation éventuel)
+            lastResult='BOUCLÉ EN '+fmt(ms)+' · DERNIER MONDIAL · ★ LANTERNE ROUGE ! ★'; renderHud();
+            if(phase==='done'){ lanternShown=true; showLantern(ms); }
           } else {
-            lastResult='BOUCLÉ EN '+fmt(ms)+' · '+rk+'e TEMPS';
+            if(rk){ lastResult='BOUCLÉ EN '+fmt(ms)+' · '+rk+'e TEMPS'; renderHud(); }
+            setTimeout(function(){if(phase==='done'&&!lanternShown){newSession();resetRun();}},2600);
           }
-          renderHud();
-        });
+        }).catch(function(){ setTimeout(function(){if(phase==='done'&&!lanternShown){newSession();resetRun();}},2600); });
       });
-      setTimeout(function(){if(phase==='done'){newSession();resetRun();}},2600);
     }
   });
 }
@@ -1179,14 +1204,23 @@ function showResult(){
 
 // ══════ ÉCRANS ══════
 function show(id){
-  ['sMenu','sResult','sLb'].forEach(function(s){
+  ['sMenu','sResult','sLb','sLantern'].forEach(function(s){
     document.getElementById(s).classList.toggle('hidden', s!==id);
   });
   document.getElementById('wrap').classList.add('screenOn');
 }
 function hideAll(){
-  ['sMenu','sResult','sLb'].forEach(function(s){document.getElementById(s).classList.add('hidden');});
+  ['sMenu','sResult','sLb','sLantern'].forEach(function(s){document.getElementById(s).classList.add('hidden');});
   document.getElementById('wrap').classList.remove('screenOn');
+}
+// Cérémonie Lanterne Rouge : remplit l'écran, réarme le champ insta, affiche
+function showLantern(ms){
+  document.getElementById('lantName').textContent=playerName;
+  document.getElementById('lantTime').textContent=fmt(ms);
+  var inp=document.getElementById('lantInstaInput'); inp.value=''; inp.style.display='';
+  document.getElementById('btnLantInsta').style.display='';
+  document.getElementById('lantInstaDone').style.display='none';
+  show('sLantern');
 }
 
 document.getElementById('btnPlay').addEventListener('click',function(){
@@ -1210,12 +1244,24 @@ document.getElementById('btnReplay').addEventListener('click',function(){
 var lbFrom='home';
 document.getElementById('btnLbMenu').addEventListener('click',function(){lbFrom='home';renderLb();show('sLb');});
 document.getElementById('btnLbRes').addEventListener('click',function(){lbFrom='result';renderLb();show('sLb');});
-document.getElementById('btnBack').addEventListener('click',function(){if(lbFrom==='result'){show('sResult');}else{location.href='index.html';}});
+document.getElementById('btnBack').addEventListener('click',function(){if(lbFrom==='result'){show('sResult');}else if(lbFrom==='lantern'){show('sLantern');}else{location.href='index.html';}});
 document.getElementById('btnConfirmInsta').addEventListener('click',function(){
   var v=document.getElementById('instaInput').value.trim();
   if(!v)return;
   updateInsta(v).then(function(){
     document.getElementById('topInstaBox').innerHTML='<p class="sub" style="color:#ffd700">✓ ENREGISTRÉ · À BIENTÔT LE 8 AOÛT</p>';
+  });
+});
+document.getElementById('btnLantReplay').addEventListener('click',function(){ newSession(); hideAll(); resetRun(); });
+document.getElementById('btnLantLb').addEventListener('click',function(){lbFrom='lantern';renderLb();show('sLb');});
+document.getElementById('btnLantInsta').addEventListener('click',function(){
+  var v=document.getElementById('lantInstaInput').value.trim();
+  if(!v)return;
+  var self=this;
+  updateInsta(v).then(function(){
+    document.getElementById('lantInstaInput').style.display='none';
+    self.style.display='none';
+    document.getElementById('lantInstaDone').style.display='';
   });
 });
 document.getElementById('btnShare').addEventListener('click',function(){
