@@ -17,7 +17,7 @@ input::placeholder{color:#7d6bb0;letter-spacing:2px;}
 button{font-family:'DK Longreach';font-size:clamp(20px,5.5vw,30px);color:#160f34;background:#ffd644;border:none;border-radius:12px;padding:14px 34px;cursor:pointer;box-shadow:0 0 26px #ffd64455;transition:transform .08s;}
 button:disabled{opacity:.32;box-shadow:none;cursor:default;}
 button:active{transform:scale(.96);}
-a.back{position:fixed;top:16px;left:18px;color:#b7a6e0;font-size:15px;text-decoration:none;opacity:.85;}
+.num{font-family:'Bungee',monospace;} a.back{position:fixed;top:16px;left:18px;color:#b7a6e0;font-size:15px;text-decoration:none;opacity:.85;}
 .foot{position:fixed;bottom:14px;left:0;right:0;text-align:center;font-size:11px;color:#8a7ac0;opacity:.8;}
 </style>
 </head>
@@ -25,7 +25,7 @@ a.back{position:fixed;top:16px;left:18px;color:#b7a6e0;font-size:15px;text-decor
 <a class="back" href="turbo-disco.html">‹ retour</a>
 <div class="wrap">
   <h1>Qui pilote&nbsp;?</h1>
-  <p class="sub">Ton pseudo pour le<br>classement mondial 2025</p>
+  <p class="sub">Ton pseudo pour le<br>classement mondial <span class="num">2025</span></p>
   <input id="ps" maxlength="12" placeholder="TON PSEUDO" autocomplete="off" spellcheck="false" autocapitalize="characters">
   <button id="go" disabled>▶ En piste</button>
 </div>

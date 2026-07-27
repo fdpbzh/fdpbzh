@@ -168,7 +168,7 @@ input.need{border-color:#ff4d6d !important;animation:shake .3s;}
 var SB_URL='https://nhsroymqvwrjflagzznz.supabase.co/rest/v1';  // projet fdp-scores (commun a tous les jeux FDP)
 var SB_FN='https://nhsroymqvwrjflagzznz.supabase.co/functions/v1'; // Edge Functions (anti-triche par rejeu)
 var SB_KEY='sb_publishable_UH528FgC5FVbxNFYi9Odlg_jcPZuK4J';
-var TABLE='turbo_scores';
+var TABLE='turbo_scores_v2';
 
 // Seuils recalibrés pour le chrono porte-à-porte : en rasant la Corvette la
 // piste descend à ~520px, un flick d'élite tient ~100ms (record constaté 240ms).
@@ -219,7 +219,7 @@ function saveScore(name,ms){
   var body={name:name.toUpperCase().slice(0,12),
             session_id:sessionToken,play_time_ms:playTime,action_count:actionCount,
             client_ms:Math.round(ms*10)/10,trace:trace};
-  return fetch(SB_FN+'/submit-score',{method:'POST',
+  return fetch(SB_FN+'/submit-score-v2',{method:'POST',
     headers:sbHeaders({'Content-Type':'application/json'}),
     body:JSON.stringify(body)
   }).then(function(r){return r.json();}).then(function(d){
@@ -876,8 +876,7 @@ function drawDiscoBall(t){
   }
   ctx.globalAlpha=1;
   if(phase==='ready'&&((t/450)|0)%2===0){
-    ctx.fillStyle='#ffd644';ctx.font='16px "DK Longreach"';ctx.textAlign='center';
-    ctx.fillText('DÉPART',SBX,SBY-r-10);
+    if(false){}
     ctx.textAlign='left';
   }
 }
@@ -959,13 +958,15 @@ function crossT(x0,y0,x1,y1,R){
   return 0.5;
 }
 
+function lineCross(aP,aC){var g0=angDiff(aP,SB_TH),g1=angDiff(aC,SB_TH);if(g0*g1<0&&Math.abs(g0)<0.7&&Math.abs(g1)<0.7)return g0/(g0-g1);return -1;}
+function inCouloir(p){var fpp=ellipseF(p.x,p.y);return fpp>=F_IN&&fpp<=F_OUT&&!inCar(p.x,p.y);}
 function beginRun(p,tNow){
-  phase='running'; t0=0; lastMoveT=tNow;   // chrono armé, il part à la sortie de la boule
+  phase='running'; t0=0; lastMoveT=tNow;   // chrono armé : il part au franchissement de la ligne
   startAng=angOf(p.x,p.y); lastAng=startAng;
   trail=[{x:p.x,y:p.y}]; acc=0;
   trace=[[Math.round(p.x*10)/10,Math.round(p.y*10)/10,Math.round(tNow*10)/10]];
   hudTimer.className='run';
-  setHud('LE CHRONO PART QUAND TU QUITTES LA BOULE !','go');
+  setHud('FRANCHIS LA LIGNE POUR LANCER LE CHRONO !','go');
   sfxStart();
 }
 
@@ -1001,29 +1002,15 @@ function stepRun(p,tNow){
     var u0=(i-1)/steps, u1=i/steps;
     var jx=prev.x+(p.x-prev.x)*u0, jy=prev.y+(p.y-prev.y)*u0;
     var ix=prev.x+(p.x-prev.x)*u1, iy=prev.y+(p.y-prev.y)*u1;
-    if(Math.hypot(ix-SBX,iy-SBY)>SBR*2.4){
-      if(inCar(ix,iy)){die('TU AS TOUCHÉ LA CORVETTE !',ix,iy,evSpd);return;}
-      if(ellipseF(ix,iy)>F_OUT){die('TU AS BOUSCULÉ LES CRABES !',ix,iy,evSpd);return;}
-    }
+    if(inCar(ix,iy)){die('TU AS TOUCHÉ LA CORVETTE !',ix,iy,evSpd);return;}
+    if(ellipseF(ix,iy)>F_OUT){die('TU AS BOUSCULÉ LES CRABES !',ix,iy,evSpd);return;}
     var ia=Math.atan2(iy-CY,ix-CX);
+    var frac=lineCross(lastAng,ia);
     acc+=angDiff(ia,lastAng); lastAng=ia;
-    var d0=Math.hypot(jx-SBX,jy-SBY), d1=Math.hypot(ix-SBX,iy-SBY);
-    if(t0===0 && d0<=GATE && d1>GATE){
-      // départ : sortie de la porte. L'angle du tour se compte à partir d'ICI,
-      // pas du point de contact initial — sinon déficit d'angle quand on touche
-      // un côté de la boule et qu'on sort de l'autre → l'arrivée est ignorée,
-      // le doigt traverse la boule et va mourir derrière (bug V17).
-      var s=crossT(jx,jy,ix,iy,GATE);
-      t0=tPrev+(tNow-tPrev)*(u0+(u1-u0)*s);
-      acc=0;
-      setHud('TOURNE ENTRE LA VOITURE ET LES CRABES !','go');
-    } else if(t0>0 && !lapDone && Math.abs(acc)>=Math.PI*1.8 && d1<=GATE && d0>GATE){
-      // arrivée : contact retour avec la boule après un tour complet
-      // (seuil 1.8π : minimum géométrique ~1.87π, marge incluse)
-      var s2=crossT(jx,jy,ix,iy,GATE);
-      lapDone=true;
-      finish(tPrev+(tNow-tPrev)*(u0+(u1-u0)*s2));
-      return;
+    if(frac>=0){
+      var tc=tPrev+(tNow-tPrev)*(u0+(u1-u0)*frac);
+      if(t0===0){ t0=tc; acc=0; setHud('TOURNE ENTRE LA VOITURE ET LES CRABES !','go'); }
+      else if(!lapDone && Math.abs(acc)>=Math.PI*1.9){ lapDone=true; finish(tc); return; }
     }
   }
 
@@ -1042,7 +1029,7 @@ canvas.addEventListener('touchstart',function(e){
   for(var i=0;i<e.changedTouches.length;i++){
     var t=e.changedTouches[i];
     var p=toCanvas(t.clientX,t.clientY);
-    if(nearBall(p.x,p.y)){
+    if(inCouloir(p)){
       activeTouchId=t.identifier;
       beginRun(p,e.timeStamp||performance.now());
       return;
@@ -1075,7 +1062,7 @@ canvas.addEventListener('mousedown',function(e){
   e.preventDefault();
   if(phase!=='ready')return;
   var p=toCanvas(e.clientX,e.clientY);
-  if(!nearBall(p.x,p.y))return;
+  if(!inCouloir(p))return;
   mouseActive=true;
   beginRun(p,e.timeStamp||performance.now());
 });
@@ -1213,7 +1200,7 @@ document.getElementById('btnPlay').addEventListener('click',function(){
 });
 // pseudo prérempli au retour
 document.getElementById('nameInput').value=(playerName!=='ANONYME')?playerName:'';
-console.log('TURBO DISCO V30');
+console.log('TURBO DISCO V2 · LIGNE ARRIVÉE');
 document.getElementById('btnReplay').addEventListener('click',function(){
   newSession(); hideAll(); resetRun();
 });
@@ -1292,6 +1279,7 @@ function loop(t){
   drawCrowd(t);
   drawGibs();
   drawCar();
+  (function(){var ci=CX+RX*F_IN*Math.cos(SB_TH),cyi=CY+RY*F_IN*Math.sin(SB_TH),co=CX+RX*F_OUT*Math.cos(SB_TH),cyo=CY+RY*F_OUT*Math.sin(SB_TH);var dx=co-ci,dy=cyo-cyi,len=Math.hypot(dx,dy),ux=dx/len,uy=dy/len,nx=-uy,ny=ux,seg=6,hf=6;for(var d=0;d<len;d+=seg){var x=ci+ux*d,y=cyi+uy*d;ctx.fillStyle=((d/seg)|0)%2?'#f0f0f0':'#141414';ctx.beginPath();ctx.moveTo(x+nx*hf,y+ny*hf);ctx.lineTo(x-nx*hf,y-ny*hf);ctx.lineTo(x-nx*hf+ux*seg,y-ny*hf+uy*seg);ctx.lineTo(x+nx*hf+ux*seg,y+ny*hf+uy*seg);ctx.closePath();ctx.fill();}})();
   drawDiscoBall(t);
   if(phase==='ready'||phase==='running')drawGhostRecord();
   if(phase==='done')drawConfetti();
@@ -1367,14 +1355,13 @@ requestAnimationFrame(loop);
   try{
     var q=new URLSearchParams(location.search);
     if(q.get('scores')){ renderLb(); show('sLb'); return; }
-    if(q.get('go')){
-      var n=''; try{n=(localStorage.getItem('td_name')||'').trim();}catch(e){}
-      if(!n||n==='ANONYME'){ location.replace('turbo-disco-pseudo.html'); return; }
-      playerName=n.toUpperCase().slice(0,12);
-      startBGM(); newSession(); hideAll(); resetRun();
-    }
+    var n=''; try{n=(localStorage.getItem('td_name')||'').trim();}catch(e){}
+    if(!n||n==='ANONYME')n='TEST';
+    playerName=n.toUpperCase().slice(0,12);
+    startBGM(); newSession(); hideAll(); resetRun();
   }catch(e){}
 })();
 </script>
+<div id="v2badge" style="position:fixed;bottom:4px;right:6px;z-index:40;font:12px 'DK Longreach',sans-serif;color:#ffd644;opacity:.75;pointer-events:none;">V2 · LIGNE</div>
 </body>
 </html>
