@@ -684,6 +684,8 @@ function drawCrabPanicInto(g,cx,cy,s,f,look){
 // couloir. L'ovale n'est pas dessiné : il émerge comme la clairière que la
 // foule ne peut pas envahir, avec un bord naturellement irrégulier.
 // (validé par simulation : bord de clairière f∈[1.27,1.46] sur 24 secteurs, 0 trou)
+// ── Relief d'arène (cosmétique, sans effet sur le jeu) : crabes plus gros vers les bords ──
+var ARENA_DEPTH=0.26;   // 0 = plat · +26% max pour la foule du bord (relief d'arène)
 var CRABS=[];
 (function buildCrowd(){
   var tries=0;
@@ -705,7 +707,8 @@ var CRABS=[];
       if((x-o.x)*(x-o.x)+(y-o.y)*(y-o.y)<361){ok=false;break;}
     }
     if(!ok) continue;
-    CRABS.push({x:x,y:y,sc:sc,
+    var ds=1+ARENA_DEPTH*Math.min(Math.max(f-F_OUT,0),1.6);
+    CRABS.push({x:x,y:y,sc:sc,ds:ds,
                 ph:Math.random(),sp:0.55+Math.random()*1.1,
                 dir:(x<CX)?1:0});
   }
@@ -800,10 +803,11 @@ function drawCar(){
 
 function drawCrowd(t){
   var nowP=performance.now();
+  var HGY=CY+carOy+LGT.hlY, BLEN=LGT.hlLen, HCX=CX+carOx;   // zone éblouie par les phares
   for(var i=0;i<CRABS.length;i++){
     var cb=CRABS[i];
     if(cb.dead)continue;
-    var w=SPR_W*cb.sc, h=SPR_H*cb.sc;
+    var w=SPR_W*cb.sc*cb.ds, h=SPR_H*cb.sc*cb.ds;
     if(cb.panicT&&nowP<cb.panicT){
       var pf=((t/90)|0)%2;
       ctx.drawImage(SPR_PANIC[cb.dir][pf], cb.x-w*0.45+(pf?1:-1), cb.y-h*0.6, w, h);
@@ -811,7 +815,79 @@ function drawCrowd(t){
       var f=((t*0.004*cb.sp+cb.ph*6)|0)%6;
       ctx.drawImage(SPRITES[cb.dir][f], cb.x-w*0.45, cb.y-h*0.6, w, h);
     }
+    // lunettes de soleil : les crabes pris dans le faisceau des phares se protègent
+    var dy=cb.y-HGY;
+    if(dy>2 && dy<BLEN && Math.abs(cb.x-HCX)<22+dy*0.42){
+      var ey=cb.y-h*0.25, ln=Math.max(2,w*0.18), lh=Math.max(2,h*0.11), gap=Math.max(1,w*0.04);
+      ctx.fillStyle='#08080c';
+      ctx.fillRect(Math.round(cb.x-gap-ln),Math.round(ey),Math.round(ln),Math.round(lh));
+      ctx.fillRect(Math.round(cb.x+gap),Math.round(ey),Math.round(ln),Math.round(lh));
+      ctx.fillRect(Math.round(cb.x-gap),Math.round(ey+lh*0.28),Math.round(gap*2),Math.max(1,Math.round(lh*0.4)));
+    }
   }
+}
+
+// ══════ ÉTALONNAGE CINÉMATIQUE (cosmétique, aucun effet sur le jeu) ══════
+// 3 couches : ombres violettes qui creusent la profondeur · lumière clé rose/violet
+// venant du haut · halo chaud type lampadaire. Réglages groupés ci-dessous.
+var LGT = {
+  // 0 · NUIT — assombrit toute la scène pour que les lumières ressortent
+  nightRGB:'4,2,16', nightGlobal:0.38,
+  // 1 · Ombre d'arène (profondeur) : la piste reste claire, la foule plonge dans le noir
+  shadowLit:170, shadowEdge:470, shadowMax:0.74,
+  // 2 · Lumière clé venant du HAUT (magenta → violet, saturée)
+  keyX:200, keyY:30, keyR:380,
+  keyCore:'rgba(255,48,150,0.60)', keyMid:'rgba(122,44,216,0.32)',
+  // 3 · LAMPADAIRE (halo chaud + ampoule, en haut à gauche)
+  lampX:42, lampY:82, lampR:220,
+  lampWarm:'rgba(255,138,40,0.55)', lampBulb:'rgba(255,232,180,0.9)', lampBulbR:24,
+  // 4 · Phares AVANT (blancs, vers le bas) + feux ARRIÈRE (rouges, vers le haut)
+  hlY:72, hlDX:12, hlLen:220, hlSpread:60, hlCol:'rgba(255,242,208,0.60)',
+  tlY:74, tlR:135, tlCol:'rgba(255,30,40,0.58)'
+};
+function drawCinematicLight(){
+  ctx.save();
+  // 0) NUIT — voile sombre global
+  ctx.fillStyle='rgba('+LGT.nightRGB+','+LGT.nightGlobal+')'; ctx.fillRect(0,0,W,H);
+  // 1) OMBRES — creuse la profondeur (centre piste clair, bords très sombres)
+  var s=ctx.createRadialGradient(CX,CY,LGT.shadowLit,CX,CY,LGT.shadowEdge);
+  s.addColorStop(0,'rgba('+LGT.nightRGB+',0)');
+  s.addColorStop(1,'rgba('+LGT.nightRGB+','+LGT.shadowMax+')');
+  ctx.fillStyle=s; ctx.fillRect(0,0,W,H);
+  // 2 & 3) LUMIÈRES additives (restent colorées, ne blanchissent pas)
+  ctx.globalCompositeOperation='lighter';
+  var k=ctx.createRadialGradient(LGT.keyX,LGT.keyY,0,LGT.keyX,LGT.keyY,LGT.keyR);
+  k.addColorStop(0,LGT.keyCore);
+  k.addColorStop(0.55,LGT.keyMid);
+  k.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=k; ctx.fillRect(0,0,W,H);
+  var l=ctx.createRadialGradient(LGT.lampX,LGT.lampY,0,LGT.lampX,LGT.lampY,LGT.lampR);
+  l.addColorStop(0,LGT.lampWarm);
+  l.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=l; ctx.fillRect(0,0,W,H);
+  // ampoule du lampadaire (petit cœur lumineux)
+  var b=ctx.createRadialGradient(LGT.lampX,LGT.lampY,0,LGT.lampX,LGT.lampY,LGT.lampBulbR);
+  b.addColorStop(0,LGT.lampBulb);
+  b.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=b; ctx.fillRect(0,0,W,H);
+  // 4) PHARES AVANT — 2 faisceaux blancs vers le bas (éclairent la foule d'en face)
+  var hy=CY+carOy+LGT.hlY;
+  function beamDown(ox){
+    var g=ctx.createLinearGradient(ox,hy,ox,hy+LGT.hlLen);
+    g.addColorStop(0,LGT.hlCol); g.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=g;
+    ctx.beginPath();
+    ctx.moveTo(ox-7,hy); ctx.lineTo(ox+7,hy);
+    ctx.lineTo(ox+LGT.hlSpread,hy+LGT.hlLen); ctx.lineTo(ox-LGT.hlSpread,hy+LGT.hlLen);
+    ctx.closePath(); ctx.fill();
+  }
+  beamDown(CX+carOx-LGT.hlDX); beamDown(CX+carOx+LGT.hlDX);
+  // feux ARRIÈRE — halo rouge vers le haut
+  var ty=CY+carOy-LGT.tlY;
+  var tg=ctx.createRadialGradient(CX+carOx,ty,0,CX+carOx,ty,LGT.tlR);
+  tg.addColorStop(0,LGT.tlCol); tg.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=tg; ctx.fillRect(0,0,W,H);
+  ctx.restore();
 }
 
 // ══════ EXPLOSION DE CRABES ══════
@@ -1327,6 +1403,7 @@ function loop(t){
   drawTrail();
   drawCrowd(t);
   drawGibs();
+  drawCinematicLight();
   (function(){var c=Math.cos(SB_TH),s=Math.sin(SB_TH),FI=0.10,FO=1.42,ci=CX+RX*FI*c,cyi=CY+RY*FI*s,co=CX+RX*FO*c,cyo=CY+RY*FO*s,dx=co-ci,dy=cyo-cyi,w=Math.hypot(dx,dy),ux=dx/w,uy=dy/w,nx=-uy,ny=ux,cell=8,rows=3;for(var wi=0;wi<w-0.1;wi+=cell){var cw=Math.min(cell,w-wi);for(var ri=0;ri<rows;ri++){ctx.fillStyle=(((wi/cell)|0)+ri)%2?'#f4f4f4':'#0c0c0c';var bx=ci+ux*wi+nx*(ri-rows/2)*cell,by=cyi+uy*wi+ny*(ri-rows/2)*cell;ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(bx+ux*cw,by+uy*cw);ctx.lineTo(bx+ux*cw+nx*cell,by+uy*cw+ny*cell);ctx.lineTo(bx+nx*cell,by+ny*cell);ctx.closePath();ctx.fill();}}})();
   drawCar();
   if(phase==='ready'||phase==='running')drawGhostRecord();
@@ -1410,5 +1487,7 @@ requestAnimationFrame(loop);
   }catch(e){}
 })();
 </script>
+<!-- Analytics : GoatCounter (sans cookie, sans tracker) -->
+<script data-goatcounter="https://fdp.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
 </html>
