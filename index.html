@@ -45,6 +45,23 @@
         <div class="eyebrow">Samedi 08 août 2026 · Pors-Poulhan</div>
         <h1 class="disp">KLEM&nbsp;H · BYE&nbsp;BYE&nbsp;PANKE<br>DJUNGLE · LUCIA&nbsp;LIBRE</h1>
       </div>
+      <style>
+      .td-play{position:relative;display:inline-flex;flex-direction:column;align-items:center;gap:9px;margin-top:30px;text-decoration:none;-webkit-tap-highlight-color:transparent;transition:transform .15s}
+      .td-play .word{position:relative;font-family:'DK Longreach',var(--ff);font-size:clamp(40px,8vw,60px);line-height:.9;letter-spacing:1px;color:var(--yellow);text-shadow:-3px 0 var(--ink),3px 0 var(--ink),0 -3px var(--ink),0 3px var(--ink),-3px -3px var(--ink),3px -3px var(--ink),-3px 3px var(--ink),3px 3px var(--ink),0 8px 0 var(--pink)}
+      .td-play .sub{font-family:'DK Longreach',var(--ff);font-size:clamp(11px,2.4vw,14px);letter-spacing:3px;text-transform:uppercase;color:var(--lav)}
+      .td-play:hover{transform:translateY(-2px)}
+      .td-play .sp{position:absolute;width:5px;height:5px;background:var(--yellow);box-shadow:0 0 8px var(--yellow);pointer-events:none;animation:tdtw 1.6s ease-in-out infinite}
+      .td-play .sp:nth-child(1){left:-14px;top:6px}
+      .td-play .sp:nth-child(2){right:-10px;top:-8px;animation-delay:.4s}
+      .td-play .sp:nth-child(3){right:8px;top:30px;animation-delay:.8s}
+      .td-play .sp:nth-child(4){left:22px;top:-6px;animation-delay:1.2s}
+      @keyframes tdtw{0%,100%{opacity:0;transform:scale(.4)}50%{opacity:1;transform:scale(1)}}
+      </style>
+      <a class="td-play" href="turbo-disco/" aria-label="Jouer à Turbo Disco">
+        <span class="sp" aria-hidden="true"></span><span class="sp" aria-hidden="true"></span><span class="sp" aria-hidden="true"></span><span class="sp" aria-hidden="true"></span>
+        <span class="word">JOUER</span>
+        <span class="sub">Turbo Disco</span>
+      </a>
     </div>
   </div>
   <div class="scrollcue" aria-hidden="true">▾ défiler</div>
@@ -90,18 +107,6 @@
     <div class="fact"><div class="k">Combien</div><div class="v">Gratuit</div><div class="s">entrée libre, pour tous</div></div>
     <div class="fact"><div class="k">Sur place</div><div class="v">Buvette</div><div class="s">bières locales, sandwich frites maison</div></div>
   </div>
-</section>
-
-<!-- TURBO DISCO · BOUTON CENTRAL -->
-<style>
-.td-cta{display:inline-flex;align-items:center;gap:14px;font-family:'DK Longreach',var(--ff);font-size:clamp(26px,5.4vw,42px);line-height:1;letter-spacing:.5px;color:var(--cream);text-decoration:none;padding:18px 36px;border-radius:16px;background:linear-gradient(160deg,#3A2880,#1F1052);border:2px solid var(--lav);box-shadow:0 6px 0 #17093e,0 0 34px rgba(181,165,240,.35);transition:transform .15s,box-shadow .15s,border-color .15s}
-.td-cta:hover{transform:translateY(-2px);border-color:var(--yellow);box-shadow:0 8px 0 #17093e,0 0 46px rgba(181,165,240,.55)}
-.td-cta:active{transform:translateY(2px);box-shadow:0 3px 0 #17093e,0 0 30px rgba(181,165,240,.4)}
-.td-cta .ic{color:var(--yellow);font-size:.82em}
-</style>
-<section class="wrap" style="padding:34px 0;text-align:center">
-  <div style="font-weight:800;font-size:12px;line-height:1;letter-spacing:2.5px;text-transform:uppercase;color:var(--lav);margin-bottom:16px">L'épreuve officielle · Championnat du Monde Inutile</div>
-  <a class="td-cta" href="turbo-disco/" aria-label="Jouer à Turbo Disco"><span class="ic" aria-hidden="true">▸</span>Jouer à Turbo&nbsp;Disco</a>
 </section>
 
 <!-- CHAMPIONNATS -->
