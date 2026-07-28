@@ -732,6 +732,7 @@ var phase='menu';
 var t0=0, elapsed=0, acc=0, lastAng=null, startAng=null, lastMoveT=0;
 var trace=[];   // trace complète [x,y,t] du run, envoyée au serveur pour rejeu
 var trail=[], lapDone=false, discoAng=0;
+var recFlash=0, slowUntil=0, TS=1, animClock=0, lastLoopT=null;   // FX record (flash + ralenti)
 var playerName='ANONYME', deathReason='';
 try{playerName=localStorage.getItem('td_name')||'ANONYME';}catch(e){}
 var flashT=0, confetti=[], lastTickPc=-1;
@@ -1048,14 +1049,21 @@ function spawnConfetti(){
 }
 function drawConfetti(){
   for(var i=confetti.length-1;i>=0;i--){
-    var p=confetti[i];p.y+=p.vy;p.x+=p.vx;
+    var p=confetti[i];p.y+=p.vy*TS;p.x+=p.vx*TS;
     px(p.x,p.y,p.s,p.s,p.c);
     if(p.y>H+10)confetti.splice(i,1);
   }
 }
 function drawOverlayFX(t){
+  if(recFlash>0){ctx.globalAlpha=Math.min(0.6,recFlash*0.6);ctx.fillStyle='#ffe36a';ctx.fillRect(0,0,W,H);ctx.globalAlpha=1;recFlash-=0.035;}
   if(phase==='done'&&((t/180)|0)%3===0){ctx.globalAlpha=.10;ctx.fillStyle='#ffd700';ctx.fillRect(0,0,W,H);ctx.globalAlpha=1;}
   if(phase==='dead'&&flashT>0){ctx.globalAlpha=.14*(flashT/20);ctx.fillStyle='#ff4d6d';ctx.fillRect(0,0,W,H);ctx.globalAlpha=1;flashT--;}
+}
+// RECORD DU MONDE battu : flash doré + ralenti court + ovation des crabes
+function triggerRecordFX(){
+  recFlash=1; slowUntil=performance.now()+340;
+  var until=performance.now()+2200;
+  for(var i=0;i<CRABS.length;i++)if(!CRABS[i].dead)CRABS[i].panicT=until;   // toutes les pinces en l'air
 }
 function drawGhostRecord(){
   // le record s'affiche désormais dans la barre du haut (#hudRecord), pas sur le canvas
@@ -1262,6 +1270,7 @@ function finish(tHit){
   lastResult='BOUCLÉ EN '+fmt(elapsed);
   setHud('TOUR VALIDÉ !','go');
   sfxWin(); spawnConfetti();
+  if(topScore && elapsed < topScore.time_ms) triggerRecordFX();   // record du monde battu
   logPlay('done');
   // Chaque tour bouclé est enregistré (leaderboard + stats).
   // La cérémonie (écran résultat + insta) est réservée au top 10.
@@ -1451,11 +1460,17 @@ function loop(t){
   } else if(engSpd>0){ engSpd=0; setEnginePitch(); }
   if(phase==='menu'||phase==='ready')discoAng=t*0.0018;
 
+  // horloge d'animation (ralenti au record) — n'affecte que le visuel, pas le chrono
+  var _now=performance.now();
+  TS=(_now<slowUntil)?0.28:1;
+  if(lastLoopT===null)lastLoopT=t;
+  animClock+=(t-lastLoopT)*TS; lastLoopT=t;
+
   ctx.clearRect(0,0,W,H);
   drawFloor();
   drawDiscoBeams(t);
   drawTrail();
-  drawCrowd(t);
+  drawCrowd(animClock);
   drawGibs();
   drawCinematicLight();
   (function(){var c=Math.cos(SB_TH),s=Math.sin(SB_TH),FI=0.10,FO=1.42,ci=CX+RX*FI*c,cyi=CY+RY*FI*s,co=CX+RX*FO*c,cyo=CY+RY*FO*s,dx=co-ci,dy=cyo-cyi,w=Math.hypot(dx,dy),ux=dx/w,uy=dy/w,nx=-uy,ny=ux,cell=8,rows=3;for(var wi=0;wi<w-0.1;wi+=cell){var cw=Math.min(cell,w-wi);for(var ri=0;ri<rows;ri++){ctx.fillStyle=(((wi/cell)|0)+ri)%2?'#f4f4f4':'#0c0c0c';var bx=ci+ux*wi+nx*(ri-rows/2)*cell,by=cyi+uy*wi+ny*(ri-rows/2)*cell;ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(bx+ux*cw,by+uy*cw);ctx.lineTo(bx+ux*cw+nx*cell,by+uy*cw+ny*cell);ctx.lineTo(bx+nx*cell,by+ny*cell);ctx.closePath();ctx.fill();}}})();
