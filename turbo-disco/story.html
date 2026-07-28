@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Turbo Disco — Ma Story</title>
+<meta name="theme-color" content="#160f34">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&display=swap" rel="stylesheet">
+<style>
+@font-face{font-family:'DK Longreach';src:url('../assets/DK-Longreach.otf') format('opentype');font-display:swap}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;background:#160f34;overflow:hidden;
+  font-family:'DK Longreach',sans-serif;color:#f4ecff;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
+/* fond = l'écran d'accueil animé, tel quel */
+#bg{position:fixed;inset:0;width:100%;height:100%;border:0;pointer-events:none;}
+/* voile pour lisibilité du texte (centre assombri, bords qui laissent voir la scène) */
+#scrim{position:fixed;inset:0;pointer-events:none;
+  background:radial-gradient(125% 62% at 50% 47%,rgba(11,6,26,.12),rgba(11,6,26,.74) 80%);}
+#card{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:26px;pointer-events:none;animation:pop .8s ease-out both;}
+@keyframes pop{0%{opacity:0;transform:scale(.92)}100%{opacity:1;transform:scale(1)}}
+.eyebrow{font-size:clamp(12px,3.4vw,16px);letter-spacing:3px;text-transform:uppercase;color:#c9b8f0;
+  margin-bottom:30px;text-shadow:0 0 12px rgba(192,38,211,.6);}
+.lbl{font-size:clamp(16px,4.8vw,22px);letter-spacing:5px;text-transform:uppercase;color:#ffd644;
+  margin-bottom:4px;text-shadow:0 0 14px rgba(255,214,68,.6);}
+.time{font-family:'Bungee',sans-serif;font-size:clamp(60px,19vw,132px);line-height:.9;color:#fff;
+  text-shadow:0 0 8px #fff,0 0 22px #ffd644,0 0 44px #ff8a1f,0 0 74px #c026d3;
+  animation:glow 2.2s ease-in-out infinite;}
+@keyframes glow{50%{text-shadow:0 0 10px #fff,0 0 30px #ffec80,0 0 62px #ff8a1f,0 0 100px #ff5aff;}}
+.who{font-size:clamp(18px,5vw,26px);letter-spacing:2px;color:#f4ecff;margin-top:16px;
+  text-shadow:0 0 12px rgba(181,165,240,.5);}
+.cta{font-size:clamp(13px,3.6vw,17px);letter-spacing:2px;text-transform:uppercase;color:#ff7ad0;
+  margin-top:32px;opacity:.92;text-shadow:0 0 12px rgba(255,90,255,.5);}
+#foot{position:fixed;left:0;right:0;bottom:calc(20px + env(safe-area-inset-bottom));text-align:center;
+  font-family:'Bungee',sans-serif;font-size:clamp(11px,3vw,14px);letter-spacing:1px;color:#b7a6e0;
+  pointer-events:none;text-shadow:0 0 10px rgba(192,38,211,.5);}
+a.back{position:fixed;top:calc(12px + env(safe-area-inset-top));left:14px;z-index:20;
+  font-size:14px;letter-spacing:.5px;color:#b7a6e0;text-decoration:none;opacity:.8;
+  background:rgba(22,15,52,.55);padding:6px 12px;border-radius:20px;-webkit-tap-highlight-color:transparent;}
+</style>
+</head>
+<body>
+<iframe id="bg" src="index.html" tabindex="-1" scrolling="no" aria-hidden="true"></iframe>
+<div id="scrim"></div>
+<a class="back" href="index.html">‹ retour</a>
+<div id="card">
+  <div class="eyebrow">Championnat du Monde Inutile</div>
+  <div class="lbl">Mon temps</div>
+  <div class="time" id="time">--.----</div>
+  <div class="who" id="who">— ANONYME —</div>
+  <div class="cta">à toi de me battre</div>
+</div>
+<div id="foot">fdp.bzh/turbo-disco</div>
+<script>
+function fmt(ms){var t=Math.round(ms*10);var s=Math.floor(t/10000),r=t%10000;return (s<10?'0':'')+s+'.'+('000'+r).slice(-4);}
+var q=new URLSearchParams(location.search);
+var ms=q.get('t');
+if(ms===null){try{ms=localStorage.getItem('td_last');}catch(e){}}
+var nm=q.get('n');
+if(!nm){try{nm=localStorage.getItem('td_name');}catch(e){}}
+var mv=(ms!==null&&ms!==''&&!isNaN(parseFloat(ms)))?parseFloat(ms):null;
+document.getElementById('time').textContent = mv!==null ? fmt(mv) : '--.----';
+document.getElementById('who').textContent = '— '+((nm||'ANONYME').toString().toUpperCase())+' —';
+</script>
+</body>
+</html>
