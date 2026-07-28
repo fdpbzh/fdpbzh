@@ -58,7 +58,7 @@ input[type=text]::placeholder{color:#8a7ac0;}
 #hudMsg.go{color:#ffd700}
 #hudMsg.bad{color:#ff4d6d}
 #btnMenu{position:absolute;bottom:6px;left:8px;z-index:15;font-family:'DK Longreach',sans-serif;font-size:14px;background:transparent;border:none;color:#c9b8f0;cursor:pointer;padding:4px;letter-spacing:.5px;}
-#btnStoryHud{position:absolute;bottom:calc(58px + env(safe-area-inset-bottom));right:calc(10px + env(safe-area-inset-right));z-index:16;font-family:'DK Longreach',sans-serif;font-size:clamp(10px,2.8vw,12px);letter-spacing:.5px;color:#ff9adf;background:rgba(22,15,52,.7);border:1.5px solid #c026d3;border-radius:18px;padding:5px 12px;cursor:pointer;-webkit-tap-highlight-color:transparent;box-shadow:0 0 14px rgba(192,38,211,.4);}
+#btnStoryHud{position:absolute;bottom:6px;right:calc(8px + env(safe-area-inset-right));z-index:16;font-family:'DK Longreach',sans-serif;font-size:14px;background:transparent;border:none;color:#ff9adf;cursor:pointer;padding:4px;letter-spacing:.5px;-webkit-tap-highlight-color:transparent;}
 .screenOn #btnStoryHud{visibility:hidden;}
 #btnMenu:active{color:#f0abfc;}
 /* ── Accueil « drapeau à damier » (polish v19) ── */
@@ -806,7 +806,7 @@ function nudgeCar(spd){
   var a=n>1?Math.atan2(trail[n-1].y-trail[n-2].y,trail[n-1].x-trail[n-2].x):0;
   var imp=Math.min(9,Math.max(1.5,spd/600));   // ~quelques mm à l'échelle de la voiture
   carVx+=Math.cos(a)*imp; carVy+=Math.sin(a)*imp;
-  if(spd>1200)sfxAlarm();                       // gros choc → l'alarme se déclenche
+  // alarme de choc retirée (trop fatigante)
 }
 function stepCarSpring(){
   carVx=(carVx-0.18*carOx)*0.88; carOx+=carVx;
