@@ -34,8 +34,8 @@ html,body{width:100%;height:100%;background:#160f34;overflow:hidden;
 .cta{font-size:clamp(13px,3.6vw,17px);letter-spacing:2px;text-transform:uppercase;color:#ff7ad0;
   margin-top:30px;opacity:.92;text-shadow:0 0 12px rgba(255,90,255,.5);}
 #foot{position:fixed;left:0;right:0;bottom:calc(16px + env(safe-area-inset-bottom));text-align:center;
-  font-family:'Bungee',sans-serif;font-size:clamp(11px,3vw,14px);letter-spacing:1px;color:#b7a6e0;
-  pointer-events:none;text-shadow:0 0 10px rgba(192,38,211,.5);}
+  font-family:'Bungee',sans-serif;font-size:clamp(15px,4.6vw,22px);letter-spacing:1px;color:#ffec80;
+  pointer-events:none;text-shadow:0 0 14px rgba(192,38,211,.6);}
 a.back{position:fixed;top:calc(12px + env(safe-area-inset-top));left:14px;z-index:20;
   font-size:14px;letter-spacing:.5px;color:#b7a6e0;text-decoration:none;opacity:.8;
   background:rgba(22,15,52,.55);padding:6px 12px;border-radius:20px;-webkit-tap-highlight-color:transparent;}
@@ -59,7 +59,6 @@ button:disabled{opacity:.6;}
 <div id="scrim"></div>
 <a class="back" href="index.html">‹ retour</a>
 <div id="card">
-  <div class="eyebrow">Championnat du Monde Inutile</div>
   <div class="lbl">Mon temps</div>
   <div class="time" id="time">--.----</div>
   <div class="who" id="who">— ANONYME —</div>
@@ -126,13 +125,12 @@ async function makeStory(){
     var g=x.createRadialGradient(W/2,H*0.45,H*0.08,W/2,H*0.45,H*0.62);
     g.addColorStop(0,'rgba(11,6,26,.10)');g.addColorStop(1,'rgba(11,6,26,.80)');x.fillStyle=g;x.fillRect(0,0,W,H);
     x.textAlign='center';x.textBaseline='alphabetic';
-    x.fillStyle='#c9b8f0';x.font='34px "DK Longreach"';neon(x,'#c026d3',18);x.fillText('CHAMPIONNAT DU MONDE INUTILE',W/2,H*0.29);
-    x.fillStyle='#ffd644';x.font='56px "DK Longreach"';neon(x,'#ffd644',22);x.fillText('MON TEMPS',W/2,H*0.365);
+    x.fillStyle='#ffd644';x.font='58px "DK Longreach"';neon(x,'#ffd644',22);x.fillText('MON TEMPS',W/2,H*0.375);
     var fs=230;x.font=fs+'px "Bungee"';while(x.measureText(TIME).width>W*0.86&&fs>80){fs-=8;x.font=fs+'px "Bungee"';}
     x.fillStyle='#fff';neon(x,'#ff8a1f',70);x.fillText(TIME,W/2,H*0.505);neon(x,'#c026d3',110);x.fillText(TIME,W/2,H*0.505);
     x.fillStyle='#f4ecff';x.font='58px "DK Longreach"';neon(x,'#b5a5f0',22);x.fillText('— '+NAME+' —',W/2,H*0.59);
     x.fillStyle='#ff7ad0';x.font='40px "DK Longreach"';neon(x,'#ff5aff',20);x.fillText('A TOI DE ME BATTRE',W/2,H*0.66);
-    x.fillStyle='#ffec80';x.font='40px "Bungee"';neon(x,'#c026d3',18);x.fillText('fdp.bzh/turbo-disco',W/2,H*0.93);
+    x.fillStyle='#ffec80';x.font='58px "Bungee"';neon(x,'#c026d3',20);x.fillText('fdp.bzh/turbo-disco',W/2,H*0.925);
     neon(x,'#000',0);
     cv.toBlob(function(blob){
       if(!blob){end('Fais une capture d\'écran :)');return;}
