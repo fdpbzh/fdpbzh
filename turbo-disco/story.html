@@ -15,14 +15,12 @@
 html,body{width:100%;height:100%;background:#160f34;overflow:hidden;
   font-family:'DK Longreach',sans-serif;color:#f4ecff;
   -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
-/* fond = l'écran d'accueil animé, tel quel */
 #bg{position:fixed;inset:0;width:100%;height:100%;border:0;pointer-events:none;}
-/* voile pour lisibilité du texte (centre assombri, bords qui laissent voir la scène) */
 #scrim{position:fixed;inset:0;pointer-events:none;
-  background:radial-gradient(125% 62% at 50% 47%,rgba(11,6,26,.12),rgba(11,6,26,.74) 80%);}
-#card{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  text-align:center;padding:26px;pointer-events:none;animation:pop .8s ease-out both;}
-@keyframes pop{0%{opacity:0;transform:scale(.92)}100%{opacity:1;transform:scale(1)}}
+  background:radial-gradient(125% 62% at 50% 45%,rgba(11,6,26,.12),rgba(11,6,26,.74) 80%);}
+#card{position:fixed;left:0;right:0;top:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:26px;pointer-events:none;animation:pop .8s ease-out both;transform:translateY(-6%);}
+@keyframes pop{0%{opacity:0;transform:translateY(-6%) scale(.92)}100%{opacity:1;transform:translateY(-6%) scale(1)}}
 .eyebrow{font-size:clamp(12px,3.4vw,16px);letter-spacing:3px;text-transform:uppercase;color:#c9b8f0;
   margin-bottom:30px;text-shadow:0 0 12px rgba(192,38,211,.6);}
 .lbl{font-size:clamp(16px,4.8vw,22px);letter-spacing:5px;text-transform:uppercase;color:#ffd644;
@@ -34,13 +32,26 @@ html,body{width:100%;height:100%;background:#160f34;overflow:hidden;
 .who{font-size:clamp(18px,5vw,26px);letter-spacing:2px;color:#f4ecff;margin-top:16px;
   text-shadow:0 0 12px rgba(181,165,240,.5);}
 .cta{font-size:clamp(13px,3.6vw,17px);letter-spacing:2px;text-transform:uppercase;color:#ff7ad0;
-  margin-top:32px;opacity:.92;text-shadow:0 0 12px rgba(255,90,255,.5);}
-#foot{position:fixed;left:0;right:0;bottom:calc(20px + env(safe-area-inset-bottom));text-align:center;
+  margin-top:30px;opacity:.92;text-shadow:0 0 12px rgba(255,90,255,.5);}
+#foot{position:fixed;left:0;right:0;bottom:calc(16px + env(safe-area-inset-bottom));text-align:center;
   font-family:'Bungee',sans-serif;font-size:clamp(11px,3vw,14px);letter-spacing:1px;color:#b7a6e0;
   pointer-events:none;text-shadow:0 0 10px rgba(192,38,211,.5);}
 a.back{position:fixed;top:calc(12px + env(safe-area-inset-top));left:14px;z-index:20;
   font-size:14px;letter-spacing:.5px;color:#b7a6e0;text-decoration:none;opacity:.8;
   background:rgba(22,15,52,.55);padding:6px 12px;border-radius:20px;-webkit-tap-highlight-color:transparent;}
+#acts{position:fixed;left:0;right:0;bottom:calc(52px + env(safe-area-inset-bottom));z-index:20;
+  display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap;padding:0 16px;}
+#shareBtn{font-family:'DK Longreach',sans-serif;font-size:clamp(15px,4.4vw,19px);letter-spacing:1px;color:#160f34;
+  background:#ffd644;border:none;border-radius:26px;padding:13px 24px;cursor:pointer;
+  box-shadow:0 0 26px rgba(255,214,68,.5);-webkit-tap-highlight-color:transparent;}
+#saveBtn{font-family:'DK Longreach',sans-serif;font-size:clamp(13px,3.6vw,16px);letter-spacing:.5px;color:#c9b8f0;
+  background:rgba(22,15,52,.7);border:1.5px solid #6a4aa8;border-radius:22px;padding:11px 18px;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;}
+button:disabled{opacity:.6;}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(116px + env(safe-area-inset-bottom));z-index:30;
+  background:rgba(22,15,52,.92);border:1px solid #c026d3;color:#f4ecff;font-size:14px;padding:8px 16px;border-radius:20px;
+  opacity:0;transition:opacity .2s;pointer-events:none;}
+#toast.on{opacity:1;}
 </style>
 </head>
 <body>
@@ -54,17 +65,87 @@ a.back{position:fixed;top:calc(12px + env(safe-area-inset-top));left:14px;z-inde
   <div class="who" id="who">— ANONYME —</div>
   <div class="cta">à toi de me battre</div>
 </div>
+<div id="acts">
+  <button id="shareBtn">→ Partager le défi</button>
+  <button id="saveBtn">↓ Image</button>
+</div>
+<div id="toast"></div>
 <div id="foot">fdp.bzh/turbo-disco</div>
 <script>
+var URL_SITE='https://fdp.bzh/turbo-disco/';
 function fmt(ms){var t=Math.round(ms*10);var s=Math.floor(t/10000),r=t%10000;return (s<10?'0':'')+s+'.'+('000'+r).slice(-4);}
 var q=new URLSearchParams(location.search);
-var ms=q.get('t');
-if(ms===null){try{ms=localStorage.getItem('td_last');}catch(e){}}
-var nm=q.get('n');
-if(!nm){try{nm=localStorage.getItem('td_name');}catch(e){}}
+var ms=q.get('t'); if(ms===null){try{ms=localStorage.getItem('td_last');}catch(e){}}
+var nm=q.get('n'); if(!nm){try{nm=localStorage.getItem('td_name');}catch(e){}}
 var mv=(ms!==null&&ms!==''&&!isNaN(parseFloat(ms)))?parseFloat(ms):null;
-document.getElementById('time').textContent = mv!==null ? fmt(mv) : '--.----';
-document.getElementById('who').textContent = '— '+((nm||'ANONYME').toString().toUpperCase())+' —';
+var TIME=mv!==null?fmt(mv):'--.----';
+var NAME=((nm||'ANONYME').toString().toUpperCase());
+document.getElementById('time').textContent=TIME;
+document.getElementById('who').textContent='— '+NAME+' —';
+
+function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');setTimeout(function(){t.classList.remove('on');},1800);}
+
+/* ── PARTAGE DU DÉFI : texte + lien cliquable (WhatsApp, DM, SMS…) ── */
+function shareLink(){
+  var txt = (mv!==null)
+    ? 'Mon temps sur TURBO DISCO : '+TIME+' — bats-moi avant la Fête du Port !'
+    : 'Défi TURBO DISCO — trace le tour de la Corvette le plus vite possible !';
+  if(navigator.share){ navigator.share({title:'Turbo Disco',text:txt,url:URL_SITE}).catch(function(){}); }
+  else if(navigator.clipboard){ navigator.clipboard.writeText(txt+' '+URL_SITE); toast('Lien copié !'); }
+  else { location.href='https://wa.me/?text='+encodeURIComponent(txt+' '+URL_SITE); }
+}
+
+/* ── IMAGE 1080×1920 (secondaire) : capture de l'accueil + texte néon ── */
+function neon(x,c,b){x.shadowColor=c;x.shadowBlur=b;}
+function drawScene(x,W,H){
+  var g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,'#221542');g.addColorStop(1,'#160f34');x.fillStyle=g;x.fillRect(0,0,W,H);
+  for(var i=0;i<190;i++){x.globalAlpha=Math.random()*.7+.2;x.fillStyle='#eae2ff';x.fillRect(Math.random()*W,Math.random()*H*0.82,2,3);}x.globalAlpha=1;
+  var gg=x.createRadialGradient(W/2,H*1.02,10,W/2,H*1.02,H*0.55);gg.addColorStop(0,'rgba(192,38,211,.5)');gg.addColorStop(1,'rgba(192,38,211,0)');x.fillStyle=gg;x.fillRect(0,H*0.5,W,H*0.5);
+}
+function grabAccueil(){
+  try{ var f=document.getElementById('bg'); var doc=f.contentDocument||(f.contentWindow&&f.contentWindow.document); if(!doc)return null;
+    var cs=doc.querySelectorAll('canvas'),ic=null; for(var i=0;i<cs.length;i++){if(cs[i].width&&(!ic||cs[i].width*cs[i].height>ic.width*ic.height))ic=cs[i];}
+    return (ic&&ic.width)?ic:null;
+  }catch(e){return null;}
+}
+var busy=false;
+async function makeStory(){
+  var btn=document.getElementById('saveBtn'); if(busy)return; busy=true; var orig=btn.textContent; btn.textContent='…'; btn.disabled=true;
+  function end(msg){busy=false;btn.disabled=false;btn.textContent=orig;if(msg)toast(msg);}
+  try{
+    try{ if(document.fonts){ await document.fonts.ready; await document.fonts.load('220px "Bungee"'); await document.fonts.load('48px "DK Longreach"'); } }catch(e){}
+    // attendre que l'accueil (iframe) soit prêt avant de capturer son canvas
+    try{ var _f=document.getElementById('bg'); var _d=_f&&(_f.contentDocument||(_f.contentWindow&&_f.contentWindow.document));
+      if(!(_d&&_d.getElementById&&_d.getElementById('c'))){
+        await new Promise(function(r){var to=setTimeout(r,1500);try{_f.addEventListener('load',function(){clearTimeout(to);setTimeout(r,300);},{once:true});}catch(e){clearTimeout(to);r();}});
+      } }catch(e){}
+    var W=1080,H=1920,cv=document.createElement('canvas');cv.width=W;cv.height=H;var x=cv.getContext('2d');
+    var ic=grabAccueil();
+    if(ic){ var s=Math.max(W/ic.width,H/ic.height),dw=ic.width*s,dh=ic.height*s; x.drawImage(ic,(W-dw)/2,(H-dh)/2,dw,dh); }
+    else { drawScene(x,W,H); }
+    var g=x.createRadialGradient(W/2,H*0.45,H*0.08,W/2,H*0.45,H*0.62);
+    g.addColorStop(0,'rgba(11,6,26,.10)');g.addColorStop(1,'rgba(11,6,26,.80)');x.fillStyle=g;x.fillRect(0,0,W,H);
+    x.textAlign='center';x.textBaseline='alphabetic';
+    x.fillStyle='#c9b8f0';x.font='34px "DK Longreach"';neon(x,'#c026d3',18);x.fillText('CHAMPIONNAT DU MONDE INUTILE',W/2,H*0.29);
+    x.fillStyle='#ffd644';x.font='56px "DK Longreach"';neon(x,'#ffd644',22);x.fillText('MON TEMPS',W/2,H*0.365);
+    var fs=230;x.font=fs+'px "Bungee"';while(x.measureText(TIME).width>W*0.86&&fs>80){fs-=8;x.font=fs+'px "Bungee"';}
+    x.fillStyle='#fff';neon(x,'#ff8a1f',70);x.fillText(TIME,W/2,H*0.505);neon(x,'#c026d3',110);x.fillText(TIME,W/2,H*0.505);
+    x.fillStyle='#f4ecff';x.font='58px "DK Longreach"';neon(x,'#b5a5f0',22);x.fillText('— '+NAME+' —',W/2,H*0.59);
+    x.fillStyle='#ff7ad0';x.font='40px "DK Longreach"';neon(x,'#ff5aff',20);x.fillText('A TOI DE ME BATTRE',W/2,H*0.66);
+    x.fillStyle='#ffec80';x.font='40px "Bungee"';neon(x,'#c026d3',18);x.fillText('fdp.bzh/turbo-disco',W/2,H*0.93);
+    neon(x,'#000',0);
+    cv.toBlob(function(blob){
+      if(!blob){end('Fais une capture d\'écran :)');return;}
+      var file=new File([blob],'turbo-disco-story.png',{type:'image/png'});
+      if(navigator.canShare&&navigator.canShare({files:[file]})){
+        navigator.share({files:[file],title:'Turbo Disco'}).then(function(){end();}).catch(function(){dl(blob);end();});
+      }else{dl(blob);end('Image enregistrée');}
+    },'image/png');
+    function dl(blob){var a=document.createElement('a');a.href=window.URL.createObjectURL(blob);a.download='turbo-disco-story.png';document.body.appendChild(a);a.click();setTimeout(function(){a.remove();window.URL.revokeObjectURL(a.href);},1000);}
+  }catch(e){ end('Fais une capture d\'écran :)'); }
+}
+document.getElementById('shareBtn').addEventListener('click',shareLink);
+document.getElementById('saveBtn').addEventListener('click',makeStory);
 </script>
 </body>
 </html>
