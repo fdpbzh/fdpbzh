@@ -725,10 +725,6 @@ var CRABS=[];
                 dir:(x<CX)?1:0});
   }
   CRABS.sort(function(a,b){return a.y-b.y;});
-  // crabes VIP : les 2 plus proches devant, au centre (pancarte + chapeau)
-  (function(){var b1=null,b2=null;for(var i=0;i<CRABS.length;i++){var c=CRABS[i];
-    if(Math.abs(c.x-CX)<70 && c.y>CY+30){ if(!b1||c.y>b1.y){b2=b1;b1=c;} }
-  } if(b1)b1.vip='sign'; if(b2)b2.vip='hat';})();
 })();
 
 // ══════ ÉTAT ══════
@@ -819,7 +815,7 @@ function drawCar(){
 
 function drawCrowd(t){
   var nowP=performance.now();
-  var HGY=CY+carOy+LGT.hlY, BLEN=LGT.hlLen, HCX=CX+carOx;   // zone éblouie par les phares
+  var HCX=CX+carOx;
   var TGY=CY+carOy-LGT.tlY, TR=LGT.tlR;                     // zone du feu arrière (rouge)
   for(var i=0;i<CRABS.length;i++){
     var cb=CRABS[i];
@@ -832,15 +828,6 @@ function drawCrowd(t){
       var f=((t*0.004*cb.sp+cb.ph*6)|0)%6;
       ctx.drawImage(SPRITES[cb.dir][f], cb.x-w*0.45, cb.y-h*0.6, w, h);
     }
-    // lunettes de soleil : les crabes pris dans le faisceau des phares se protègent
-    var dy=cb.y-HGY;
-    if(dy>2 && dy<BLEN && Math.abs(cb.x-HCX)<22+dy*0.42){
-      var ey=cb.y-h*0.25, ln=Math.max(2,w*0.18), lh=Math.max(2,h*0.11), gap=Math.max(1,w*0.04);
-      ctx.fillStyle='#08080c';
-      ctx.fillRect(Math.round(cb.x-gap-ln),Math.round(ey),Math.round(ln),Math.round(lh));
-      ctx.fillRect(Math.round(cb.x+gap),Math.round(ey),Math.round(ln),Math.round(lh));
-      ctx.fillRect(Math.round(cb.x-gap),Math.round(ey+lh*0.28),Math.round(gap*2),Math.max(1,Math.round(lh*0.4)));
-    }
     // reflet rouge du feu arrière dans les yeux des crabes derrière la voiture
     var rdy=TGY-cb.y;
     if(rdy>2 && rdy<TR && Math.abs(cb.x-HCX)<TR*0.7){
@@ -849,24 +836,7 @@ function drawCrowd(t){
       ctx.fillRect(Math.round(cb.x-w*0.13),Math.round(rey),rl,rl);
       ctx.fillRect(Math.round(cb.x+w*0.13-rl),Math.round(rey),rl,rl);
     }
-    // crabes VIP (pancarte GO / chapeau de fête)
-    if(cb.vip)drawVip(cb,w,h);
   }
-}
-function drawVip(cb,w,h){
-  ctx.save();
-  var topY=cb.y-h*0.62;
-  if(cb.vip==='sign'){
-    ctx.fillStyle='#c9a83a'; ctx.fillRect(Math.round(cb.x-1),Math.round(topY-13),2,15);
-    ctx.fillStyle='#fff5e1'; ctx.fillRect(Math.round(cb.x-12),Math.round(topY-24),24,14);
-    ctx.fillStyle='#160f34'; ctx.font='9px "Bungee",sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.fillText('GO',cb.x,topY-16);
-  } else {
-    ctx.fillStyle='#ff5abf'; ctx.beginPath();
-    ctx.moveTo(cb.x,topY-13); ctx.lineTo(cb.x-7,topY+1); ctx.lineTo(cb.x+7,topY+1); ctx.closePath(); ctx.fill();
-    ctx.fillStyle='#ffec80'; ctx.fillRect(Math.round(cb.x-1),Math.round(topY-16),2,3);
-  }
-  ctx.restore();
 }
 
 // ══════ ÉTALONNAGE CINÉMATIQUE (cosmétique, aucun effet sur le jeu) ══════
@@ -884,7 +854,7 @@ var LGT = {
   lampX:-46, lampY:-30, lampR:340,
   lampWarm:'rgba(255,120,32,0.52)',
   // 4 · Phares AVANT (blancs, vers le bas) + feux ARRIÈRE (rouges, vers le haut)
-  hlY:72, hlDX:12, hlLen:220, hlSpread:60, hlCol:'rgba(255,242,208,0.60)',
+  hlY:72, hlDX:12, hlLen:230, hlSpread:84, hlCol:'rgba(255,224,132,0.52)',
   tlY:74, tlR:135, tlCol:'rgba(255,30,40,0.58)'
 };
 function drawCinematicLight(){
@@ -915,20 +885,26 @@ function drawCinematicLight(){
   ctx.fillStyle=ug; ctx.fillRect(0,0,W,H);
   // 4) PHARES AVANT — 2 faisceaux blancs vers le bas (palpitent légèrement)
   var hy=CY+carOy+LGT.hlY;
-  var hlColP='rgba(255,242,208,'+(0.60*(0.82+0.18*pulse)).toFixed(3)+')';
+  var hlA=(0.52*(0.82+0.18*pulse));
+  var hlColP='rgba(255,222,128,'+hlA.toFixed(3)+')';
   function beamDown(ox){
     var g=ctx.createLinearGradient(ox,hy,ox,hy+LGT.hlLen);
-    g.addColorStop(0,hlColP); g.addColorStop(1,'rgba(0,0,0,0)');
+    g.addColorStop(0,hlColP); g.addColorStop(0.5,'rgba(255,222,128,'+(hlA*0.42).toFixed(3)+')'); g.addColorStop(1,'rgba(0,0,0,0)');
     ctx.fillStyle=g;
     ctx.beginPath();
-    ctx.moveTo(ox-7,hy); ctx.lineTo(ox+7,hy);
+    ctx.moveTo(ox-14,hy); ctx.lineTo(ox+14,hy);
     ctx.lineTo(ox+LGT.hlSpread,hy+LGT.hlLen); ctx.lineTo(ox-LGT.hlSpread,hy+LGT.hlLen);
     ctx.closePath(); ctx.fill();
   }
   beamDown(CX+carOx-LGT.hlDX); beamDown(CX+carOx+LGT.hlDX);
+  // bloom diffus des phares à la source (jaune chaud)
+  var hb=ctx.createRadialGradient(cx0,hy,2,cx0,hy,74);
+  hb.addColorStop(0,'rgba(255,226,138,'+(0.30+0.12*pulse).toFixed(3)+')');
+  hb.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=hb; ctx.fillRect(0,0,W,H);
   // reflet des phares sur l'asphalte (hotspot lumineux juste devant la voiture)
   var rf=ctx.createLinearGradient(cx0,hy,cx0,hy+64);
-  rf.addColorStop(0,'rgba(255,244,214,'+(0.24+0.12*pulse).toFixed(3)+')');
+  rf.addColorStop(0,'rgba(255,226,140,'+(0.22+0.10*pulse).toFixed(3)+')');
   rf.addColorStop(1,'rgba(0,0,0,0)');
   ctx.fillStyle=rf; ctx.fillRect(cx0-24,hy,48,64);
   // feux ARRIÈRE — halo rouge vers le haut
@@ -1149,7 +1125,6 @@ function beginRun(p,tNow){
   setHud('FRANCHIS LA LIGNE POUR LANCER LE CHRONO !','go');
   sfxStart();
   spawnSmoke();
-  carVy-=6; carVx+=(Math.random()-.5)*3;   // la Corvette tressaute au démarrage
 }
 
 function stepRun(p,tNow){
