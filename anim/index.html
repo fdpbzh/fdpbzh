@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="robots" content="noindex,nofollow">
+<title>Championnat de la Moule · Animateurs</title>
+<meta name="theme-color" content="#0F0628">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===== PORTE (mot de passe) ===== -->
+  <section id="gate" class="screen gate">
+    <div class="logo">🏆</div>
+    <h1 class="title">Championnat<br>de la Moule</h1>
+    <p class="sub">Espace animateurs</p>
+    <input id="pw" class="field" type="password" autocomplete="current-password" placeholder="Mot de passe">
+    <div class="err" id="pw-err"></div>
+    <button class="bigbtn yellow" id="pw-btn">Entrer</button>
+  </section>
+
+  <!-- ===== ACCUEIL ===== -->
+  <section id="home" class="screen hidden">
+    <div class="logo">🏆</div>
+    <h1 class="title">Championnat du Monde de la Moule</h1>
+    <div class="menu">
+      <button class="bigbtn blue"  data-go="soiffe">💧 LA SOIFFE BIGOUDÈNE</button>
+      <button class="bigbtn stone" data-go="rocher">🪨 LE ROCHER À MOULES</button>
+      <button class="bigbtn pink"  data-go="turbo">🚗 TURBO DISCO V3</button>
+    </div>
+    <button class="linkbtn" id="logout">Se déconnecter</button>
+  </section>
+
+  <!-- ===== SOIFFE BIGOUDÈNE ===== -->
+  <section id="soiffe" class="screen game hidden">
+    <button class="back" data-back>← Accueil</button>
+    <h2 class="gtitle">💧 La Soiffe Bigoudène</h2>
+    <p class="hint">Poser le verre au sol sans les mains. Le plus rapide gagne.</p>
+    <div class="chrono" id="soiffe-chrono">00.00</div>
+    <div class="result" id="soiffe-result"></div>
+    <div class="controls" id="soiffe-ctrl"></div>
+    <div class="board-wrap">
+      <h3>🏆 Les plus rapides</h3>
+      <ol class="board" id="soiffe-board"><li class="empty">Chargement…</li></ol>
+    </div>
+  </section>
+
+  <!-- ===== ROCHER À MOULES ===== -->
+  <section id="rocher" class="screen game hidden">
+    <button class="back" data-back>← Accueil</button>
+    <h2 class="gtitle">🪨 Le Rocher à Moules</h2>
+    <p class="hint">Tenir le maximum de monde sur le rocher pendant 10 secondes.</p>
+    <div class="chrono count" id="rocher-count">10</div>
+    <div class="result" id="rocher-result"></div>
+    <div class="controls" id="rocher-ctrl"></div>
+    <div class="board-wrap">
+      <h3>🏆 Meilleures équipes</h3>
+      <div id="rocher-best"></div>
+      <ol class="board" id="rocher-board"><li class="empty">Chargement…</li></ol>
+    </div>
+  </section>
+
+  <!-- ===== TURBO DISCO V3 ===== -->
+  <section id="turbo" class="screen game hidden">
+    <button class="back" data-back>← Accueil</button>
+    <h2 class="gtitle">🚗 Turbo Disco V3</h2>
+    <p class="hint">Tirer la voiture sur 3 mètres le plus vite possible.</p>
+    <div class="chrono" id="turbo-chrono">00.00</div>
+    <div class="result" id="turbo-result"></div>
+    <div class="controls" id="turbo-ctrl"></div>
+    <div class="board-wrap">
+      <h3>🏆 Meilleurs temps</h3>
+      <ol class="board" id="turbo-board"><li class="empty">Chargement…</li></ol>
+    </div>
+  </section>
+
+</div>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

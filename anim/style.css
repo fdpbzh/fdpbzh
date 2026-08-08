@@ -1,0 +1,111 @@
+/* Championnat du Monde de la Moule — outil animateurs · thème fdp.bzh */
+@font-face{
+  font-family:'DK Longreach';
+  src:url('../assets/DK-Longreach.otf') format('opentype');
+  font-display:swap;
+}
+:root{
+  --ink:#0F0628; --panel:#15093A; --card1:#1A0A40; --card2:#1F1052;
+  --line:#2A1860; --line2:#3A2880;
+  --cream:#FFF5E1; --yellow:#FFC93C; --orange:#FF7A1F; --pink:#E91E8D;
+  --lav:#B5A5F0; --lav2:#CBC1F2;
+  --green:#3fce7a; --red:#ff5b5b; --blue:#5aa9ff; --stone:#9a8bd0;
+  --ff:Manrope,system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  font-family:var(--ff);
+  background:
+    radial-gradient(ellipse at 80% 0%,rgba(255,122,31,.16),transparent 55%),
+    radial-gradient(ellipse at 10% 100%,rgba(181,165,240,.14),transparent 55%),
+    var(--ink);
+  color:var(--cream);
+  -webkit-font-smoothing:antialiased;
+  min-height:100%;
+  -webkit-tap-highlight-color:transparent;
+}
+.wrap{max-width:560px;margin:0 auto;padding:clamp(16px,4vw,28px) clamp(16px,4vw,24px) 60px;min-height:100vh;min-height:100svh}
+.disp{font-family:'DK Longreach',var(--ff);font-weight:400}
+.hidden{display:none !important}
+
+/* écrans */
+.screen{display:flex;flex-direction:column;gap:18px}
+
+/* titres */
+.logo{font-size:56px;text-align:center;line-height:1}
+.title{font-family:'DK Longreach',var(--ff);font-size:clamp(30px,7vw,46px);color:var(--yellow);line-height:1;text-align:center}
+.sub{text-align:center;color:var(--lav2);font-weight:700;letter-spacing:1px;text-transform:uppercase;font-size:13px}
+.gtitle{font-family:'DK Longreach',var(--ff);font-size:clamp(28px,6vw,40px);color:var(--yellow);line-height:1;text-align:center;margin-top:4px}
+.hint{color:var(--lav2);font-size:15px;line-height:1.5;text-align:center;max-width:420px;margin:0 auto}
+
+/* gros boutons */
+.bigbtn{
+  display:flex;align-items:center;justify-content:center;gap:10px;text-align:center;
+  width:100%;min-height:76px;padding:18px 20px;border:0;border-radius:18px;
+  font-family:var(--ff);font-weight:800;font-size:clamp(18px,4.6vw,22px);letter-spacing:.3px;
+  color:var(--ink);background:var(--yellow);cursor:pointer;
+  box-shadow:0 6px 0 rgba(0,0,0,.35);transition:transform .08s,box-shadow .08s,filter .15s;
+  user-select:none;
+}
+.bigbtn:active{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.35)}
+.bigbtn.yellow{background:var(--yellow);color:var(--ink);box-shadow:0 6px 0 var(--orange)}
+.bigbtn.green{background:var(--green);color:#05230f;box-shadow:0 6px 0 #1c8a4a}
+.bigbtn.red{background:var(--red);color:#2a0606;box-shadow:0 6px 0 #b02b2b}
+.bigbtn.blue{background:var(--blue);color:#05203f;box-shadow:0 6px 0 #2f6db0}
+.bigbtn.pink{background:var(--pink);color:#2a0518;box-shadow:0 6px 0 #a3105f}
+.bigbtn.stone{background:var(--stone);color:#150a33;box-shadow:0 6px 0 #5a4a9a}
+.bigbtn.ghost{background:transparent;color:var(--cream);border:2px solid rgba(255,245,225,.35);box-shadow:none}
+.bigbtn.ghost:active{transform:translateY(2px)}
+.bigbtn:disabled{opacity:.5;pointer-events:none;filter:grayscale(.3)}
+
+.menu{display:flex;flex-direction:column;gap:16px;margin-top:8px}
+.controls{display:flex;flex-direction:column;gap:12px}
+.row2{display:flex;gap:12px}
+.row2 .bigbtn{flex:1}
+
+/* retour */
+.back{align-self:flex-start;background:none;border:0;color:var(--lav);font-family:var(--ff);font-weight:800;font-size:15px;cursor:pointer;padding:6px 2px}
+.back:active{color:var(--yellow)}
+.linkbtn{background:none;border:0;color:var(--lav);font-family:var(--ff);font-weight:700;font-size:14px;cursor:pointer;text-decoration:underline;align-self:center;margin-top:6px}
+
+/* chrono / compte à rebours */
+.chrono{
+  font-family:'DK Longreach',var(--ff);
+  font-variant-numeric:tabular-nums;
+  font-size:clamp(72px,26vw,150px);line-height:1;text-align:center;color:var(--cream);
+  text-shadow:0 4px 30px rgba(0,0,0,.6);letter-spacing:2px;margin:8px 0
+}
+.chrono.run{color:var(--yellow)}
+.count{font-family:'DK Longreach',var(--ff);font-size:clamp(110px,40vw,220px);line-height:1;text-align:center;color:var(--yellow);text-shadow:0 4px 40px rgba(0,0,0,.6)}
+.count.go{color:var(--green);font-size:clamp(60px,16vw,110px)}
+.result{text-align:center;font-weight:800;font-size:clamp(20px,5vw,26px);color:var(--cream);min-height:8px}
+.result b{color:var(--yellow)}
+
+/* saisie pseudo / équipe */
+.entry{display:flex;flex-direction:column;gap:12px;background:var(--card1);border:1px solid var(--line2);border-radius:16px;padding:16px}
+.entry label{font-weight:800;font-size:13px;letter-spacing:.5px;text-transform:uppercase;color:var(--lav)}
+.field{width:100%;height:60px;border-radius:14px;border:1px solid var(--line2);background:#0d0420;color:var(--cream);
+  font-family:var(--ff);font-weight:800;font-size:22px;text-align:center;padding:0 14px}
+.field::placeholder{color:var(--lav);opacity:.6;font-weight:600}
+.err{color:var(--red);font-weight:700;font-size:14px;min-height:18px;text-align:center}
+
+/* classement */
+.board-wrap{margin-top:10px}
+.board-wrap h3{font-family:'DK Longreach',var(--ff);font-size:24px;color:var(--yellow);text-align:center;margin-bottom:12px}
+.best{background:linear-gradient(160deg,var(--card1),var(--card2));border:1px solid var(--yellow);border-radius:16px;
+  padding:14px 16px;text-align:center;font-weight:800;font-size:17px;color:var(--cream);margin-bottom:14px}
+.best small{display:block;color:var(--lav2);font-weight:700;font-size:13px;margin-top:2px}
+.board{list-style:none;display:flex;flex-direction:column;gap:8px}
+.board li{display:flex;align-items:center;gap:14px;background:var(--card1);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.board li.top{border-color:var(--yellow)}
+.board .r{font-family:'DK Longreach',var(--ff);font-size:22px;color:var(--lav);min-width:34px;text-align:center}
+.board li.top .r{color:var(--yellow)}
+.board .p{flex:1;font-weight:800;color:var(--cream);font-size:16px;word-break:break-word}
+.board .v{font-family:'DK Longreach',var(--ff);font-size:20px;color:var(--cream)}
+.board .empty{color:var(--lav2);text-align:center;font-size:14px;padding:8px}
+
+.gate{justify-content:center;min-height:88vh}
+.saving{opacity:.6;pointer-events:none}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--green);color:#05230f;
+  font-weight:800;padding:12px 20px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:50;font-size:15px}
