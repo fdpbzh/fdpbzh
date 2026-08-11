@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Boutique · T-shirt FDP · Fête du Port 2026</title>
-<meta name="description" content="Le t-shirt officiel de la Fête du Port 2026 : coton bio et recyclé, sérigraphie, 8 coloris, tirage limité. 22 €, panier multi-tailles, retrait sur place.">
+<title>Précommande T-shirt · FDP · Fête du Port 2026</title>
+<meta name="description" content="Précommande du t-shirt officiel de la Fête du Port 2026 : coton bio et recyclé, 8 coloris, toutes tailles. 22 € — retrait au Bar Les Côtiers ou +5 € expédition. Jusqu'au 20 août, réception vers le 5-10 septembre.">
 <meta name="theme-color" content="#0F0628">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,11 +12,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/site.css?v=10">
 <style>
-  .swatch.out{opacity:.4;cursor:not-allowed}
-  .swatch.out .dot{filter:grayscale(1)}
-  .swatch.out small{text-decoration:line-through}
   .addbtn{width:100%;margin-top:4px}
   .addbtn.off{opacity:.4;pointer-events:none;filter:grayscale(.4)}
+  .cdbanner{background:linear-gradient(160deg,var(--card1),var(--card2));border:1px solid var(--yellow);border-radius:16px;padding:16px 18px;text-align:center}
+  .cd-kick{font-weight:800;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--pink)}
+  .cd-time{font-family:'DK Longreach',var(--ff);font-size:clamp(34px,9vw,54px);color:var(--yellow);line-height:1;margin:6px 0}
+  .cd-sub{color:var(--lav2);font-size:13px;line-height:1.5}
   .cart{margin-top:28px;border-top:1px solid var(--line2);padding-top:20px}
   .cart h3{font-family:'DK Longreach',var(--ff);font-size:24px;color:var(--yellow);line-height:1;margin-bottom:12px}
   .cart-empty{color:var(--lav2);font-size:14px}
@@ -41,6 +42,7 @@
   .summary .row.tot{color:var(--cream);font-weight:800;font-size:18px;border-top:1px solid var(--line);margin-top:6px;padding-top:10px}
   .paid{background:rgba(95,208,138,.12);border:1px solid #5fd08a;border-radius:14px;padding:18px 20px;color:var(--cream);font-size:15px;line-height:1.6}
   .paid b{color:#7ee6a3}
+  .closed-card{background:linear-gradient(160deg,var(--card1),var(--card2));border:1px solid var(--line2);border-radius:22px;padding:clamp(30px,5vw,54px);text-align:center;max-width:640px;margin:0 auto}
 </style>
 </head>
 <body>
@@ -64,23 +66,32 @@
 </header>
 
 <!-- PAGE HERO -->
-<section class="phero" style="padding-bottom:clamp(20px,3vh,32px)">
+<section class="phero" style="padding-bottom:clamp(16px,2.4vh,26px)">
   <div class="glow"></div>
   <span class="star" style="top:40px;left:24%"></span>
   <span class="star" style="top:90px;left:68%;animation-delay:1.3s"></span>
   <div class="in">
-    <div class="eyebrow">Disponible · tirage limité</div>
+    <div class="eyebrow">Précommande</div>
     <h1 class="disp" style="margin-top:14px">La boutique</h1>
   </div>
 </section>
 
 <!-- MESSAGE APRÈS PAIEMENT -->
 <section class="wrap" id="paid-wrap" style="display:none;padding:10px 0 0">
-  <div class="paid">✓ <b>Merci pour ta commande&nbsp;!</b> Ton paiement est confirmé. Tu recevras un reçu par email. Retrait le 8 août à Pors-Poulhan (Fête du Port), ou au Bar Les Côtiers dès le lendemain de ta commande.</div>
+  <div class="paid">✓ <b>Merci pour ta précommande&nbsp;!</b> Ton paiement est confirmé, tu recevras un reçu par email. Les t-shirts sont attendus vers le <b>5-10 septembre</b> — tu seras prévenu·e pour le retrait au Bar Les Côtiers, ou tu le recevras par la poste si tu as choisi la livraison.</div>
 </section>
 
-<!-- PRODUIT -->
-<section class="wrap" style="padding:10px 0 30px">
+<!-- COMPTE À REBOURS -->
+<section class="wrap" id="countdown-wrap" style="padding:10px 0 0">
+  <div class="cdbanner">
+    <div class="cd-kick">Précommande ouverte jusqu'au 20 août</div>
+    <div class="cd-time" id="cd-time">…</div>
+    <div class="cd-sub">Quantités illimitées · réception des t-shirts vers le 5-10 septembre.</div>
+  </div>
+</section>
+
+<!-- BOUTIQUE (précommande) -->
+<section class="wrap" id="shop-section" style="padding:16px 0 30px">
   <div class="shop">
     <div class="shop-visual">
       <img id="tee-img" src="assets/tee-noir.webp" alt="T-shirt FDP (avant et dos)">
@@ -88,49 +99,58 @@
     <div class="shop-info">
       <div class="eyebrow">T-shirt officiel FDP 2026</div>
       <h1>Le t-shirt de la fête</h1>
-      <div class="shop-price"><span class="amt">22 €</span><span class="tag">en stock</span></div>
-      <p class="desc"><strong style="color:var(--cream)">Coton bio et recyclé</strong> (70 % biologique, 30 % recyclé), 180 g/m², coupe unisexe. Logo <strong style="color:var(--cream)">FDP</strong> sérigraphié blanc sur le cœur, motif moules en grand dans le dos. Édition limitée à la Fête du Port 2026.</p>
+      <div class="shop-price"><span class="amt">22 €</span><span class="tag">en précommande</span></div>
+      <p class="desc"><strong style="color:var(--cream)">Coton bio et recyclé</strong> (70 % biologique, 30 % recyclé), 180 g/m², coupe unisexe. Logo <strong style="color:var(--cream)">FDP</strong> sérigraphié blanc sur le cœur, motif moules en grand dans le dos. Toutes tailles et coloris disponibles en précommande.</p>
 
-      <div id="shop-live" style="display:none">
-        <div class="shop-block">
-          <div class="lbl">Coloris — <span id="col-label">…</span></div>
-          <div class="swatches" id="swatches"></div>
-        </div>
-
-        <div class="shop-block">
-          <div class="lbl">Taille</div>
-          <div class="sizes" id="sizes"></div>
-          <p class="shop-note" style="margin-top:8px">Barré = épuisé dans ce coloris. Ajoute autant d'articles que tu veux au panier.</p>
-        </div>
-
-        <a class="btnA addbtn off" id="add" href="#" role="button">Ajouter au panier</a>
-
-        <!-- PANIER -->
-        <div class="cart">
-          <h3>Ton panier</h3>
-          <div id="cart-lines"></div>
-          <p class="cart-empty" id="cart-empty">Ton panier est vide. Choisis un coloris et une taille, puis « Ajouter au panier ».</p>
-
-          <div id="cart-foot" style="display:none">
-            <div class="lbl" style="margin-top:18px">Récupération</div>
-            <div class="modes">
-              <div class="mode sel" id="mode-retrait" style="cursor:default"><span><span class="t">Retrait sur place · gratuit</span><span class="d">Le 8 août à Pors-Poulhan (Fête du Port), ou au Bar Les Côtiers dès le lendemain de ta commande.</span></span></div>
-            </div>
-
-            <div class="summary">
-              <div class="row"><span id="sub-label">Sous-total</span><span id="sub-val">0 €</span></div>
-              <div class="row" id="ship-row" style="display:none"><span>Livraison</span><span>5 €</span></div>
-              <div class="row tot"><span>Total</span><span id="tot-val">0 €</span></div>
-            </div>
-
-            <a class="btnA addbtn" id="checkout" href="#" role="button" style="margin-top:14px">Passer au paiement</a>
-            <p class="shop-note" id="checkout-note">Paiement sécurisé par Stripe. Tu pourras tout régler en une fois.</p>
-          </div>
-        </div>
+      <div class="shop-block">
+        <div class="lbl">Coloris — <span id="col-label">Noir</span></div>
+        <div class="swatches" id="swatches"></div>
       </div>
 
-      <p class="shop-note" id="shop-loading">Chargement du stock…</p>
-      <p class="shop-note" id="shop-err" style="display:none;color:var(--pink)">Le stock n'a pas pu être chargé. Recharge la page dans un instant.</p>
+      <div class="shop-block">
+        <div class="lbl">Taille</div>
+        <div class="sizes" id="sizes"></div>
+        <p class="shop-note" style="margin-top:8px">Toutes les tailles sont disponibles. Ajoute autant d'articles que tu veux au panier.</p>
+      </div>
+
+      <a class="btnA addbtn off" id="add" href="#" role="button">Ajouter au panier</a>
+
+      <!-- PANIER -->
+      <div class="cart">
+        <h3>Ton panier</h3>
+        <div id="cart-lines"></div>
+        <p class="cart-empty" id="cart-empty">Ton panier est vide. Choisis un coloris et une taille, puis « Ajouter au panier ».</p>
+
+        <div id="cart-foot" style="display:none">
+          <div class="lbl" style="margin-top:18px">Récupération</div>
+          <div class="modes">
+            <label class="mode sel" id="mode-retrait"><input type="radio" name="mode" value="retrait" checked><span><span class="t">Retrait au bar · gratuit</span><span class="d">Au Bar Les Côtiers, dès réception (vers le 5-10 septembre).</span></span></label>
+            <label class="mode" id="mode-livraison"><input type="radio" name="mode" value="livraison"><span><span class="t">Livraison · +5 €</span><span class="d">Chez toi en France, expédié vers le 5-10 septembre (adresse au paiement).</span></span></label>
+          </div>
+
+          <div class="summary">
+            <div class="row"><span id="sub-label">Sous-total</span><span id="sub-val">0 €</span></div>
+            <div class="row" id="ship-row" style="display:none"><span>Livraison</span><span>5 €</span></div>
+            <div class="row tot"><span>Total</span><span id="tot-val">0 €</span></div>
+          </div>
+
+          <a class="btnA addbtn" id="checkout" href="#" role="button" style="margin-top:14px">Précommander</a>
+          <p class="shop-note" id="checkout-note">Paiement sécurisé par Stripe. Tu règles ta précommande en une fois.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRÉCOMMANDES TERMINÉES -->
+<section class="wrap" id="closed-section" style="display:none;padding:16px 0 30px">
+  <div class="closed-card">
+    <div class="eyebrow" style="justify-content:center;color:var(--pink)">Précommande</div>
+    <h2 class="disp" style="font-size:clamp(28px,4.6vw,44px);color:var(--yellow);line-height:1;margin:14px 0 12px">Les précommandes sont terminées</h2>
+    <p class="lead" style="margin:0 auto">Merci à toutes et à tous&nbsp;! La fenêtre de précommande (jusqu'au 20 août) est close. Suis <strong style="color:var(--cream)">@lassoduport</strong> pour la suite&nbsp;: distribution des t-shirts et prochaines nouveautés.</p>
+    <div class="center-cta" style="margin-top:26px">
+      <a class="btnA" href="https://instagram.com/lassoduport" target="_blank" rel="noopener">Suivre @lassoduport</a>
+      <a class="btnB" href="contact.html">Nous contacter</a>
     </div>
   </div>
 </section>
@@ -145,16 +165,16 @@
     <div class="qual"><div class="qh">Empreinte réduite</div><p>Moins de CO₂ et d'eau qu'un t-shirt classique, grâce aux fibres recyclées.</p></div>
     <div class="qual"><div class="qh">Fibres tracées</div><p>Matières recyclées authentifiées et traçables : une mode plus transparente.</p></div>
     <div class="qual"><div class="qh">Coupe unisexe</div><p>Col rond, côtes 1×1, coupe classique qui va à tout le monde.</p></div>
-    <div class="qual"><div class="qh">Édition limitée</div><p>Sérigraphie maison, quantités limitées : une vraie pièce collector de la FDP 2026.</p></div>
+    <div class="qual"><div class="qh">Édition collector</div><p>Sérigraphie maison, visuel exclusif de la FDP 2026 : une vraie pièce collector.</p></div>
   </div>
 </section>
 
 <!-- CTA BAND -->
 <section class="band mt-sec">
   <div class="in">
-    <div class="kick">Une question sur ta commande ?</div>
+    <div class="kick">Une question sur ta précommande ?</div>
     <h2>On est là pour t'aider</h2>
-    <p>Taille, couleur, retrait, envoi : si tu as le moindre doute, écris-nous, on répond avec plaisir.</p>
+    <p>Taille, couleur, retrait au bar, envoi, délais : si tu as le moindre doute, écris-nous, on répond avec plaisir.</p>
     <div class="center-cta">
       <a class="btnA" href="contact.html">Nous contacter</a>
       <a class="btnB" href="https://instagram.com/lassoduport" target="_blank" rel="noopener">Suivre @lassoduport</a>
@@ -179,6 +199,7 @@
   var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oc3JveW1xdndyamZsYWd6em56Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MTcyNzEsImV4cCI6MjA5MzM5MzI3MX0.9DF3S9rqhyR4UY9W_vVT2xUxyZNhA3wfk4LTOBzRg64';
   var CHECKOUT=SB_URL+'/functions/v1/create-checkout';
   var PRICE=22;
+  var DEADLINE=new Date('2026-08-20T23:59:59+02:00').getTime();
 
   var COLORS=[
     {code:'noir',name:'Noir',ref:'Noir',dot:'#1a1a1a',img:'assets/tee-noir.webp'},
@@ -195,48 +216,53 @@
 
   function byId(id){return document.getElementById(id);}
   var img=byId('tee-img'),swEl=byId('swatches'),sizesEl=byId('sizes'),lab=byId('col-label'),
-      addBtn=byId('add'),live=byId('shop-live'),loading=byId('shop-loading'),err=byId('shop-err'),
-      linesEl=byId('cart-lines'),cartEmpty=byId('cart-empty'),cartFoot=byId('cart-foot'),
+      addBtn=byId('add'),linesEl=byId('cart-lines'),cartEmpty=byId('cart-empty'),cartFoot=byId('cart-foot'),
       subVal=byId('sub-val'),shipRow=byId('ship-row'),totVal=byId('tot-val'),
-      checkoutBtn=byId('checkout'),checkoutNote=byId('checkout-note');
-  var cur=null,curSize=null,cart=[],loaded=false,mode='retrait',busy=false;
+      checkoutBtn=byId('checkout'),checkoutNote=byId('checkout-note'),cdTime=byId('cd-time');
+  var cur=COLORS[0],curSize=null,cart=[],mode='retrait',busy=false;
 
-  function totalOf(c){return ALL.reduce(function(n,s){return n+(c.stock[s]||0);},0);}
-  function cartQty(code,size){return cart.reduce(function(n,l){return n+((l.code===code&&l.size===size)?l.qty:0);},0);}
-  function remaining(code,size){return ((byCode[code].stock||{})[size]||0)-cartQty(code,size);}
-
-  function renderSizes(){
-    sizesEl.innerHTML='';
-    ALL.forEach(function(sz){
-      var stock=(cur.stock[sz]||0);
-      var el=document.createElement(stock>0?'button':'span');
-      el.className='size'+(stock>0?'':' out')+((stock>0&&sz===curSize)?' sel':'');
-      el.textContent=sz;
-      if(stock>0){el.type='button';el.addEventListener('click',function(){curSize=sz;renderSizes();updateAdd();});}
-      sizesEl.appendChild(el);
-    });
+  /* ---- compte à rebours (heures) ---- */
+  function tickCountdown(){
+    var ms=DEADLINE-Date.now();
+    if(ms<=0){ closePre(); return; }
+    var h=Math.ceil(ms/3600000);
+    cdTime.textContent='Plus que '+h+' h';
   }
+  function closePre(){
+    byId('countdown-wrap').style.display='none';
+    byId('shop-section').style.display='none';
+    byId('closed-section').style.display='';
+  }
+
+  function cartQty(code,size){ return cart.reduce(function(n,l){ return n+((l.code===code&&l.size===size)?l.qty:0); },0); }
+
+  function updateAdd(){ addBtn.classList.toggle('off', !(cur&&curSize)); }
+
   function renderSwatches(){
     swEl.innerHTML='';
     COLORS.forEach(function(c){
-      var sold=totalOf(c)===0;
       var b=document.createElement('button');b.type='button';
-      b.className='swatch'+(cur&&c.code===cur.code?' sel':'')+(sold?' out':'');
+      b.className='swatch'+(cur&&c.code===cur.code?' sel':'');
       b.innerHTML='<span class="dot" style="background:'+c.dot+'"></span><small>'+c.name+'</small>';
-      if(!sold){b.addEventListener('click',function(){pickColor(c);});}
+      b.addEventListener('click',function(){ pickColor(c); });
       swEl.appendChild(b);
     });
   }
-  function updateAdd(){
-    var ok = cur && curSize && remaining(cur.code,curSize)>0;
-    addBtn.classList.toggle('off',!ok);
-    addBtn.textContent = (cur&&curSize&&remaining(cur.code,curSize)<=0) ? 'Stock maximum atteint' : 'Ajouter au panier';
+  function renderSizes(){
+    sizesEl.innerHTML='';
+    ALL.forEach(function(sz){
+      var el=document.createElement('button');el.type='button';
+      el.className='size'+(sz===curSize?' sel':'');
+      el.textContent=sz;
+      el.addEventListener('click',function(){ curSize=sz; renderSizes(); updateAdd(); });
+      sizesEl.appendChild(el);
+    });
   }
   function pickColor(c){
     cur=c; curSize=null;
-    img.src=c.img;img.alt='T-shirt FDP - '+c.name+' (avant et dos)';
+    img.src=c.img; img.alt='T-shirt FDP - '+c.name+' (avant et dos)';
     lab.textContent=c.name;
-    renderSwatches();renderSizes();updateAdd();
+    renderSwatches(); renderSizes(); updateAdd();
   }
 
   function renderCart(){
@@ -257,10 +283,10 @@
       btn.addEventListener('click',function(){
         var i=+btn.getAttribute('data-i'),op=btn.getAttribute('data-op'),l=cart[i];
         if(!l)return;
-        if(op==='inc'){ if(remaining(l.code,l.size)>0)l.qty++; }
+        if(op==='inc'){ l.qty++; }
         else if(op==='dec'){ l.qty--; if(l.qty<1)cart.splice(i,1); }
         else if(op==='rm'){ cart.splice(i,1); }
-        renderCart(); renderSizes(); updateAdd();
+        renderCart();
       });
     });
     var count=cart.reduce(function(n,l){return n+l.qty;},0);
@@ -273,18 +299,25 @@
 
   function addToCart(){
     if(!cur||!curSize)return;
-    if(remaining(cur.code,curSize)<=0){updateAdd();return;}
     var line=cart.filter(function(l){return l.code===cur.code&&l.size===curSize;})[0];
     if(line)line.qty++; else cart.push({code:cur.code,ref:cur.ref,name:cur.name,size:curSize,qty:1});
-    renderCart();renderSizes();updateAdd();
+    renderCart();
   }
 
   addBtn.addEventListener('click',function(e){e.preventDefault();addToCart();});
-  // Retrait uniquement pour l'instant (livraison désactivée temporairement) : mode fixé à 'retrait'.
+  Array.prototype.forEach.call(document.getElementsByName('mode'),function(r){
+    r.addEventListener('change',function(){
+      mode=r.value;
+      byId('mode-retrait').classList.toggle('sel',mode==='retrait');
+      byId('mode-livraison').classList.toggle('sel',mode==='livraison');
+      renderCart();
+    });
+  });
 
   checkoutBtn.addEventListener('click',function(e){
     e.preventDefault();
     if(busy||!cart.length)return;
+    if(Date.now()>DEADLINE){ closePre(); return; }
     busy=true; checkoutBtn.classList.add('off'); checkoutBtn.textContent='Redirection…';
     var items=cart.map(function(l){return {ref:l.ref,size:l.size,qty:l.qty};});
     fetch(CHECKOUT,{method:'POST',headers:{'content-type':'application/json',apikey:SB_KEY},
@@ -292,39 +325,26 @@
       .then(function(r){return r.json();})
       .then(function(j){
         if(j&&j.url){ location.href=j.url; }
-        else { busy=false; checkoutBtn.classList.remove('off'); checkoutBtn.textContent='Passer au paiement';
+        else {
+          busy=false; checkoutBtn.classList.remove('off'); checkoutBtn.textContent='Précommander';
           checkoutNote.style.color='var(--pink)';
-          checkoutNote.textContent = (j&&j.error==='out_of_stock') ? 'Un article vient de partir, ajuste ton panier.' : 'Paiement indisponible un instant, réessaie.'; }
+          checkoutNote.textContent = (j&&j.error==='closed') ? 'Les précommandes sont terminées.' : 'Paiement indisponible un instant, réessaie.';
+          if(j&&j.error==='closed'){ closePre(); }
+        }
       })
-      .catch(function(){ busy=false; checkoutBtn.classList.remove('off'); checkoutBtn.textContent='Passer au paiement';
+      .catch(function(){ busy=false; checkoutBtn.classList.remove('off'); checkoutBtn.textContent='Précommander';
         checkoutNote.style.color='var(--pink)'; checkoutNote.textContent='Erreur réseau, réessaie.'; });
   });
 
-  function applyRows(rows){
-    var map={};
-    rows.forEach(function(r){ (map[r.color_code]=map[r.color_code]||{})[r.size]=r.qty; });
-    COLORS.forEach(function(c){ c.stock=map[c.code]||{}; });
-    // purge du panier ce qui n'est plus dispo
-    cart=cart.filter(function(l){ return ((byCode[l.code].stock||{})[l.size]||0)>0; });
-    cart.forEach(function(l){ var mx=(byCode[l.code].stock||{})[l.size]||0; if(l.qty>mx)l.qty=mx; });
-    var start=cur?byCode[cur.code]:null;
-    if(!start||totalOf(start)===0){ start=COLORS.filter(function(c){return totalOf(c)>0;})[0]||COLORS[0]; }
-    loaded=true; loading.style.display='none'; err.style.display='none'; live.style.display='';
-    pickColor(start); renderCart();
-  }
-  function load(){
-    fetch(SB_URL+'/rest/v1/stock?select=color_code,size,qty',{headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY},cache:'no-store'})
-      .then(function(r){if(!r.ok)throw 0;return r.json();}).then(applyRows)
-      .catch(function(){ if(!loaded){loading.style.display='none';err.style.display='';} });
-  }
-
+  /* ---- init ---- */
   if(/[?&]paye=1/.test(location.search)){ byId('paid-wrap').style.display=''; try{history.replaceState({},'',location.pathname);}catch(e){} }
-  load();
-  document.addEventListener('visibilitychange',function(){if(!document.hidden)load();});
-  window.addEventListener('focus',load);
+  if(Date.now()>DEADLINE){
+    closePre();
+  } else {
+    pickColor(COLORS[0]); renderCart();
+    tickCountdown(); setInterval(tickCountdown,60000);
+  }
 })();
 </script>
-<!-- Analytics : GoatCounter (sans cookie, sans tracker) -->
-<script data-goatcounter="https://fdp.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
 </html>

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Précommandes payées · FDP (privé)</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#0F0628">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/site.css?v=10">
+<style>
+  .adm{max-width:1000px;margin:0 auto;padding:clamp(24px,5vh,54px) clamp(18px,4vw,40px) 80px}
+  .adm h1{font-family:'DK Longreach',var(--ff);font-size:clamp(30px,5vw,46px);color:var(--yellow);line-height:1;margin-bottom:6px}
+  .adm .sub{color:var(--lav2);font-size:15px;margin-bottom:22px}
+  .gate{max-width:360px;margin:40px auto;background:var(--card1);border:1px solid var(--line);border-radius:16px;padding:26px}
+  .gate label{display:block;font-weight:700;font-size:13px;color:var(--lav);margin-bottom:8px;letter-spacing:.5px}
+  .gate input{width:100%;height:44px;border-radius:10px;border:1px solid var(--line2);background:#0d0420;color:var(--cream);font-family:inherit;font-size:15px;padding:0 12px;margin-bottom:12px}
+  .gate .err{color:var(--pink);font-size:13px;min-height:18px;margin-bottom:6px}
+  .btn{font-family:inherit;font-weight:800;font-size:14px;letter-spacing:.3px;border:0;border-radius:11px;padding:13px 18px;cursor:pointer;transition:.15s}
+  .btn.primary{background:var(--yellow);color:var(--ink);box-shadow:0 4px 0 var(--orange);width:100%}
+  .btn.ghost{background:none;border:2px solid rgba(255,245,225,.4);color:var(--cream)}
+  .btn.ghost:hover{border-color:var(--yellow);color:var(--yellow)}
+  .bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px}
+  .seg{display:inline-flex;border:1px solid var(--line2);border-radius:10px;overflow:hidden}
+  .seg button{background:none;border:0;color:var(--lav);font-family:inherit;font-weight:800;font-size:13px;padding:10px 14px;cursor:pointer}
+  .seg button.on{background:var(--yellow);color:var(--ink)}
+  .status{font-weight:700;font-size:13px;margin-left:auto;color:var(--lav)}
+  .cards{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:18px}
+  .kpi{flex:1;min-width:130px;background:linear-gradient(160deg,var(--card1),var(--card2));border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+  .kpi .k{color:var(--lav);font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase}
+  .kpi .v{font-family:'DK Longreach',var(--ff);font-size:30px;color:var(--yellow);line-height:1.1}
+  .tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:16px}
+  table{border-collapse:collapse;width:100%;min-width:640px}
+  th,td{padding:10px 8px;text-align:center;border-bottom:1px solid var(--line)}
+  thead th{background:var(--card2);color:var(--lav);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;font-weight:800}
+  tbody tr:last-child td{border-bottom:0}
+  .cname{text-align:left;white-space:nowrap;font-weight:800;color:var(--cream);font-size:14px}
+  .cname .dot{display:inline-block;width:16px;height:16px;border-radius:50%;vertical-align:-3px;margin-right:8px;border:1px solid rgba(255,255,255,.3)}
+  td.q{font-weight:800;color:var(--cream);font-size:15px}
+  td.zero{color:var(--lav);opacity:.35}
+  td.rowtot{font-weight:800;color:var(--yellow);font-size:15px}
+  tfoot td{background:var(--card2);font-weight:800;color:var(--cream);font-size:13px;border-top:2px solid var(--line2)}
+  tfoot td.grand{color:var(--yellow)}
+  .detail{margin-top:22px}
+  .detail h3{font-family:'DK Longreach',var(--ff);font-size:22px;color:var(--yellow);margin-bottom:10px}
+  .order{background:var(--card1);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:8px;font-size:14px}
+  .order .top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:var(--lav2);font-size:12px;font-weight:700}
+  .order .items{color:var(--cream);font-weight:700;margin-top:4px}
+  .order .mail{color:var(--lav);font-size:12px;margin-top:2px;word-break:break-all}
+  .tag-liv{color:var(--pink)}.tag-ret{color:#5fd08a}
+  .empty{color:var(--lav2);text-align:center;padding:20px}
+</style>
+</head>
+<body>
+<div class="adm">
+  <h1>Précommandes payées</h1>
+  <div class="sub">Outil privé de l'asso — récap des t-shirts précommandés &amp; réglés. Ne partage pas ce lien.</div>
+
+  <div class="gate" id="gate">
+    <label for="pw">Mot de passe</label>
+    <input id="pw" type="password" autocomplete="current-password" placeholder="••••••••">
+    <div class="err" id="gate-err"></div>
+    <button class="btn primary" id="login">Entrer</button>
+  </div>
+
+  <div id="app" style="display:none">
+    <div class="bar">
+      <div class="seg" id="seg">
+        <button data-f="all" class="on">Tout</button>
+        <button data-f="retrait">Retrait</button>
+        <button data-f="livraison">Livraison</button>
+      </div>
+      <button class="btn ghost" id="reload">↻ Recharger</button>
+      <button class="btn ghost" id="logout">Se déconnecter</button>
+      <span class="status" id="status">à jour</span>
+    </div>
+
+    <div class="cards">
+      <div class="kpi"><div class="k">Commandes</div><div class="v" id="kpi-orders">–</div></div>
+      <div class="kpi"><div class="k">T-shirts</div><div class="v" id="kpi-tees">–</div></div>
+      <div class="kpi"><div class="k">Retrait</div><div class="v" id="kpi-ret">–</div></div>
+      <div class="kpi"><div class="k">Livraison</div><div class="v" id="kpi-liv">–</div></div>
+    </div>
+
+    <div class="tbl-wrap">
+      <table id="tbl"><thead></thead><tbody></tbody><tfoot></tfoot></table>
+    </div>
+
+    <div class="detail">
+      <h3>Détail des commandes</h3>
+      <div id="orders"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var SB_URL='https://nhsroymqvwrjflagzznz.supabase.co';
+  var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oc3JveW1xdndyamZsYWd6em56Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MTcyNzEsImV4cCI6MjA5MzM5MzI3MX0.9DF3S9rqhyR4UY9W_vVT2xUxyZNhA3wfk4LTOBzRg64';
+  var FN=SB_URL+'/functions/v1/admin-stock';
+
+  var COLORS=[
+    {ref:'Noir',name:'Noir',dot:'#1a1a1a'},
+    {ref:'Anthracite',name:'Anthracite',dot:'#45464a'},
+    {ref:'Lavande',name:'Lavande',dot:'#c9b8e8'},
+    {ref:'Beige',name:'Beige',dot:'#d9c9a8'},
+    {ref:'Creme',name:'Blanc crème',dot:'#f1ebdd'},
+    {ref:'Jaune',name:'Jaune clair',dot:'#f3edad'},
+    {ref:'Rose',name:'Rose pâle',dot:'#f4dde1'},
+    {ref:'Vert',name:'Vert pâle',dot:'#c8e3da'}
+  ];
+  var ALL=['XXS','XS','S','M','L','XL','XXL'];
+
+  function byId(id){return document.getElementById(id);}
+  var gate=byId('gate'),app=byId('app'),pwInput=byId('pw'),gateErr=byId('gate-err'),
+      statusEl=byId('status'),tbl=byId('tbl'),
+      thead=tbl.querySelector('thead'),tbody=tbl.querySelector('tbody'),tfoot=tbl.querySelector('tfoot'),
+      ordersEl=byId('orders');
+  var PW='', ITEMS=[], filter='all';
+
+  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function call(body){
+    return fetch(FN,{method:'POST',headers:{'content-type':'application/json',apikey:SB_KEY},body:JSON.stringify(body)})
+      .then(function(r){return r.json().then(function(j){return {status:r.status,j:j};},function(){return {status:r.status,j:{}};});});
+  }
+
+  function filtered(){ return (filter==='all')?ITEMS:ITEMS.filter(function(x){return (x.delivery||'')===filter;}); }
+
+  function render(){
+    var rows=filtered();
+    var map={}; COLORS.forEach(function(c){map[c.ref]={};});
+    var tees=0, ret=0, liv=0, sessions={};
+    rows.forEach(function(r){
+      if(!map[r.ref])map[r.ref]={};
+      map[r.ref][r.size]=(map[r.ref][r.size]||0)+r.qty;
+      tees+=r.qty;
+      if((r.delivery||'')==='livraison')liv+=r.qty; else ret+=r.qty;
+      if(r.session_id)sessions[r.session_id]=1;
+    });
+    // KPIs (sur le filtre courant)
+    byId('kpi-orders').textContent=Object.keys(sessions).length;
+    byId('kpi-tees').textContent=tees;
+    byId('kpi-ret').textContent=ret;
+    byId('kpi-liv').textContent=liv;
+
+    // en-tête
+    var h='<tr><th class="cname" style="text-align:left">Coloris</th>';
+    ALL.forEach(function(s){h+='<th>'+s+'</th>';}); h+='<th>Total</th></tr>';
+    thead.innerHTML=h;
+    // corps
+    var body='';
+    COLORS.forEach(function(c){
+      var rt=0;
+      body+='<tr><td class="cname"><span class="dot" style="background:'+c.dot+'"></span>'+esc(c.name)+'</td>';
+      ALL.forEach(function(s){ var v=(map[c.ref]&&map[c.ref][s])||0; rt+=v; body+='<td class="q'+(v===0?' zero':'')+'">'+v+'</td>'; });
+      body+='<td class="rowtot">'+rt+'</td></tr>';
+    });
+    tbody.innerHTML=body;
+    // pied (total par taille)
+    var f='<tr><td class="cname" style="text-align:left">Total par taille</td>';
+    var grand=0;
+    ALL.forEach(function(s){ var st=0; COLORS.forEach(function(c){ st+=(map[c.ref]&&map[c.ref][s])||0; }); grand+=st; f+='<td>'+st+'</td>'; });
+    f+='<td class="grand">'+grand+'</td></tr>';
+    tfoot.innerHTML=f;
+
+    // détail des commandes (groupé par session)
+    var ord={};
+    filtered().forEach(function(r){
+      var k=r.session_id||('x'+r.created_at);
+      if(!ord[k])ord[k]={date:r.created_at,delivery:r.delivery,email:r.email,items:[]};
+      ord[k].items.push(r);
+    });
+    var list=Object.keys(ord).map(function(k){return ord[k];}).sort(function(a,b){return (a.date<b.date)?1:-1;});
+    if(!list.length){ ordersEl.innerHTML='<div class="empty">Aucune précommande payée pour l\'instant.</div>'; return; }
+    ordersEl.innerHTML=list.map(function(o){
+      var d=new Date(o.date), dt=isNaN(d)?'':d.toLocaleDateString('fr-FR')+' '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+      var liv=(o.delivery==='livraison');
+      var items=o.items.map(function(it){return esc(it.ref)+' '+esc(it.size)+' ×'+it.qty;}).join(' · ');
+      return '<div class="order"><div class="top"><span>'+dt+'</span><span class="'+(liv?'tag-liv':'tag-ret')+'">'+(liv?'Livraison':'Retrait')+'</span></div>'+
+             '<div class="items">'+items+'</div>'+
+             (o.email?'<div class="mail">'+esc(o.email)+'</div>':'')+'</div>';
+    }).join('');
+  }
+
+  function load(){
+    statusEl.textContent='chargement…';
+    return call({password:PW,action:'precommande_list'}).then(function(res){
+      if(res.status===200&&res.j.ok){ ITEMS=res.j.items||[]; render(); statusEl.textContent='à jour'; return true; }
+      if(res.status===401){ return false; }
+      statusEl.textContent='erreur de chargement'; return true;
+    });
+  }
+  function showApp(){ gate.style.display='none'; app.style.display=''; }
+  function showGate(m){ app.style.display='none'; gate.style.display=''; gateErr.textContent=m||''; }
+  function logout(){ PW=''; localStorage.removeItem('fdp_admin_pw'); pwInput.value=''; showGate(''); }
+
+  byId('login').addEventListener('click',function(){
+    var p=pwInput.value; if(!p){gateErr.textContent='Entre le mot de passe.';return;}
+    gateErr.textContent='Vérification…';
+    call({password:p,action:'precommande_list'}).then(function(res){
+      if(res.status===200&&res.j.ok){ PW=p; localStorage.setItem('fdp_admin_pw',p); ITEMS=res.j.items||[]; render(); showApp(); statusEl.textContent='à jour'; }
+      else if(res.status===401){ gateErr.textContent='Mot de passe incorrect.'; }
+      else { gateErr.textContent='Erreur — réessaie.'; }
+    }).catch(function(){ gateErr.textContent='Erreur réseau — réessaie.'; });
+  });
+  pwInput.addEventListener('keydown',function(e){ if(e.key==='Enter')byId('login').click(); });
+  byId('reload').addEventListener('click',load);
+  byId('logout').addEventListener('click',logout);
+  Array.prototype.forEach.call(byId('seg').querySelectorAll('button'),function(b){
+    b.addEventListener('click',function(){
+      filter=b.getAttribute('data-f');
+      Array.prototype.forEach.call(byId('seg').querySelectorAll('button'),function(x){x.classList.toggle('on',x===b);});
+      render();
+    });
+  });
+
+  PW=localStorage.getItem('fdp_admin_pw')||'';
+  if(PW){ load().then(function(ok){ if(ok)showApp(); else showGate(''); }); }
+})();
+</script>
+</body>
+</html>
