@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Concours photo — galerie privée · FDP</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#0F0628">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/site.css?v=10">
+<style>
+  .adm{max-width:1100px;margin:0 auto;padding:clamp(24px,5vh,54px) clamp(18px,4vw,40px) 80px}
+  .adm h1{font-family:'DK Longreach',var(--ff);font-size:clamp(30px,5vw,46px);color:var(--yellow);line-height:1;margin-bottom:6px}
+  .adm .sub{color:var(--lav2);font-size:15px;margin-bottom:22px}
+  .gate{max-width:360px;margin:40px auto;background:var(--card1);border:1px solid var(--line);border-radius:16px;padding:26px}
+  .gate label{display:block;font-weight:700;font-size:13px;color:var(--lav);margin-bottom:8px;letter-spacing:.5px}
+  .gate input{width:100%;height:44px;border-radius:10px;border:1px solid var(--line2);background:#0d0420;color:var(--cream);font-family:inherit;font-size:15px;padding:0 12px;margin-bottom:12px}
+  .gate .err{color:var(--pink);font-size:13px;min-height:18px;margin-bottom:6px}
+  .btn{font-family:inherit;font-weight:800;font-size:14px;border:0;border-radius:11px;padding:13px 18px;cursor:pointer;transition:.15s}
+  .btn.primary{background:var(--yellow);color:var(--ink);box-shadow:0 4px 0 var(--orange);width:100%}
+  .btn.ghost{background:none;border:2px solid rgba(255,245,225,.4);color:var(--cream)}
+  .btn.ghost:hover{border-color:var(--yellow);color:var(--yellow)}
+  .bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:18px}
+  .status{font-weight:700;font-size:13px;margin-left:auto;color:var(--lav)}
+  .count{font-family:'DK Longreach',var(--ff);color:var(--yellow);font-size:22px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+  .card{background:var(--card1);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+  .card .ph{width:100%;aspect-ratio:1/1;object-fit:cover;background:#0d0420;display:block;cursor:zoom-in}
+  .card .body{padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+  .card .who{font-weight:800;color:var(--cream);font-size:14px;word-break:break-word}
+  .card .who small{display:block;color:var(--lav);font-weight:600;font-size:12px}
+  .card .date{color:var(--lav2);font-size:11px}
+  .card .acts{display:flex;gap:8px;margin-top:2px}
+  .card .acts a,.card .acts button{flex:1;text-align:center;font-family:inherit;font-weight:800;font-size:12px;border-radius:8px;padding:8px;cursor:pointer;text-decoration:none;border:1px solid var(--line2)}
+  .card .acts a{background:var(--yellow);color:var(--ink);border-color:var(--yellow)}
+  .card .acts button{background:none;color:var(--lav)}
+  .card .acts button:hover{color:var(--pink);border-color:var(--pink)}
+  .empty{color:var(--lav2);text-align:center;padding:30px}
+  .lightbox{position:fixed;inset:0;background:rgba(4,2,14,.92);display:none;align-items:center;justify-content:center;z-index:60;padding:20px;cursor:zoom-out}
+  .lightbox img{max-width:100%;max-height:100%;border-radius:10px}
+</style>
+</head>
+<body>
+<div class="adm">
+  <h1>Concours photo</h1>
+  <div class="sub">Galerie privée de l'asso — photos reçues du public. Ne partage pas ce lien.</div>
+
+  <div class="gate" id="gate">
+    <label for="pw">Mot de passe</label>
+    <input id="pw" type="password" autocomplete="current-password" placeholder="••••••••">
+    <div class="err" id="gate-err"></div>
+    <button class="btn primary" id="login">Entrer</button>
+  </div>
+
+  <div id="app" style="display:none">
+    <div class="bar">
+      <span class="count" id="count">–</span> <span style="color:var(--lav2);font-size:13px">photo(s)</span>
+      <button class="btn ghost" id="reload">↻ Recharger</button>
+      <button class="btn ghost" id="logout">Se déconnecter</button>
+      <span class="status" id="status">à jour</span>
+    </div>
+    <div class="grid" id="grid"></div>
+  </div>
+</div>
+<div class="lightbox" id="lightbox"><img id="lb-img" alt=""></div>
+
+<script>
+(function(){
+  var SB_URL='https://nhsroymqvwrjflagzznz.supabase.co';
+  var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oc3JveW1xdndyamZsYWd6em56Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MTcyNzEsImV4cCI6MjA5MzM5MzI3MX0.9DF3S9rqhyR4UY9W_vVT2xUxyZNhA3wfk4LTOBzRg64';
+  var FN=SB_URL+'/functions/v1/admin-stock';
+  function byId(id){return document.getElementById(id);}
+  var gate=byId('gate'),app=byId('app'),pwInput=byId('pw'),gateErr=byId('gate-err'),
+      statusEl=byId('status'),grid=byId('grid'),countEl=byId('count'),lb=byId('lightbox'),lbImg=byId('lb-img');
+  var PW='';
+
+  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function call(body){
+    return fetch(FN,{method:'POST',headers:{'content-type':'application/json',apikey:SB_KEY},body:JSON.stringify(body)})
+      .then(function(r){return r.json().then(function(j){return {status:r.status,j:j};},function(){return {status:r.status,j:{}};});});
+  }
+
+  function render(photos){
+    countEl.textContent=photos.length;
+    if(!photos.length){ grid.innerHTML='<div class="empty">Aucune photo reçue pour l\'instant.</div>'; return; }
+    grid.innerHTML='';
+    photos.forEach(function(p){
+      var d=new Date(p.created_at), dt=isNaN(d)?'':d.toLocaleDateString('fr-FR')+' '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+      var ext=(p.path.split('.').pop()||'jpg');
+      var dl=p.url?(p.url+'&download=photo-'+p.id+'.'+ext):'#';
+      var card=document.createElement('div');card.className='card';
+      card.innerHTML=
+        (p.url?'<img class="ph" src="'+p.url+'" loading="lazy" alt="Photo de '+esc(p.name)+'">':'<div class="ph"></div>')+
+        '<div class="body">'+
+          '<div class="who">'+(esc(p.name)||'Anonyme')+(p.insta?'<small>'+esc(p.insta)+'</small>':'')+'</div>'+
+          '<div class="date">'+dt+'</div>'+
+          '<div class="acts"><a href="'+dl+'" download>⬇ Télécharger</a><button type="button" data-del="'+p.id+'">✕ Retirer</button></div>'+
+        '</div>';
+      if(p.url){ card.querySelector('.ph').addEventListener('click',function(){ lbImg.src=p.url; lb.style.display='flex'; }); }
+      card.querySelector('[data-del]').addEventListener('click',function(){ del(p.id); });
+      grid.appendChild(card);
+    });
+  }
+  function del(id){
+    if(!confirm('Retirer cette photo définitivement ?'))return;
+    statusEl.textContent='suppression…';
+    call({password:PW,action:'concours_delete',id:id}).then(function(res){
+      if(res.status===200&&res.j.ok){ statusEl.textContent='supprimée ✓'; load(); }
+      else if(res.status===401){ logout(); }
+      else { statusEl.textContent='erreur'; }
+    });
+  }
+  function load(){
+    statusEl.textContent='chargement…';
+    return call({password:PW,action:'concours_list'}).then(function(res){
+      if(res.status===200&&res.j.ok){ render(res.j.photos||[]); statusEl.textContent='à jour'; return true; }
+      if(res.status===401){ return false; }
+      statusEl.textContent='erreur de chargement'; return true;
+    });
+  }
+  function showApp(){ gate.style.display='none'; app.style.display=''; }
+  function showGate(m){ app.style.display='none'; gate.style.display=''; gateErr.textContent=m||''; }
+  function logout(){ PW=''; localStorage.removeItem('fdp_admin_pw'); pwInput.value=''; showGate(''); }
+
+  byId('login').addEventListener('click',function(){
+    var p=pwInput.value; if(!p){gateErr.textContent='Entre le mot de passe.';return;}
+    gateErr.textContent='Vérification…';
+    call({password:p,action:'concours_list'}).then(function(res){
+      if(res.status===200&&res.j.ok){ PW=p; localStorage.setItem('fdp_admin_pw',p); render(res.j.photos||[]); showApp(); statusEl.textContent='à jour'; }
+      else if(res.status===401){ gateErr.textContent='Mot de passe incorrect.'; }
+      else { gateErr.textContent='Erreur — réessaie.'; }
+    }).catch(function(){ gateErr.textContent='Erreur réseau — réessaie.'; });
+  });
+  pwInput.addEventListener('keydown',function(e){ if(e.key==='Enter')byId('login').click(); });
+  byId('reload').addEventListener('click',load);
+  byId('logout').addEventListener('click',logout);
+  lb.addEventListener('click',function(){ lb.style.display='none'; lbImg.src=''; });
+
+  PW=localStorage.getItem('fdp_admin_pw')||'';
+  if(PW){ load().then(function(ok){ if(ok)showApp(); else showGate(''); }); }
+})();
+</script>
+</body>
+</html>

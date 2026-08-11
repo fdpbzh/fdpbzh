@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Concours photo · Fête du Port 2026</title>
+<meta name="description" content="Partage tes plus belles photos de la Fête du Port 2026 et tente de gagner. Envoie ta photo directement depuis fdp.bzh.">
+<meta name="theme-color" content="#0F0628">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/site.css?v=10">
+<style>
+  .form{max-width:560px;margin:0 auto;background:linear-gradient(160deg,var(--card1),var(--card2));border:1px solid var(--line2);border-radius:22px;padding:clamp(22px,4vw,32px)}
+  .form label{display:block;font-weight:800;font-size:13px;letter-spacing:.5px;color:var(--lav);margin:16px 0 8px}
+  .form label:first-child{margin-top:0}
+  .field{width:100%;height:52px;border-radius:12px;border:1px solid var(--line2);background:#0d0420;color:var(--cream);font-family:inherit;font-weight:600;font-size:16px;padding:0 14px}
+  .field::placeholder{color:var(--lav);opacity:.6}
+  .drop{border:2px dashed var(--line2);border-radius:14px;padding:22px;text-align:center;cursor:pointer;transition:.15s;color:var(--lav2)}
+  .drop:hover,.drop.has{border-color:var(--yellow);color:var(--cream)}
+  .drop b{color:var(--yellow)}
+  .drop input{display:none}
+  .preview{margin-top:12px;display:none}
+  .preview img{width:100%;max-height:320px;object-fit:contain;border-radius:12px;background:#0d0420;border:1px solid var(--line)}
+  .consent{display:flex;gap:10px;align-items:flex-start;margin-top:18px;color:var(--lav2);font-size:13px;line-height:1.5}
+  .consent input{margin-top:3px;width:18px;height:18px;flex:none}
+  .consent a{color:var(--yellow)}
+  .send{width:100%;margin-top:18px}
+  .send.off{opacity:.5;pointer-events:none;filter:grayscale(.4)}
+  .msg{min-height:20px;font-weight:700;font-size:14px;text-align:center;margin-top:12px}
+  .msg.err{color:var(--pink)}.msg.ok{color:#7ee6a3}
+  .done{display:none;text-align:center}
+  .done .big{font-size:52px;line-height:1}
+  .rules{color:var(--lav2);font-size:14px;line-height:1.7;max-width:560px;margin:0 auto 22px}
+  .rules b{color:var(--cream)}
+</style>
+</head>
+<body>
+
+<header class="hdr stick">
+  <a class="brand" href="index.html"><span class="lg">FDP</span><span class="t">Fête<br>du Port</span></a>
+  <div class="hdr-right">
+    <nav class="nav" id="nav">
+      <a class="navlink" href="index.html">Accueil</a>
+      <a class="navlink" href="jeux.html">Jeux</a>
+      <a class="navlink" href="boutique.html">Boutique</a>
+      <a class="navlink" href="asso.html">L'asso</a>
+      <a class="navlink" href="contact.html">Contact</a>
+    </nav>
+    <a class="iglink" href="https://instagram.com/lassoduport" target="_blank" rel="noopener" aria-label="Suivre @lassoduport sur Instagram"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.6" cy="6.4" r="1.3" fill="currentColor" stroke="none"/></svg><span class="iglabel">@lassoduport</span></a>
+    <button class="burger" id="burger" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="nav"><span></span><span></span><span></span></button>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="phero">
+  <div class="glow"></div>
+  <span class="star" style="top:40px;left:24%"></span>
+  <span class="star" style="top:90px;left:68%;animation-delay:1.3s"></span>
+  <div class="in">
+    <div class="eyebrow">Concours photo · jusqu'au 20 août</div>
+    <h1 class="disp" style="margin-top:14px">La plus belle photo<br>de l'édition 2026</h1>
+    <p class="lead">Tu as capturé un beau moment de la Fête du Port&nbsp;? Envoie-la&nbsp;! Le <strong style="color:var(--cream)">top 3</strong> repart avec un <strong style="color:var(--cream)">t-shirt FDP</strong> et une <strong style="color:var(--cream)">canette FDP</strong>.</p>
+  </div>
+</section>
+
+<section class="wrap" style="padding:10px 0 40px">
+  <p class="rules">
+    <b>Le principe&nbsp;:</b> envoie ta plus belle photo de la Fête du Port 2026, jusqu'au <b>20 août</b> (une par envoi, tu peux revenir en déposer d'autres). Le <b>top 3</b> gagne un <b>t-shirt FDP</b> + une <b>canette FDP</b>.<br><br>
+    <b>Le jury&nbsp;:</b> un jury parfaitement incompétent, dans le plus pur esprit des Championnats du Monde Inutiles. Objectivité non garantie.<br><br>
+    <b>Pratique&nbsp;:</b> formats JPG, PNG, WEBP, HEIC jusqu'à 25&nbsp;Mo, en bonne qualité. En participant, tu autorises l'asso du Port à publier ta photo. <b>L'asso du Port se réserve le droit de partager les plus belles photos</b> (site, réseaux sociaux, expo). Merci&nbsp;!
+  </p>
+
+  <div class="form" id="form">
+    <label for="photo">Ta photo</label>
+    <label class="drop" id="drop">
+      <input type="file" id="photo" accept="image/*">
+      <span id="drop-txt"><b>Choisir une photo</b><br>ou prends-en une maintenant</span>
+    </label>
+    <div class="preview" id="preview"><img id="preview-img" alt="Aperçu"></div>
+
+    <label for="pname">Ton nom / pseudo</label>
+    <input class="field" id="pname" maxlength="60" placeholder="Ex : Marie" autocomplete="name">
+
+    <label for="pinsta">Ton Instagram (facultatif)</label>
+    <input class="field" id="pinsta" maxlength="40" placeholder="@ton_compte" autocomplete="off">
+
+    <label class="consent"><input type="checkbox" id="consent"><span>J'autorise l'asso du Port à publier ma photo (site, réseaux sociaux) dans le cadre du concours et de la communication de la Fête du Port. La photo est de moi.</span></label>
+
+    <button class="btnA send off" id="send" type="button">Envoyer ma photo</button>
+    <div class="msg" id="msg"></div>
+  </div>
+
+  <div class="form done" id="done">
+    <div class="big">📸</div>
+    <h2 class="disp" style="font-size:32px;color:var(--yellow);margin:12px 0 8px">Merci, c'est envoyé&nbsp;!</h2>
+    <p class="lead" style="margin:0 auto 20px">Ta photo est bien arrivée. Tu peux en envoyer une autre ou suivre l'asso pour la suite du concours.</p>
+    <div class="center-cta">
+      <button class="btnA" id="again" type="button">Envoyer une autre photo</button>
+      <a class="btnB" href="https://instagram.com/lassoduport" target="_blank" rel="noopener">Suivre @lassoduport</a>
+    </div>
+  </div>
+
+  <div class="form done" id="closed">
+    <div class="big">🏁</div>
+    <h2 class="disp" style="font-size:32px;color:var(--yellow);margin:12px 0 8px">Le concours est terminé</h2>
+    <p class="lead" style="margin:0 auto 20px">Merci à toutes et à tous pour vos photos&nbsp;! Le jury (parfaitement incompétent) délibère. Suis <strong style="color:var(--cream)">@lassoduport</strong> pour découvrir le top 3.</p>
+    <div class="center-cta">
+      <a class="btnA" href="https://instagram.com/lassoduport" target="_blank" rel="noopener">Suivre @lassoduport</a>
+      <a class="btnB" href="index.html">Retour à l'accueil</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="lg">FDP</div>
+  <div class="foot-links">
+    <a href="mailto:lassoduport@gmail.com">lassoduport@gmail.com</a><span style="opacity:.4;margin:0 9px">·</span>
+    <a href="https://instagram.com/lassoduport" target="_blank" rel="noopener">@lassoduport</a><span style="opacity:.4;margin:0 9px">·</span>
+    L'asso du Port · Pors-Poulhan
+  </div>
+  <div class="foot-legal"><a href="mentions-legales.html">Mentions légales</a></div>
+</footer>
+
+<script src="assets/site.js?v=4"></script>
+<script>
+(function(){
+  var SB_URL='https://nhsroymqvwrjflagzznz.supabase.co';
+  var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oc3JveW1xdndyamZsYWd6em56Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MTcyNzEsImV4cCI6MjA5MzM5MzI3MX0.9DF3S9rqhyR4UY9W_vVT2xUxyZNhA3wfk4LTOBzRg64';
+  function byId(id){return document.getElementById(id);}
+  var fileInput=byId('photo'),drop=byId('drop'),dropTxt=byId('drop-txt'),preview=byId('preview'),previewImg=byId('preview-img'),
+      nameEl=byId('pname'),instaEl=byId('pinsta'),consentEl=byId('consent'),sendBtn=byId('send'),msg=byId('msg'),
+      formEl=byId('form'),doneEl=byId('done');
+  var file=null, busy=false;
+  var DEADLINE=new Date('2026-08-20T23:59:59+02:00').getTime();
+  if(Date.now()>DEADLINE){ formEl.style.display='none'; byId('closed').style.display=''; }
+
+  function updateSend(){ sendBtn.classList.toggle('off', !(file && nameEl.value.trim() && consentEl.checked)); }
+  [nameEl,consentEl].forEach(function(el){ el.addEventListener('input',updateSend); el.addEventListener('change',updateSend); });
+
+  fileInput.addEventListener('change',function(){
+    file=fileInput.files&&fileInput.files[0]||null;
+    if(file){
+      drop.classList.add('has');
+      dropTxt.innerHTML='<b>'+file.name+'</b><br>appuie pour changer';
+      var u=URL.createObjectURL(file); previewImg.src=u; preview.style.display='';
+    } else { preview.style.display='none'; drop.classList.remove('has'); }
+    msg.textContent=''; msg.className='msg'; updateSend();
+  });
+
+  // Réduit les grosses images (max 2000 px, JPEG) pour éviter les rejets et économiser l'espace.
+  function processImage(f){
+    return new Promise(function(resolve){
+      if(!/^image\/(jpeg|png|webp)$/i.test(f.type)){ resolve({blob:f,type:f.type}); return; }
+      var img=new Image(), url=URL.createObjectURL(f);
+      img.onload=function(){
+        var max=3500, w=img.width, h=img.height;
+        if(Math.max(w,h)<=max){ URL.revokeObjectURL(url); resolve({blob:f,type:f.type}); return; }
+        var s=max/Math.max(w,h), cw=Math.round(w*s), ch=Math.round(h*s);
+        var c=document.createElement('canvas'); c.width=cw; c.height=ch;
+        c.getContext('2d').drawImage(img,0,0,cw,ch);
+        c.toBlob(function(blob){ URL.revokeObjectURL(url); resolve(blob?{blob:blob,type:'image/jpeg'}:{blob:f,type:f.type}); },'image/jpeg',0.9);
+      };
+      img.onerror=function(){ URL.revokeObjectURL(url); resolve({blob:f,type:f.type}); };
+      img.src=url;
+    });
+  }
+  function extOf(type){ return ({'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/heic':'heic','image/heif':'heif'})[type.toLowerCase()]||'jpg'; }
+  function uuid(){ return (crypto.randomUUID?crypto.randomUUID():(Date.now()+'-'+Math.random().toString(16).slice(2))); }
+
+  sendBtn.addEventListener('click',function(){
+    if(busy||!file||!nameEl.value.trim()||!consentEl.checked) return;
+    if(Date.now()>DEADLINE){ formEl.style.display='none'; byId('closed').style.display=''; return; }
+    if(file.size>25*1024*1024 && /^image\/(jpeg|png|webp)$/i.test(file.type)===false){
+      msg.textContent='Photo trop lourde (25 Mo max).'; msg.className='msg err'; return;
+    }
+    busy=true; sendBtn.classList.add('off'); sendBtn.textContent='Envoi…'; msg.textContent=''; msg.className='msg';
+    processImage(file).then(function(res){
+      if(res.blob.size>25*1024*1024){ throw {big:true}; }
+      var key=uuid()+'.'+extOf(res.type);
+      return fetch(SB_URL+'/storage/v1/object/concours/'+key,{
+        method:'POST',
+        headers:{ apikey:SB_KEY, Authorization:'Bearer '+SB_KEY, 'content-type':res.type, 'cache-control':'3600', 'x-upsert':'false' },
+        body:res.blob
+      }).then(function(r){
+        if(!r.ok) throw {up:r.status};
+        return fetch(SB_URL+'/rest/v1/concours_photos',{
+          method:'POST',
+          headers:{ apikey:SB_KEY, Authorization:'Bearer '+SB_KEY, 'content-type':'application/json', Prefer:'return=minimal' },
+          body:JSON.stringify({ name:nameEl.value.trim(), insta:instaEl.value.trim()||null, consent:true, path:key })
+        });
+      }).then(function(r2){
+        if(!r2.ok) throw {meta:r2.status};
+        formEl.style.display='none'; doneEl.style.display='';
+        window.scrollTo({top:0,behavior:'smooth'});
+      });
+    }).catch(function(e){
+      busy=false; sendBtn.classList.remove('off'); sendBtn.textContent='Envoyer ma photo';
+      msg.className='msg err';
+      msg.textContent = (e&&e.big) ? 'Photo trop lourde (25 Mo max).'
+        : (e&&e.up===413) ? 'Photo trop lourde (25 Mo max).'
+        : 'Envoi impossible, réessaie dans un instant.';
+    });
+  });
+
+  byId('again').addEventListener('click',function(){
+    file=null; fileInput.value=''; nameEl.value=''; instaEl.value=''; consentEl.checked=false;
+    preview.style.display='none'; drop.classList.remove('has'); dropTxt.innerHTML='<b>Choisir une photo</b><br>ou prends-en une maintenant';
+    busy=false; sendBtn.textContent='Envoyer ma photo'; updateSend();
+    doneEl.style.display='none'; formEl.style.display='';
+    window.scrollTo({top:0,behavior:'smooth'});
+  });
+})();
+</script>
+</body>
+</html>
