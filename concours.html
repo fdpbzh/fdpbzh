@@ -80,7 +80,7 @@
     <label for="photo">Ta photo</label>
     <label class="drop" id="drop">
       <input type="file" id="photo" accept="image/*">
-      <span id="drop-txt"><b>Choisir une photo</b><br>ou prends-en une maintenant</span>
+      <span id="drop-txt"><b>Choisir une photo</b><br>depuis ta galerie</span>
     </label>
     <div class="preview" id="preview"><img id="preview-img" alt="Aperçu"></div>
 
@@ -210,7 +210,7 @@
 
   byId('again').addEventListener('click',function(){
     file=null; fileInput.value=''; nameEl.value=''; instaEl.value=''; consentEl.checked=false;
-    preview.style.display='none'; drop.classList.remove('has'); dropTxt.innerHTML='<b>Choisir une photo</b><br>ou prends-en une maintenant';
+    preview.style.display='none'; drop.classList.remove('has'); dropTxt.innerHTML='<b>Choisir une photo</b><br>depuis ta galerie';
     busy=false; sendBtn.textContent='Envoyer ma photo'; updateSend();
     doneEl.style.display='none'; formEl.style.display='';
     window.scrollTo({top:0,behavior:'smooth'});
