@@ -3,70 +3,60 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Service de Recouvrement des Moules · FDP (privé)</title>
+<title>Avis de recouvrement · Service de Recouvrement des Moules</title>
+<meta name="description" content="Avis de recouvrement amical : un t-shirt FDP demeure impayé. Régularise tes 22 € auprès du Service de Recouvrement des Moules de la Fête du Port.">
 <meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#0F0628">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/site.css?v=10">
 <style>
-  .adm{max-width:620px;margin:0 auto;padding:clamp(24px,5vh,54px) clamp(18px,4vw,40px) 80px}
-  .adm h1{font-family:'DK Longreach',var(--ff);font-size:clamp(28px,5vw,44px);color:var(--yellow);line-height:1;margin-bottom:6px}
-  .adm .sub{color:var(--lav2);font-size:15px;margin-bottom:22px;line-height:1.5}
-  .gate{max-width:360px;margin:40px auto;background:var(--card1);border:1px solid var(--line);border-radius:16px;padding:26px}
-  .gate label{display:block;font-weight:700;font-size:13px;color:var(--lav);margin-bottom:8px;letter-spacing:.5px}
-  .field{width:100%;height:46px;border-radius:10px;border:1px solid var(--line2);background:#0d0420;color:var(--cream);font-family:inherit;font-size:15px;padding:0 12px}
-  .gate .field{margin-bottom:12px}
-  .err{color:var(--pink);font-size:13px;min-height:18px;margin-bottom:6px}
-  .btn{font-family:inherit;font-weight:800;font-size:14px;border:0;border-radius:11px;padding:13px 18px;cursor:pointer;transition:.15s}
-  .btn.primary{background:var(--yellow);color:var(--ink);box-shadow:0 4px 0 var(--orange);width:100%}
-  .btn.ghost{background:none;border:2px solid rgba(255,245,225,.4);color:var(--cream)}
-  .btn.ghost:hover{border-color:var(--yellow);color:var(--yellow)}
-  .card{background:linear-gradient(160deg,var(--card1),var(--card2));border:1px solid var(--line2);border-radius:18px;padding:clamp(18px,4vw,26px)}
-  .lbl{font-weight:800;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--lav);margin:18px 0 8px}
-  .lbl:first-child{margin-top:0}
-  .linkbox{display:flex;gap:8px;flex-wrap:wrap}
-  .linkbox .field{flex:1;min-width:200px}
-  textarea.field{height:auto;min-height:110px;padding:12px;line-height:1.5;resize:vertical}
-  .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
-  .row .btn{flex:1;min-width:140px;text-align:center;text-decoration:none}
-  .status{color:var(--lav);font-size:13px;text-align:center;margin-top:10px;min-height:18px}
-  .note{color:var(--lav2);font-size:13px;line-height:1.6;margin-top:16px}
-  .logout{background:none;border:0;color:var(--lav);text-decoration:underline;font-family:inherit;font-weight:700;font-size:13px;cursor:pointer;display:block;margin:18px auto 0}
+  .rc-wrap{max-width:620px;margin:0 auto;padding:clamp(20px,5vh,48px) clamp(16px,4vw,24px) 60px}
+  .doc{position:relative;background:linear-gradient(160deg,var(--card1),var(--card2));border:1px solid var(--line2);border-radius:20px;padding:clamp(24px,5vw,40px);overflow:hidden}
+  .seal{font-size:60px;text-align:center;line-height:1;margin-bottom:6px}
+  .org{text-align:center;font-weight:800;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--pink)}
+  .org2{text-align:center;color:var(--lav2);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-top:2px}
+  .rc-title{font-family:'DK Longreach',var(--ff);font-size:clamp(26px,5vw,40px);color:var(--yellow);text-align:center;line-height:1;margin:16px 0 6px}
+  .ref{text-align:center;color:var(--lav);font-size:12px;letter-spacing:1px;margin-bottom:20px}
+  .doc p{color:var(--cream);font-size:15.5px;line-height:1.7;margin-bottom:14px}
+  .doc p.small{color:var(--lav2);font-size:13px;line-height:1.6}
+  .amount{text-align:center;margin:22px 0}
+  .amount .n{font-family:'DK Longreach',var(--ff);font-size:clamp(44px,11vw,64px);color:var(--cream);line-height:1}
+  .amount .l{color:var(--lav);font-size:12px;letter-spacing:2px;text-transform:uppercase}
+  .pay{display:block;width:100%;text-align:center;text-decoration:none;background:var(--yellow);color:var(--ink);font-weight:800;font-size:19px;padding:18px;border-radius:14px;box-shadow:0 6px 0 var(--orange);transition:transform .1s,box-shadow .1s}
+  .pay:active{transform:translateY(4px);box-shadow:0 2px 0 var(--orange)}
+  .pay.off{opacity:.6;pointer-events:none;filter:grayscale(.3)}
+  .stamp{position:absolute;top:18px;right:-6px;transform:rotate(12deg);border:3px solid var(--pink);color:var(--pink);font-weight:800;font-size:13px;letter-spacing:2px;padding:6px 12px;border-radius:8px;opacity:.85;text-transform:uppercase}
+  .fine{color:var(--lav);font-size:12px;line-height:1.6;text-align:center;margin-top:18px}
+  .fine a{color:var(--yellow)}
+  .home{display:block;text-align:center;color:var(--lav);font-size:13px;margin-top:20px;text-decoration:none}
+  .home:hover{color:var(--yellow)}
 </style>
 </head>
 <body>
-<div class="adm">
-  <h1>🦪 Service de Recouvrement des Moules</h1>
-  <div class="sub">Brigade officieuse des t-shirts impayés. Envoie le lien aux copains qui n'ont toujours pas réglé leur t-shirt FDP. (Ne partage pas cette page — seulement le lien.)</div>
+<div class="rc-wrap">
+  <div class="doc">
+    <div class="stamp">Impayé</div>
+    <div class="seal">🦪</div>
+    <div class="org">Service de Recouvrement des Moules</div>
+    <div class="org2">Fête du Port · Division des T-shirts Impayés</div>
+    <h1 class="rc-title">Avis de recouvrement</h1>
+    <div class="ref" id="ref">Dossier n° 2026-000</div>
 
-  <div class="gate" id="gate">
-    <label for="pw">Mot de passe de l'agent</label>
-    <input id="pw" class="field" type="password" autocomplete="current-password" placeholder="••••••••">
-    <div class="err" id="gate-err"></div>
-    <button class="btn primary" id="login">Entrer en service</button>
-  </div>
+    <p id="hello">Cher·e débiteur·rice,</p>
+    <p>Nos services zélés (et un peu vaseux) ont constaté qu'un <b style="color:var(--cream)">t-shirt officiel FDP</b> demeure <b style="color:var(--cream)">impayé à ton nom</b>. Nous t'invitons à régulariser ta situation sans délai — faute de quoi une moule te fixera du regard, très intensément, jusqu'à la prochaine édition.</p>
 
-  <div id="app" style="display:none">
-    <div class="card">
-      <div class="lbl">L'avis de recouvrement (le lien)</div>
-      <div class="linkbox">
-        <input class="field" id="link" readonly>
-        <button class="btn primary" id="copy" style="width:auto">Copier le lien</button>
-      </div>
-
-      <div class="lbl">Message prêt à envoyer</div>
-      <textarea class="field" id="msg" readonly></textarea>
-      <div class="row">
-        <button class="btn ghost" id="copymsg">Copier le message</button>
-        <a class="btn ghost" id="open" href="#" target="_blank" rel="noopener">Ouvrir la page de paiement</a>
-      </div>
-      <div class="status" id="status"></div>
-
-      <p class="note">Le débiteur récalcitrant paie <b>22 €</b> (quantité ajustable s'il en doit plusieurs) et indique son <b>nom</b> : tu retrouves chaque règlement dans <b>Stripe → Paiements</b>. C'est le même lien à chaque fois — envoie-le à autant de mauvais payeurs que nécessaire.</p>
+    <div class="amount">
+      <div class="n">22 €</div>
+      <div class="l">montant réclamé · par t-shirt</div>
     </div>
-    <button class="logout" id="logout">Quitter le service</button>
+
+    <a class="pay off" id="pay" href="#" target="_blank" rel="noopener">Chargement du paiement…</a>
+    <p class="small" id="paynote" style="text-align:center;margin-top:12px">Paiement sécurisé par Stripe · quantité ajustable si tu en dois plusieurs.</p>
+
+    <p class="fine">Ce service n'a aucune existence légale. Les moules non plus, d'ailleurs. Merci de soutenir <a href="index.html">l'asso du Port</a> ❤️</p>
   </div>
+  <a class="home" href="index.html">← fdp.bzh</a>
 </div>
 
 <script>
@@ -75,46 +65,23 @@
   var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oc3JveW1xdndyamZsYWd6em56Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MTcyNzEsImV4cCI6MjA5MzM5MzI3MX0.9DF3S9rqhyR4UY9W_vVT2xUxyZNhA3wfk4LTOBzRg64';
   var FN=SB_URL+'/functions/v1/pay-link';
   function byId(id){return document.getElementById(id);}
-  var gate=byId('gate'),app=byId('app'),pwInput=byId('pw'),gateErr=byId('gate-err'),
-      linkEl=byId('link'),msgEl=byId('msg'),openEl=byId('open'),statusEl=byId('status');
-  var PW='', URL_='';
+  var pay=byId('pay'),paynote=byId('paynote'),hello=byId('hello'),refEl=byId('ref');
 
-  function call(pw){
-    return fetch(FN,{method:'POST',headers:{'content-type':'application/json',apikey:SB_KEY},body:JSON.stringify({password:pw})})
-      .then(function(r){return r.json().then(function(j){return {status:r.status,j:j};},function(){return {status:r.status,j:{}};});});
-  }
-  function flash(t){ statusEl.textContent=t; setTimeout(function(){ statusEl.textContent=''; },2000); }
-  function copy(text){
-    if(navigator.clipboard&&navigator.clipboard.writeText){ return navigator.clipboard.writeText(text); }
-    return new Promise(function(res,rej){ try{ var i=document.createElement('textarea'); i.value=text; document.body.appendChild(i); i.select(); document.execCommand('copy'); i.remove(); res(); }catch(e){ rej(e); } });
-  }
+  // Personnalisation par le prénom : ...?nom=Kevin
+  var nom='';
+  try{ nom=(new URLSearchParams(location.search).get('nom')||'').trim().slice(0,40); }catch(e){}
+  if(nom){ hello.innerHTML='Cher·e <b style="color:var(--cream)">'+nom.replace(/[<>&]/g,'')+'</b>,'; }
+  // Petit numéro de dossier "officiel" reproductible
+  var seed=0; for(var i=0;i<(nom||'moule').length;i++){ seed=(seed*31+ (nom||'moule').charCodeAt(i))%1000; }
+  refEl.textContent='Dossier n° 2026-'+String(seed).padStart(3,'0');
 
-  function fill(url){
-    URL_=url;
-    linkEl.value=url;
-    openEl.href=url;
-    msgEl.value='🦪 AVIS DE RECOUVREMENT — Le Service de Recouvrement des Moules a détecté un t-shirt FDP impayé à ton nom (22 €). Régularise ta situation ici : '+url+'\nAmicalement (mais fermement) — L’asso du Port';
-  }
-  function show(){ gate.style.display='none'; app.style.display=''; }
-  function logout(){ PW=''; localStorage.removeItem('fdp_admin_pw'); pwInput.value=''; app.style.display='none'; gate.style.display=''; }
-
-  byId('login').addEventListener('click',function(){
-    var p=pwInput.value; if(!p){gateErr.textContent='Entre le mot de passe.';return;}
-    gateErr.textContent='Vérification…';
-    call(p).then(function(res){
-      if(res.status===200&&res.j.ok&&res.j.url){ PW=p; localStorage.setItem('fdp_admin_pw',p); fill(res.j.url); show(); }
-      else if(res.status===401){ gateErr.textContent='Mot de passe incorrect.'; }
-      else if(res.j&&res.j.error==='not_configured'){ gateErr.textContent='Clé Stripe non configurée dans Supabase.'; }
-      else { gateErr.textContent='Erreur — réessaie.'; }
-    }).catch(function(){ gateErr.textContent='Erreur réseau — réessaie.'; });
-  });
-  pwInput.addEventListener('keydown',function(e){ if(e.key==='Enter')byId('login').click(); });
-  byId('copy').addEventListener('click',function(){ copy(URL_).then(function(){ flash('Lien copié ✓'); },function(){ flash('Copie impossible'); }); });
-  byId('copymsg').addEventListener('click',function(){ copy(msgEl.value).then(function(){ flash('Message copié ✓'); },function(){ flash('Copie impossible'); }); });
-  byId('logout').addEventListener('click',logout);
-
-  PW=localStorage.getItem('fdp_admin_pw')||'';
-  if(PW){ call(PW).then(function(res){ if(res.status===200&&res.j.ok&&res.j.url){ fill(res.j.url); show(); } }); }
+  fetch(FN,{method:'GET',headers:{apikey:SB_KEY}})
+    .then(function(r){return r.json();})
+    .then(function(j){
+      if(j&&j.url){ pay.href=j.url; pay.classList.remove('off'); pay.textContent='Régler mes 22 € 🦪'; }
+      else { pay.textContent='Paiement momentanément indisponible'; paynote.textContent='Réessaie dans un instant, ou contacte l\'asso.'; }
+    })
+    .catch(function(){ pay.textContent='Paiement momentanément indisponible'; paynote.textContent='Réessaie dans un instant, ou contacte l\'asso.'; });
 })();
 </script>
 </body>
