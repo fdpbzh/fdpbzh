@@ -48,6 +48,10 @@
   .order .top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:var(--lav2);font-size:12px;font-weight:700}
   .order .items{color:var(--cream);font-weight:700;margin-top:4px}
   .order .mail{color:var(--lav);font-size:12px;margin-top:2px;word-break:break-all}
+  .order .addr{margin-top:8px;padding:8px 10px;background:#0d0420;border:1px solid var(--line2);border-radius:9px;color:var(--cream);font-size:13px;line-height:1.5}
+  .order .addr .lbl{color:var(--pink);font-weight:800;font-size:10px;letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:2px}
+  .order .addr .nm{font-weight:800}
+  .order .addr .cp{cursor:pointer;border:0;background:none;color:var(--yellow);font-family:inherit;font-size:11px;font-weight:800;margin-top:4px;padding:0;text-decoration:underline}
   .tag-liv{color:var(--pink)}.tag-ret{color:#5fd08a}
   .empty{color:var(--lav2);text-align:center;padding:20px}
 </style>
@@ -168,7 +172,7 @@
     var ord={};
     filtered().forEach(function(r){
       var k=r.session_id||('x'+r.created_at);
-      if(!ord[k])ord[k]={date:r.created_at,delivery:r.delivery,email:r.email,items:[]};
+      if(!ord[k])ord[k]={date:r.created_at,delivery:r.delivery,email:r.email,ship_name:r.ship_name,ship_address:r.ship_address,phone:r.phone,items:[]};
       ord[k].items.push(r);
     });
     var list=Object.keys(ord).map(function(k){return ord[k];}).sort(function(a,b){return (a.date<b.date)?1:-1;});
@@ -177,10 +181,28 @@
       var d=new Date(o.date), dt=isNaN(d)?'':d.toLocaleDateString('fr-FR')+' '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
       var liv=(o.delivery==='livraison');
       var items=o.items.map(function(it){return esc(it.ref)+' '+esc(it.size)+' ×'+it.qty;}).join(' · ');
+      var addrHtml='';
+      if(liv && (o.ship_address||o.ship_name)){
+        var full=(o.ship_name?o.ship_name+'\n':'')+(o.ship_address||'')+(o.phone?'\nTél : '+o.phone:'');
+        addrHtml='<div class="addr"><span class="lbl">Adresse de livraison</span>'+
+                 (o.ship_name?'<span class="nm">'+esc(o.ship_name)+'</span><br>':'')+
+                 esc(o.ship_address||'')+
+                 (o.phone?'<br>Tél : '+esc(o.phone):'')+
+                 '<br><button class="cp" data-copy="'+esc(full)+'">copier l\'adresse</button></div>';
+      } else if(liv){
+        addrHtml='<div class="addr"><span class="lbl">Adresse de livraison</span>Non renseignée — à vérifier dans Stripe.</div>';
+      }
       return '<div class="order"><div class="top"><span>'+dt+'</span><span class="'+(liv?'tag-liv':'tag-ret')+'">'+(liv?'Livraison':'Retrait')+'</span></div>'+
              '<div class="items">'+items+'</div>'+
-             (o.email?'<div class="mail">'+esc(o.email)+'</div>':'')+'</div>';
+             (o.email?'<div class="mail">'+esc(o.email)+'</div>':'')+
+             addrHtml+'</div>';
     }).join('');
+    Array.prototype.forEach.call(ordersEl.querySelectorAll('.cp'),function(btn){
+      btn.addEventListener('click',function(){
+        var t=btn.getAttribute('data-copy')||'';
+        if(navigator.clipboard){navigator.clipboard.writeText(t).then(function(){btn.textContent='copié ✓';setTimeout(function(){btn.textContent='copier l\'adresse';},1500);});}
+      });
+    });
   }
 
   function load(){
