@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>La Moule Volante · FDP · Fête du Port 2026</title>
-<meta name="description" content="La Moule Volante, le mini-jeu maison de la Fête du Port. Fais ton meilleur score avant le 8 août : les meilleurs gagnent des lots à récupérer le jour J.">
+<title>La Moule Volante · FDP · Fête du Port</title>
+<meta name="description" content="La Moule Volante : le mini-jeu maison de la Fête du Port. Catapulte ta moule et atteins 5 000 m le plus vite possible !">
 <meta name="theme-color" content="#0F0628">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,14 +12,19 @@
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/site.css?v=10">
 <style>
+  .game-wrap{max-width:660px;margin:0 auto}
+  .game-frame{position:relative;width:100%;aspect-ratio:71/40;border-radius:16px;overflow:hidden;border:2px solid #6b21a8;box-shadow:0 14px 40px #0b0620aa;background:#0d0014}
+  .game-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
+  .game-cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:16px}
   .lb{list-style:none;max-width:560px;margin:0 auto;padding:0}
   .lb li{display:flex;align-items:center;gap:14px;padding:12px 16px;background:var(--card1);border:1px solid var(--line);border-radius:12px;margin-bottom:8px}
   .lb li .r{font-family:'DK Longreach',var(--ff);font-size:22px;color:var(--lav);min-width:38px;text-align:center;line-height:1}
   .lb li .nm{flex:1;font-weight:800;color:var(--cream);font-size:15px;line-height:1.2}
-  .lb li .nm small{display:block;color:var(--lav);font-weight:600;font-size:12px;margin-top:2px}
   .lb li .sc{font-family:'DK Longreach',var(--ff);font-size:20px;color:var(--cream);line-height:1}
   .lb li.top{border-color:var(--yellow)}
   .lb li.top .r{color:var(--yellow)}
+  .lb-empty{text-align:center;color:var(--lav2)}
+  .lb-note{text-align:center;color:var(--lav);font-size:13px;margin-top:10px}
 </style>
 </head>
 <body>
@@ -30,7 +35,8 @@
     <nav class="nav" id="nav">
       <a class="navlink" href="index.html">Accueil</a>
       <a class="navlink" href="programme.html">Programme</a>
-      <a class="navlink active" href="jeux.html">Jeux</a>      <a class="navlink" href="concours.html">Concours</a>
+      <a class="navlink active" href="jeux.html">Jeux</a>
+      <a class="navlink" href="concours.html">Concours</a>
       <a class="navlink" href="infos.html">Infos</a>
       <a class="navlink" href="asso.html">L'asso</a>
       <a class="navlink" href="partenaires.html">Partenaires</a>
@@ -47,73 +53,43 @@
   <span class="star" style="top:40px;left:22%"></span>
   <span class="star" style="top:90px;left:68%;animation-delay:1.2s"></span>
   <div class="in">
-    <div class="eyebrow">En attendant le 8 août</div>
+    <div class="eyebrow">Le mini-jeu maison · la V2 détente</div>
     <h1 class="disp" style="margin-top:14px">La Moule Volante</h1>
-    <p class="lead">Le mini-jeu maison de la FDP. Catapulte ta moule le plus loin possible au-dessus du port, et tente ton meilleur score avant la fête pour repartir avec un lot.</p>
+    <p class="lead">Catapulte ta moule, rebondis sur les crabes et file jusqu'aux <strong style="color:var(--cream)">5 000 m</strong> le plus vite possible. Après les heures acharnées sur la V1, place au fun&nbsp;: le meilleur chrono gagne, et c'est tout&nbsp;! 🦪</p>
   </div>
 </section>
 
-<!-- JEU EN PAUSE + TOP 10 FIGÉ -->
-<section class="wrap" style="padding:10px 0 24px">
-  <div style="text-align:center;max-width:640px;margin:0 auto 26px">
-    <div class="eyebrow" style="justify-content:center;color:var(--pink)">Jeu en pause · classement figé</div>
-    <h2 class="disp" style="font-size:clamp(28px,4.4vw,44px);color:var(--yellow);line-height:1;margin:14px 0 10px">Le Top 10 officiel</h2>
-    <p class="lead" style="margin:0 auto">Capture d'écran prise le <strong style="color:var(--cream)">7 août à 00h00</strong> : c'est ce classement qui fait foi. Bravo à toutes et à tous&nbsp;!</p>
+<!-- LE JEU -->
+<section class="wrap" style="padding:10px 0 30px">
+  <div class="game-wrap">
+    <div class="game-frame">
+      <iframe src="assets/moule-launcher.html" title="La Moule Volante" loading="lazy" allow="autoplay"></iframe>
+    </div>
+    <div class="game-cta">
+      <a class="btnA" href="assets/moule-launcher.html" target="_blank" rel="noopener">▸ Jouer en plein écran</a>
+    </div>
   </div>
-  <ol class="lb">
-    <li class="top"><span class="r">1</span><span class="nm">PLOUPLOU</span><span class="sc">7031</span></li>
-    <li class="top"><span class="r">2</span><span class="nm">FANFCNCS</span><span class="sc">7004</span></li>
-    <li class="top"><span class="r">3</span><span class="nm">OLIV</span><span class="sc">6967</span></li>
-    <li><span class="r">4</span><span class="nm">MIKACLN</span><span class="sc">6951</span></li>
-    <li><span class="r">5</span><span class="nm">GAËTAN</span><span class="sc">6949</span></li>
-    <li><span class="r">6</span><span class="nm">CECILE</span><span class="sc">6924</span></li>
-    <li><span class="r">7</span><span class="nm">ZEBULON</span><span class="sc">6891</span></li>
-    <li><span class="r">8</span><span class="nm">BIB CNCS</span><span class="sc">6890</span></li>
-    <li><span class="r">9</span><span class="nm">BITCHELLE</span><span class="sc">6873</span></li>
-    <li><span class="r">10</span><span class="nm">MAXMOULE</span><span class="sc">6857</span></li>
-  </ol>
 </section>
 
-<!-- CLASSEMENT & PRIX -->
+<!-- CLASSEMENT EN DIRECT -->
 <section class="wrap" style="padding:20px 0 10px">
-  <div class="sec-head cream"><h2 class="disp">Les lots</h2></div>
-  <p class="lead" style="margin-bottom:24px">À récupérer le jour J, le 8 août, sur place.</p>
-  <div class="prizes">
-    <div class="prize hot">
-      <div class="rank">1er</div>
-      <div class="pz"><div class="pt">Open bar</div><p>Le meilleur score avant le 8 août gagne l'open bar de la soirée.</p></div>
-    </div>
-    <div class="prize">
-      <div class="rank">Top 10</div>
-      <div class="pz"><div class="pt">Une pinte offerte</div><p>Les 10 meilleurs scores repartent avec une pinte, à récupérer sur place.</p></div>
-    </div>
-  </div>
-</section>
-
-<!-- PODIUM DE LA TRICHE -->
-<section class="wrap" style="padding:24px 0 10px">
-  <div class="sec-head cream"><h2 class="disp">🤖 Le Podium de la Triche</h2></div>
-  <p class="lead" style="margin-bottom:18px">Certains n'ont pas joué… ils ont branché un robot. Chapeau les artistes&nbsp;: impossible de lancer une partie toutes les 2 secondes pendant des heures. Disqualifiés du vrai classement, mais sacrés <strong style="color:var(--cream)">champions du monde de la moule truquée</strong>. Classement au nombre de parties truquées&nbsp;:</p>
-  <ol class="lb">
-    <li class="top"><span class="r">🥇</span><span class="nm">SKULL<small>10 652 parties en 3 jours</small></span><span class="sc">🤖</span></li>
-    <li class="top"><span class="r">🥈</span><span class="nm">BITOCUL<small>10 100 parties · 3 702 lancées en moins d'une seconde</small></span><span class="sc">🤖</span></li>
-    <li class="top"><span class="r">🥉</span><span class="nm">GROSZIZI<small>7 332 parties en une seule journée (≈ 26 à la minute)</small></span><span class="sc">🤖</span></li>
-    <li><span class="r">4</span><span class="nm">CLAUDEFTW<small>3 397 parties, à 31 à la minute</small></span><span class="sc">🤖</span></li>
-  </ol>
-  <p class="shop-note" style="text-align:center;margin-top:12px">Détectés à la cadence : des parties enchaînées en une fraction de seconde, ce qu'aucun humain ne peut faire. Respect (un peu).</p>
+  <div class="sec-head cream"><h2 class="disp">Meilleurs temps</h2></div>
+  <p class="lead" style="margin-bottom:22px">Les chronos les plus rapides jusqu'aux 5 000 m. À toi de squatter le podium&nbsp;!</p>
+  <ol class="lb" id="lb"><li class="lb-empty">Chargement du classement…</li></ol>
+  <p class="lb-note">Nouvelle saison, classement remis à zéro. Que le plus rapide gagne&nbsp;! 🦪</p>
 </section>
 
 <!-- TURBO DISCO (2e jeu) -->
 <section class="wrap" style="padding:28px 0 10px">
   <div class="sec-head cream"><h2 class="disp">Turbo Disco</h2></div>
-  <p class="lead" style="margin-bottom:22px">Le deuxième jeu maison, et l'épreuve officielle du Championnat du Monde Inutile : trace le tour de la Corvette au doigt, le plus vite possible. Le meilleur temps avant le 8 août est sacré Champion du Monde 2025.</p>
+  <p class="lead" style="margin-bottom:22px">Le deuxième jeu maison&nbsp;: trace le tour de la Corvette au doigt, le plus vite possible. Chaque tour est rejoué côté serveur — impossible de tricher, là non plus.</p>
   <div style="display:flex;gap:28px;flex-wrap:wrap;align-items:center;justify-content:center">
     <a href="turbo-disco/" aria-label="Jouer à Turbo Disco" style="position:relative;display:block;width:232px;aspect-ratio:400/710;border-radius:16px;overflow:hidden;box-shadow:0 12px 34px #0b0620aa;flex:0 0 auto;text-decoration:none">
       <iframe src="turbo-disco/" title="Aperçu Turbo Disco" loading="lazy" tabindex="-1" scrolling="no" aria-hidden="true" style="position:absolute;top:0;left:0;width:400px;height:710px;transform:scale(.58);transform-origin:top left;border:0;pointer-events:none"></iframe>
       <span style="position:absolute;inset:0"></span>
     </a>
     <div style="max-width:340px;text-align:center">
-      <p class="lead" style="margin-bottom:18px">Portrait, une main, chrono au millième. Chaque tour est rejoué côté serveur : impossible de tricher.</p>
+      <p class="lead" style="margin-bottom:18px">Portrait, une main, chrono au millième.</p>
       <a class="btnA" href="turbo-disco/">▸ Jouer à Turbo Disco</a>
     </div>
   </div>
@@ -124,11 +100,11 @@
   <span class="star" style="top:30px;left:16%"></span>
   <span class="star" style="top:60px;left:82%;animation-delay:1s"></span>
   <div class="in">
-    <div class="kick">Rendez-vous le 8 août</div>
-    <h2>Les vrais championnats sont sur place</h2>
-    <p>Le jeu en ligne, c'est l'échauffement. Le 8 août, place aux championnats du monde inutiles : épreuves absurdes, médailles garanties, gloire éternelle.</p>
+    <div class="kick">L'asso du Port</div>
+    <h2>On se retrouve l'année prochaine</h2>
+    <p>En attendant la prochaine Fête du Port, entraîne-toi à la Moule Volante et suis l'asso pour ne rien rater.</p>
     <div class="center-cta">
-      <a class="btnA" href="programme.html">Voir le programme</a>
+      <a class="btnA" href="concours.html">Voir le concours photo</a>
       <a class="btnB" href="https://instagram.com/lassoduport" target="_blank" rel="noopener">Suivre @lassoduport</a>
     </div>
   </div>
@@ -145,6 +121,24 @@
 </footer>
 
 <script src="assets/site.js?v=4"></script>
+<script>
+(function(){
+  var SB_REST='https://nhsroymqvwrjflagzznz.supabase.co/rest/v1';
+  var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oc3JveW1xdndyamZsYWd6em56Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MTcyNzEsImV4cCI6MjA5MzM5MzI3MX0.9DF3S9rqhyR4UY9W_vVT2xUxyZNhA3wfk4LTOBzRg64';
+  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function fmt(ms){return (ms/1000).toFixed(2)+' s';}
+  fetch(SB_REST+'/scores?select=name,time_ms&time_ms=not.is.null&order=time_ms.asc&limit=10',{headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}})
+    .then(function(r){return r.json();})
+    .then(function(rows){
+      var el=document.getElementById('lb');
+      if(!rows||!rows.length){ el.innerHTML='<li class="lb-empty">Personne n\'a encore bouclé les 5 000 m. Sois le premier&nbsp;!</li>'; return; }
+      el.innerHTML=rows.map(function(s,i){
+        return '<li'+(i<3?' class="top"':'')+'><span class="r">'+(i+1)+'</span><span class="nm">'+esc(s.name)+'</span><span class="sc">'+fmt(s.time_ms)+'</span></li>';
+      }).join('');
+    })
+    .catch(function(){ document.getElementById('lb').innerHTML='<li class="lb-empty">Classement momentanément indisponible.</li>'; });
+})();
+</script>
 <!-- Analytics : GoatCounter (sans cookie, sans tracker) -->
 <script data-goatcounter="https://fdp.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>

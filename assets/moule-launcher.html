@@ -45,7 +45,7 @@ input[type=text]::placeholder{color:#7c3f9e;}
     <input type="text" id="nameInput" maxlength="12" placeholder="TON PSEUDO" autocomplete="off" spellcheck="false">
     <button class="btn" id="btnPlay">▶ LANCER</button>
     <button class="btn-sm" id="btnLbMenu">★ SCORES</button>
-    <p style="font-size:clamp(8px,2.4vw,14px);font-weight:800;color:#ffd700;text-shadow:0 0 8px #c026d3,2px 2px #6b21a8;letter-spacing:1.5px;line-height:1.6;border-top:1px solid #6b21a8;padding-top:6px;margin-top:4px;text-align:center;">TOP 10 = BOISSON OFFERTE<br>1ER = OPEN BAR<br><span style="font-size:.42em;font-weight:400;letter-spacing:1px;text-shadow:none;color:#ffd700;">À RÉCUPÉRER SUR PLACE LE 8 AOÛT</span><br><span style="font-size:.36em;font-weight:400;letter-spacing:1px;text-shadow:none;color:#7c3f9e;">+18 ANS · DANS LA LIMITE DU RAISONNABLE</span></p>
+    <p style="font-size:clamp(8px,2.4vw,14px);font-weight:800;color:#ffd700;text-shadow:0 0 8px #c026d3,2px 2px #6b21a8;letter-spacing:1.5px;line-height:1.6;border-top:1px solid #6b21a8;padding-top:6px;margin-top:4px;text-align:center;">ATTEINS 5 000 m<br>LE PLUS VITE POSSIBLE<br><span style="font-size:.40em;font-weight:400;letter-spacing:1px;text-shadow:none;color:#ffd700;">MEILLEUR CHRONO = GLOIRE ÉTERNELLE</span></p>
   </div>
   <div class="screen hidden" id="sResult">
     <h1>★ RÉSULTAT ★</h1>
@@ -65,129 +65,69 @@ input[type=text]::placeholder{color:#7c3f9e;}
   </div>
   <div class="screen hidden" id="sLb">
     <p style="font-size:clamp(8px,2vw,13px);color:#ffd700">★ HALL OF FAME ★</p>
-    <p class="sub">Record de distance</p>
+    <p class="sub">Meilleurs temps · 5 000 m</p>
     <div id="lbContent"><p class="loader">CHARGEMENT...</p></div>
     <button class="btn-sm" id="btnBack">← RETOUR</button>
   </div>
 </div>
 <script>
-// ══════ SUPABASE ══════
-var SB_URL='https://nhsroymqvwrjflagzznz.supabase.co/rest/v1';
-var SB_KEY='sb_publishable_UH528FgC5FVbxNFYi9Odlg_jcPZuK4J';
-var MAX_SCORE=9020; // borne théorique (anti-triche) — étendue à 9020m
-var MIN_PLAY_MS=5000; // durée minimale d'une partie valide
-var MIN_ACTIONS=1;
-
+// ══════ SUPABASE (V2 chrono — anti-triche par rejeu serveur) ══════
+var SB_BASE='https://nhsroymqvwrjflagzznz.supabase.co';
+var SB_REST=SB_BASE+'/rest/v1';
+var SB_FN=SB_BASE+'/functions/v1';
+var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oc3JveW1xdndyamZsYWd6em56Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MTcyNzEsImV4cCI6MjA5MzM5MzI3MX0.9DF3S9rqhyR4UY9W_vVT2xUxyZNhA3wfk4LTOBzRg64';
 function sbHeaders(extra){
   var h={apikey:SB_KEY,'Authorization':'Bearer '+SB_KEY};
   if(extra)for(var k in extra)h[k]=extra[k];
   return h;
 }
 
-// ══════ SESSION (anti-triche) ══════
-var sessionToken=null;
-var sessionStartTime=0;
-var actionCount=0;
+// ══════ SESSION SERVEUR (graine + jeton à usage unique) ══════
+var gameToken=null, gameSeed=0, prng=null, launchCharge=0, simTick=0;
+var raceFinished=false, raceTimeMs=null, submitServerMs=null;
+function mulberry32(seed){var t=seed>>>0;return function(){t+=0x6D2B79F5;var r=Math.imul(t^(t>>>15),1|t);r^=r+Math.imul(r^(r>>>7),61|r);return((r^(r>>>14))>>>0)/4294967296;};}
+function trackAction(){}
+function fmtTime(ms){ if(ms==null)return '—'; return (ms/1000).toFixed(2)+' s'; }
 
-function newSession(){
-  // UUID v4 simple
-  sessionToken='xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){
-    var r=Math.random()*16|0,v=c==='x'?r:(r&0x3|0x8);return v.toString(16);
-  });
-  sessionStartTime=Date.now();
-  actionCount=0;
+// Récupère une graine + un jeton signés par le serveur AVANT de jouer
+function startServerGame(){
+  return fetch(SB_FN+'/moule-start',{method:'POST',headers:sbHeaders({'Content-Type':'application/json'}),body:'{}'})
+    .then(function(r){return r.json();})
+    .then(function(j){ if(!j||!j.token)throw new Error('no token'); gameToken=j.token; gameSeed=j.seed>>>0; prng=mulberry32(gameSeed); return true; });
 }
-function trackAction(){actionCount++;}
+// Envoie la charge : le serveur REJOUE la partie et calcule le temps officiel
+function submitRun(){
+  if(!gameToken)return Promise.resolve(null);
+  var body={ token:gameToken, charge:launchCharge, name:(playerName||'ANONYME') };
+  gameToken=null; // un seul envoi possible
+  return fetch(SB_FN+'/moule-submit',{method:'POST',headers:sbHeaders({'Content-Type':'application/json'}),body:JSON.stringify(body)})
+    .then(function(r){return r.json();})
+    .then(function(j){ if(j&&j.finished)submitServerMs=j.timeMs; loadCount(); return j; })
+    .catch(function(){ return null; });
+}
 
 // ══════ SCORES ══════
 var lastScoreId=null; // id de la dernière partie pour ajouter l'insta après coup
 
 function loadScores(){
-  return fetch(SB_URL+'/scores?select=name,score&order=score.desc&limit=10',{headers:sbHeaders()})
+  return fetch(SB_REST+'/scores?select=name,time_ms&time_ms=not.is.null&order=time_ms.asc&limit=20',{headers:sbHeaders()})
     .then(function(r){return r.json();})
     .catch(function(){return[];});
 }
 
-// Charge le top 3 pour afficher leurs squelettes en jeu
-var topScores=[]; // [{name, score, wx}, ...]
-var topScore=null; // alias pour le 1er (utilisé par checkBeatTop)
+// Squelettes de champions désactivés en mode chrono (conservés vides pour compat)
+var topScores=[], topScore=null, bestTimeMs=null;
 function loadTopScore(){
-  return fetch(SB_URL+'/scores?select=name,score&order=score.desc&limit=3',{headers:sbHeaders()})
+  return fetch(SB_REST+'/scores?select=time_ms&time_ms=not.is.null&order=time_ms.asc&limit=1',{headers:sbHeaders()})
     .then(function(r){return r.json();})
-    .then(function(data){
-      if(data&&data.length){
-        topScores=data.map(function(d){
-          return{name:d.name,score:d.score,wx:d.score*METERS+CRAB_WX};
-        });
-        topScore=topScores[0]; // pour le check de "record battu"
-      }
-    })
+    .then(function(d){ if(d&&d.length)bestTimeMs=d[0].time_ms; })
     .catch(function(){});
 }
 
-function saveScore(name,dist){
-  // Anti-triche : on valide tout côté client AVANT d'envoyer
-  if(!sessionToken){console.warn('No session');return Promise.resolve(null);}
-  var playTime=Date.now()-sessionStartTime;
-  if(playTime<MIN_PLAY_MS){console.warn('Partie trop courte: '+playTime+'ms');return Promise.resolve(null);}
-  if(dist<0||dist>MAX_SCORE){console.warn('Score hors limites: '+dist);return Promise.resolve(null);}
-  if(actionCount<MIN_ACTIONS){console.warn('Pas assez d\'actions');return Promise.resolve(null);}
-
-  var body={
-    name:name.toUpperCase().slice(0,12),
-    score:dist,
-    insta:null, // Pas d'insta à la sauvegarde initiale
-    session_id:sessionToken,
-    play_time_ms:playTime,
-    action_count:actionCount
-  };
-
-  return fetch(SB_URL+'/scores',{
-    method:'POST',
-    headers:sbHeaders({'Content-Type':'application/json','Prefer':'return=representation'}),
-    body:JSON.stringify(body)
-  }).then(function(r){return r.json();}).then(function(data){
-    sessionToken=null; // empêche double soumission
-    if(data&&data[0]&&data[0].id){lastScoreId=data[0].id;}
-    loadCount();
-    loadTopScore(); // refresh du record en cas de nouveau champion
-    return data&&data[0]?data[0]:null;
-  }).catch(function(e){console.warn('Score save failed:',e);return null;});
-}
-
-function updateInsta(insta){
-  if(!lastScoreId)return Promise.resolve();
-  if(insta.charAt(0)==='@')insta=insta.substring(1);
-  insta=insta.trim().slice(0,30);
-  if(!insta)return Promise.resolve();
-  return fetch(SB_URL+'/scores?id=eq.'+lastScoreId,{
-    method:'PATCH',
-    headers:sbHeaders({'Content-Type':'application/json','Prefer':'return=minimal'}),
-    body:JSON.stringify({insta:insta})
-  }).then(function(){
-    lastScoreId=null; // une seule mise à jour possible
-  }).catch(function(e){console.warn('Insta update failed:',e);});
-}
-
-// Vérifie si le score qualifie pour le top 10 et révèle l'input insta
-function checkTop10AndRevealInsta(distToCheck){
-  loadScores().then(function(scores){
-    // Si le chargement échoue (réseau) → scores=[] → on ne qualifie pas pour éviter les faux positifs
-    if(!scores||scores.length===0)return;
-    var qualifies=false;
-    if(scores.length<10){qualifies=true;} // moins de 10 scores en base : automatique
-    else{qualifies=distToCheck>=scores[scores.length-1].score;}
-    if(qualifies){
-      var box=document.getElementById('topInstaBox');
-      if(box)box.classList.remove('hidden');
-    }
-  });
-}
-
-// ══════ COMPTEUR (auto = nombre de lignes en base) ══════
+// ══════ COMPTEUR (nombre de chronos validés) ══════
 var totalGames=0;
 function loadCount(){
-  return fetch(SB_URL+'/scores?select=*',{
+  return fetch(SB_REST+'/scores?select=id&time_ms=not.is.null',{
     method:'HEAD',
     headers:sbHeaders({'Prefer':'count=exact','Range':'0-0'})
   }).then(function(r){
@@ -201,7 +141,7 @@ function loadCount(){
 }
 function updateCountDisplay(){
   var el=document.getElementById('gameCount');
-  if(el)el.textContent=totalGames+' PARTIES JOUÉES';
+  if(el)el.textContent=totalGames+' CHRONOS ENREGISTRÉS';
 }
 
 // ══════ AUDIO ══════
@@ -685,13 +625,14 @@ function drawGrain(){
 // ══════ WORLD ══════
 var METERS=13,SHORE=650,GY=300,SY=314;
 var GRAVITY=0.176,LAUNCH_SPD=17.6;
-var VX_CAP=70; // vitesse horizontale maximale (anti-décollage)
+var VX_CAP=100000; // TEST : plafond de vitesse retiré (les combos accélèrent sans limite)
 var FINISH_WX=65130,CELEBRATE_WX=65130,WORLD_END=120000;
 var CELEBRATE_END_WX=78260; // fin de la zone célébration (panneau "MAX 6000m" hommage)
 var SQUELETTE_WX=78130; // position des squelettes top 3 (~6010m)
 var ASTRAL_START_WX=78000; // début zone astrale (~6000m)
 var CRABS_DANCE_WX=78130; // début de la zone crabes dansants (~6000m). Couvre jusqu'à ~7100m.
-var REAL_END_WX=117260; // fin réelle du jeu : 9020m
+var REAL_END_WX=143130; // au-delà de l'arrivée (garde-fou)
+var RACE_WX=65130;      // ★ LIGNE D'ARRIVÉE CHRONO = 5 000 m (CRAB_WX + 5000*METERS)
 var camX=0;
 function toSX(wx){return wx-camX;}
 function px(cx,cy,x,y,w,h,col){ctx.fillStyle=col;ctx.fillRect(cx+x,cy+y,w,h);}
@@ -1733,14 +1674,9 @@ function drawDecor(dist,t2){
 
 // ══════ FDP LOGOS ══════
 var FDP_DEFS=(function(){
-  var p1=[340,470,560,680,800,950,1100,1270,1450,1670,1900,2200,2500,
-    2800,3100,3500,3900,4300,4700,5150,5600,6150,6700,7350,8000,8750,9500,
-    10250,11000,11500,12000,12450,12900,13300,13700];
-  var p2=[];
-  // Étendu jusqu'à ~5900m pour donner une chance d'atteindre les squelettes (6010m)
-  for(var w=14000;w<77000;w+=800)p2.push(w);
-  p2.push(77000); // ~5923m, dernier logo FDP
-  return p1.concat(p2).map(function(wx){return{wx:wx};});
+  // V2 CHRONO : crabes en CONTINU (300 + i*150) jusqu'au-delà des 5 000 m.
+  // Layout STRICTEMENT identique au moteur serveur (anti-triche par rejeu).
+  var a=[]; for(var i=0;i<900;i++)a.push({wx:300+i*150}); return a;
 })();
 var fdps=[];
 function resetFDPs(){fdps=FDP_DEFS.map(function(d){return{wx:d.wx,onSea:d.wx>=SHORE,hit:false,ep:0,rot:0};});}
@@ -1854,7 +1790,7 @@ function drawFDPs(){
 }
 
 // ══════ MOUETTES SPECTACULAIRES ══════
-var GULL_WXS=[800,2000,4000,7000,11000,16000,22000,30000,40000,52000,60000,64000];
+var GULL_WXS=(function(){var a=[];for(var x=700;x<=64000;x+=1750)a.push(x);return a;})(); // ×3 mouettes (cosmétique), réparties jusqu'à la ligne des 5 000 m
 var gulls=[];
 function resetGulls(){
   gulls=GULL_WXS.map(function(x,i){
@@ -1988,10 +1924,7 @@ function updateGulls(){
       }
       // BOOST moule au lieu de freiner !
       sfxGull();
-      gullBoostT=25;
-      M.vy=Math.min(M.vy,-7)-Math.random()*2;
-      M.vx=Math.max(M.vx*1.15,12)+Math.random()*3;
-      if(M.vx>VX_CAP)M.vx=VX_CAP; // cap vitesse aussi sur boost mouette
+      gullBoostT=25; // V2 chrono : effet purement VISUEL (n'affecte plus la physique)
       M.spin-=0.15;
       shakeStr=4;shakeT=10;
     }
@@ -2177,6 +2110,7 @@ function resetAll(){
   fireworks=[];
   topBeaten=false;
   flightStartT=0;
+  simTick=0;raceFinished=false;raceTimeMs=null;submitServerMs=null;
   setSlowMo(false);
   resetFDPs();resetGulls();
   resetShootingStar();
@@ -2187,13 +2121,16 @@ function resetAll(){
 }
 
 function updatePhysics(){
-  // timeScale = 1 normal, 0.5 en slow mo (combo x5+)
+  simTick++;
+  // timeScale reste = 1 (le slow-mo n'affecte plus la physique en V2)
   M.vy+=GRAVITY*timeScale;
   M.wx+=M.vx*timeScale;
   M.wy+=M.vy*timeScale;
   M.ang+=M.spin*timeScale;
   M.spin*=Math.pow(.976,timeScale);
   M.vx*=Math.pow(.9993,timeScale);
+  // ★ LIGNE D'ARRIVÉE : 5 000 m atteints -> chrono stoppé
+  if(M.wx>=RACE_WX){ endRun(true); return; }
   // Active/désactive le slow mo selon le combo
   if(combo>=5&&!slowMoActive)setSlowMo(true);
   else if(combo<5&&slowMoActive)setSlowMo(false);
@@ -2203,18 +2140,18 @@ function updatePhysics(){
   var inSea=M.wx>=SHORE,gy=inSea?SY:GY;
   if(M.wy>=gy-8){
     M.wy=gy-8;var spd=Math.sqrt(M.vx*M.vx+M.vy*M.vy);
-    if(spd<1.0){phase='done';return;}
-    // Auto-explode si la moule rate son lancé (< 14m) — mais on laisse 0.8s pour échapper la zone de lancement
-    if(Date.now()-flightStartT>800){
+    if(spd<1.0){endRun(false);return;}
+    // Auto-fin si la moule rate son lancé (< 14m) après ~0.8s (48 ticks)
+    if(simTick>48){
       var distNow=Math.max(0,Math.round((M.wx-CRAB_WX)/METERS));
-      if(distNow<14){phase='done';return;}
+      if(distNow<14){endRun(false);return;}
     }
     combo=0; // reset combo au sol
     if(inSea){sfxSplash();M.vy*=-0.3;M.vx*=0.65;M.spin*=.5;}
     else{sfxBounce();M.vy*=-0.46;M.vx*=0.76;M.spin*=.55;}
   }
   fdps.forEach(function(m){
-    if(m.hit)return;var fy=getFdpY(m);
+    if(m.hit)return;var fy=(m.wx>=SHORE?SY-22:GY-22); // hitbox à hauteur FIXE (déterministe = serveur)
     // Hitbox élargie en X (50) et Y (38) — plus de panache, moins de frustration
     if(Math.abs(M.wx-m.wx)<50&&Math.abs(M.wy-fy)<38){
       m.hit=true;m.ep=0.01;sfxFDP();
@@ -2233,11 +2170,11 @@ function updatePhysics(){
         sfxMeteor();
       }
       var mult=combo>=6?1.5:combo===5?1.4:combo===4?1.3:combo===3?1.2:combo===2?1.1:1.0;
-      M.vy=Math.min(M.vy,-9*mult)-Math.random()*3;
-      M.vx=Math.max(M.vx*1.1,10)*mult+Math.random()*4;
+      M.vy=Math.min(M.vy,-9*mult)-prng()*3;
+      M.vx=Math.max(M.vx*1.1,10)*mult+prng()*4;
       // Cap vitesse horizontale — empêche le décollage absurde
       if(M.vx>VX_CAP)M.vx=VX_CAP;
-      M.spin=-(0.1+Math.random()*.12);
+      M.spin=-(0.1+prng()*.12);
       shakeStr=Math.min(combo,6)*2;shakeT=12;
     }
   });
@@ -2255,7 +2192,7 @@ function updatePhysics(){
   var mScreenX=M.wx-camX;
   if(mScreenX>W*0.78)camX=M.wx-W*0.78;
   if(camX<0)camX=0;
-  if(M.wx>=REAL_END_WX||M.wy>H+80){if(M.wx>REAL_END_WX)M.wx=REAL_END_WX;phase='done';}
+  if(M.wy>H+80){ endRun(false); return; }
   M.dist=Math.max(0,Math.round((M.wx-CRAB_WX)/METERS));
 }
 
@@ -2384,14 +2321,18 @@ function loop(ts){
 
 function drawInstruction(txt,col){ctx.font='6px "Press Start 2P"';ctx.fillStyle=col||'rgba(240,171,252,.8)';ctx.textAlign='center';ctx.fillText(txt,W/2,H-12);ctx.textAlign='left';}
 function drawHUD(d){
-  // Distance
-  ctx.font='11px "Press Start 2P"';ctx.fillStyle='#ffd700';ctx.textAlign='center';
-  ctx.fillText(d+' m',W/2,24);
-  // Record session
-  if(sessionRecord>0){
-    ctx.font='6px "Press Start 2P"';ctx.fillStyle='rgba(240,171,252,.7)';
-    ctx.fillText('RECORD: '+sessionRecord+'m',W/2,38);
-  }
+  // CHRONO en direct
+  var tsec=(phase==='flying'?simTick/60:0);
+  ctx.font='13px "Press Start 2P"';ctx.fillStyle='#ffd700';ctx.textAlign='center';
+  ctx.shadowColor='rgba(0,0,0,0.85)';ctx.shadowBlur=4;
+  ctx.fillText(tsec.toFixed(2)+'s',W/2,24);
+  ctx.shadowBlur=0;
+  // Progression vers la ligne des 5 000 m
+  ctx.font='6px "Press Start 2P"';ctx.fillStyle='rgba(240,171,252,.85)';
+  ctx.fillText(Math.min(d,5000)+' / 5000 m',W/2,38);
+  var bw=W*0.5, bx=(W-bw)/2, by=44, p=Math.max(0,Math.min(1,d/5000));
+  ctx.fillStyle='rgba(255,255,255,0.15)';ctx.fillRect(bx,by,bw,3);
+  ctx.fillStyle='#f0abfc';ctx.fillRect(bx,by,bw*p,3);
   // Combo — plus haut (3% de H) + plus gros (11px), avec ombre pour le détacher des vagues
   if(combo>=2){
     var cc=combo>=6?'#ff4040':combo>=4?'#ff8000':'#ffd700';
@@ -2427,7 +2368,7 @@ function onDown(){
   if(phase==='done'){showResult();return;}
   if(phase==='ready'||phase==='charging'){if(phase==='ready')armT=0;phase='charging';isDown=true;}
 }
-function onUp(){if(!isDown||gState!=='play')return;isDown=false;trackAction();if(phase==='charging'){var tip=getTipWorld(),lv=getLaunchVec();M.wx=tip.wx;M.wy=tip.wy;M.vx=lv.vx;M.vy=lv.vy;M.ang=0;M.spin=-0.08;M.dist=0;sfxLaunch();snapT=0;phase='snap';flightStartT=Date.now();}}
+function onUp(){if(!isDown||gState!=='play')return;isDown=false;trackAction();if(phase==='charging'){launchCharge=Math.min(armT,1);simTick=0;prng=mulberry32(gameSeed);var tip=getTipWorld(),lv=getLaunchVec();M.wx=tip.wx;M.wy=tip.wy;M.vx=lv.vx;M.vy=lv.vy;M.ang=0;M.spin=-0.08;M.dist=0;sfxLaunch();snapT=0;phase='snap';flightStartT=Date.now();}}
 canvas.addEventListener('touchstart',function(e){e.preventDefault();onDown();},{passive:false});
 canvas.addEventListener('touchend',function(e){e.preventDefault();onUp();},{passive:false});
 canvas.addEventListener('mousedown',function(e){e.preventDefault();onDown();});
@@ -2436,42 +2377,54 @@ document.addEventListener('keydown',function(e){if(e.key===' '&&!e.repeat){e.pre
 document.addEventListener('keyup',function(e){if(e.key===' '){e.preventDefault();onUp();}});
 
 // ══════ RESULT ══════
-function getComment(d){
-  if(d<15)return 'La moule a pas bouge...';
-  if(d<600)return 'Mou du crabe !';
-  if(d<800)return 'Pas mal - vise les CRABES !';
-  if(d<1000)return 'Belle catapulte !';
-  if(d<1500)return 'ENORME !! Les CRABES ont aide ?';
-  if(d<2000)return 'LEGENDAIRE !!';
-  if(d<3000)return 'LA MOULE EST EN MER !!';
-  if(d<4000)return 'EN IRLANDE !!';
-  if(d<5000)return '★ ZONE DE GLOIRE ★';
-  if(d<6000)return 'LA MOULE EST EN ORBITE !!!';
-  return 'CONQUERANT DE L\'ESPACE !!!';
+function getTimeComment(ms){
+  var s=ms/1000;
+  if(s<18)return '★ VITESSE LUMIERE ★';
+  if(s<19)return 'CANON !! Un vrai pilote de moule';
+  if(s<21)return 'Tres rapide !';
+  if(s<24)return 'Solide, affine ta charge !';
+  if(s<28)return 'Bien joue ! Tu peux aller plus vite';
+  return 'Arrive ! Maintenant, gagne en vitesse...';
+}
+// Fin de partie (arrivée à 5 000 m ou abandon) — appelée UNE seule fois
+function endRun(finished){
+  if(phase==='done')return;
+  phase='done';
+  raceFinished=finished;
+  raceTimeMs=finished?Math.round(simTick/60*1000):null;
+  submitServerMs=null;
+  stopBGM();
+  if(finished)sfxFDP();
+  // Le serveur REJOUE la partie et renvoie le temps OFFICIEL (anti-triche)
+  submitRun().then(function(j){
+    if(j&&j.finished&&submitServerMs!=null){
+      var el=document.getElementById('resDist');
+      if(el&&raceFinished)el.textContent=fmtTime(submitServerMs);
+    }
+    loadTopScore();
+  });
+  showResult();
 }
 function showResult(){
-  if(M.dist>sessionRecord)sessionRecord=M.dist;
-  document.getElementById('resName').textContent=playerName.toUpperCase();
-  document.getElementById('resDist').textContent=M.dist+' METRES';
-  document.getElementById('resComment').textContent=getComment(M.dist);
-  // Reset visibilité de la box insta (cachée par défaut)
+  document.getElementById('resName').textContent=(playerName||'').toUpperCase();
+  if(raceFinished){
+    var ms=(submitServerMs!=null?submitServerMs:raceTimeMs);
+    document.getElementById('resDist').textContent=fmtTime(ms);
+    document.getElementById('resComment').textContent=getTimeComment(ms);
+  } else {
+    document.getElementById('resDist').textContent='ABANDON';
+    document.getElementById('resComment').textContent='Pas atteint 5 000 m, reessaie !';
+  }
   var box=document.getElementById('topInstaBox');
   if(box)box.classList.add('hidden');
-  var instaIn=document.getElementById('instaInput');
-  if(instaIn)instaIn.value='';
   show(sResult);
-  // On sauvegarde, puis on vérifie si on est dans le top 10
-  saveScore(playerName,M.dist).then(function(){
-    checkTop10AndRevealInsta(M.dist);
-  });
-  stopBGM();
 }
 
 // ══════ SCREENS ══════
 var sMenu=document.getElementById('sMenu'),sResult=document.getElementById('sResult'),sLb=document.getElementById('sLb');
 function show(s){[sMenu,sResult,sLb].forEach(function(x){x.classList.add('hidden');});s.classList.remove('hidden');}
 function hideAll(){[sMenu,sResult,sLb].forEach(function(x){x.classList.add('hidden');});}
-function startGame(){resetAll();newSession();gState='play';hideAll();startBGM();}
+function startGame(){resetAll();gState='play';hideAll();startBGM();}
 
 document.getElementById('btnPlay').onclick=function(){
   var inp=document.getElementById('nameInput');
@@ -2486,35 +2439,31 @@ document.getElementById('btnPlay').onclick=function(){
   }
   playerName=n;
   getAC();
-  startGame();
+  var btn=document.getElementById('btnPlay'), ot=btn.textContent;
+  btn.disabled=true; btn.textContent='CONNEXION...';
+  startServerGame().then(function(){ btn.disabled=false; btn.textContent=ot; startGame(); })
+    .catch(function(){ btn.disabled=false; btn.textContent=ot; alert('Connexion au serveur impossible. Réessaie dans un instant.'); });
 };
 document.getElementById('nameInput').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('btnPlay').click();});
-document.getElementById('btnReplay').onclick=function(){getAC();startGame();};
+document.getElementById('btnReplay').onclick=function(){
+  getAC();
+  var b=document.getElementById('btnReplay'), ot=b.textContent;
+  b.disabled=true; b.textContent='...';
+  startServerGame().then(function(){ b.disabled=false; b.textContent=ot; startGame(); })
+    .catch(function(){ b.disabled=false; b.textContent=ot; });
+};
 document.getElementById('btnLbRes').onclick=function(){showLb();};
 document.getElementById('btnLbMenu').onclick=function(){showLb();};
 document.getElementById('btnBack').onclick=function(){show(sMenu);};
 
-// Confirmer l'insta (apparaît uniquement si top 10)
-document.getElementById('btnConfirmInsta').onclick=function(){
-  var b=this;
-  var inp=document.getElementById('instaInput');
-  var v=inp.value.trim();
-  if(!v){inp.focus();return;}
-  b.disabled=true;b.textContent='ENVOI...';
-  updateInsta(v).then(function(){
-    b.textContent='✓ ENREGISTRÉ';
-    inp.disabled=true;
-  }).catch(function(){
-    b.textContent='ERREUR';
-    setTimeout(function(){b.disabled=false;b.textContent='CONFIRMER';},1500);
-  });
-};
+// Insta désactivé en V2 chrono — la box n'apparaît plus
+document.getElementById('btnConfirmInsta').onclick=function(){ var box=document.getElementById('topInstaBox'); if(box)box.classList.add('hidden'); };
 
 // Partage du score (texte simple via Web Share API + fallback clipboard)
 document.getElementById('btnShare').onclick=function(){
   var b=document.getElementById('btnShare');
   var orig=b.textContent;
-  var text='J\'ai fait '+M.dist+'m à La Moule Volante ★ Bats-moi sur fdp.bzh !';
+  var text=raceFinished?('J\'ai atteint 5 000 m en '+fmtTime(submitServerMs!=null?submitServerMs:raceTimeMs)+' à La Moule Volante ★ Bats-moi sur fdp.bzh !'):('Je me suis vautré à La Moule Volante... fais mieux sur fdp.bzh !');
   var url='https://fdp.bzh';
   function copyFallback(){
     if(navigator.clipboard&&navigator.clipboard.writeText){
@@ -2533,9 +2482,9 @@ function showLb(){
   document.getElementById('lbContent').innerHTML='<p class="loader">CHARGEMENT...</p>';
   loadScores().then(function(scores){
     var medals=['1er','2e','3e'],rc=['rank-gold','rank-silver','rank-bronze'];
-    if(!scores||!scores.length){document.getElementById('lbContent').innerHTML='<p class="sub">Joue une partie d\'abord !</p>';return;}
-    var html='<table class="lb-table"><thead><tr><th>#</th><th>NOM</th><th>DIST</th></tr></thead><tbody>';
-    scores.slice(0,10).forEach(function(sc,i){html+='<tr class="'+(sc.name===playerName.toUpperCase()?'me':'')+'"><td class="'+(rc[i]||'')+'">'+(medals[i]||i+1)+'</td><td>'+sc.name+'</td><td>'+sc.score+'m</td></tr>';});
+    if(!scores||!scores.length){document.getElementById('lbContent').innerHTML='<p class="sub">Sois le premier a franchir 5 000 m !</p>';return;}
+    var html='<table class="lb-table"><thead><tr><th>#</th><th>NOM</th><th>TEMPS</th></tr></thead><tbody>';
+    scores.slice(0,10).forEach(function(sc,i){html+='<tr class="'+(sc.name===(playerName||'').toUpperCase()?'me':'')+'"><td class="'+(rc[i]||'')+'">'+(medals[i]||i+1)+'</td><td>'+sc.name+'</td><td>'+fmtTime(sc.time_ms)+'</td></tr>';});
     document.getElementById('lbContent').innerHTML=html+'</tbody></table>';
   }).catch(function(){
     document.getElementById('lbContent').innerHTML='<p class="sub">Erreur de chargement</p>';
