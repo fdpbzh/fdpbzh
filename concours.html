@@ -34,9 +34,10 @@
   .done .big{font-size:52px;line-height:1}
   .rules{color:var(--lav2);font-size:14px;line-height:1.7;max-width:560px;margin:0 auto 22px}
   .rules b{color:var(--cream)}
-  .podium{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;max-width:760px;margin:8px auto 0}
-  .pod{flex:1;min-width:200px;max-width:240px;background:linear-gradient(160deg,var(--card1),var(--card2));border:1px solid var(--line2);border-radius:18px;padding:22px 18px}
-  .pod .medal{font-size:44px;line-height:1}
+  .podium{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;max-width:900px;margin:10px auto 0}
+  .pod{flex:1;min-width:240px;max-width:280px;background:linear-gradient(160deg,var(--card1),var(--card2));border:1px solid var(--line2);border-radius:18px;padding:16px 16px 20px}
+  .pod .pic{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:12px;border:1px solid var(--line);background:#0d0420;display:block}
+  .pod .medal{font-size:40px;line-height:1;margin-top:12px}
   .pod .rank{font-family:'DK Longreach',var(--ff);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--lav);margin-top:8px}
   .pod .who{font-family:'DK Longreach',var(--ff);font-size:26px;color:var(--yellow);line-height:1.05;margin-top:4px}
   .pod .note{color:var(--lav2);font-size:12.5px;line-height:1.5;margin-top:8px}
@@ -80,9 +81,9 @@
   <h2 class="disp" style="margin:8px 0 8px">Le top 3 de l'édition 2026</h2>
   <p class="lead" style="max-width:580px;margin:0 auto 4px">Après une délibération houleuse (et probablement arrosée), le jury parfaitement incompétent a tranché. Chaque gagnant·e repart avec un <strong style="color:var(--cream)">t-shirt FDP</strong> et une <strong style="color:var(--cream)">canette FDP</strong>. Bravo&nbsp;!</p>
   <div class="podium">
-    <div class="pod gold"><div class="medal">🥇</div><div class="rank">Médaille d'or</div><div class="who">Kevin</div><div class="note">Sacré meilleur cliché de l'édition. Le jury n'a même pas trouvé à redire — c'est dire.</div></div>
-    <div class="pod"><div class="medal">🥈</div><div class="rank">Médaille d'argent</div><div class="who">Hélène</div><div class="note">Deuxième marche du podium, à un cheveu de l'or (d'après des juges qui ne savent pas compter).</div></div>
-    <div class="pod"><div class="medal">🥉</div><div class="rank">Médaille de bronze</div><div class="who">Victor</div><div class="note">Récompensé pour sa deuxième photo publiée&nbsp;: la preuve qu'insister finit toujours par payer.</div></div>
+    <div class="pod gold"><img class="pic" src="https://nhsroymqvwrjflagzznz.supabase.co/storage/v1/object/public/concours-public/kevin.jpg" alt="Photo gagnante de Kevin" loading="lazy"><div class="medal">🥇</div><div class="rank">Médaille d'or</div><div class="who">Kevin</div><div class="note">Élue meilleure photo de l'édition par un jury qui, pour une fois, était d'accord.</div></div>
+    <div class="pod"><img class="pic" src="https://nhsroymqvwrjflagzznz.supabase.co/storage/v1/object/public/concours-public/helene.jpg" alt="Photo gagnante d'Hélène" loading="lazy"><div class="medal">🥈</div><div class="rank">Médaille d'argent</div><div class="who">Hélène</div><div class="note">À deux doigts de l'or, d'après des juges qui ne savent pas vraiment compter.</div></div>
+    <div class="pod"><img class="pic" src="https://nhsroymqvwrjflagzznz.supabase.co/storage/v1/object/public/concours-public/victor.jpg" alt="Photo gagnante de Victor" loading="lazy"><div class="medal">🥉</div><div class="rank">Médaille de bronze</div><div class="who">Victor</div><div class="note">Complète le podium avec un cliché que le jury a adoré (ne lui demandez pas pourquoi).</div></div>
   </div>
 </section>
 
