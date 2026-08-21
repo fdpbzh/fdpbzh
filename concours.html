@@ -34,6 +34,13 @@
   .done .big{font-size:52px;line-height:1}
   .rules{color:var(--lav2);font-size:14px;line-height:1.7;max-width:560px;margin:0 auto 22px}
   .rules b{color:var(--cream)}
+  .podium{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;max-width:760px;margin:8px auto 0}
+  .pod{flex:1;min-width:200px;max-width:240px;background:linear-gradient(160deg,var(--card1),var(--card2));border:1px solid var(--line2);border-radius:18px;padding:22px 18px}
+  .pod .medal{font-size:44px;line-height:1}
+  .pod .rank{font-family:'DK Longreach',var(--ff);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--lav);margin-top:8px}
+  .pod .who{font-family:'DK Longreach',var(--ff);font-size:26px;color:var(--yellow);line-height:1.05;margin-top:4px}
+  .pod .note{color:var(--lav2);font-size:12.5px;line-height:1.5;margin-top:8px}
+  .pod.gold{border-color:rgba(255,201,60,.55)}
 </style>
 </head>
 <body>
@@ -44,9 +51,7 @@
     <nav class="nav" id="nav">
       <a class="navlink" href="index.html">Accueil</a>
       <a class="navlink" href="programme.html">Programme</a>
-      <a class="navlink" href="jeux.html">Jeux</a>
-      <a class="navlink" href="boutique.html">Boutique</a>
-      <a class="navlink active" href="concours.html">Concours</a>
+      <a class="navlink" href="jeux.html">Jeux</a>      <a class="navlink active" href="concours.html">Concours</a>
       <a class="navlink" href="infos.html">Infos</a>
       <a class="navlink" href="asso.html">L'asso</a>
       <a class="navlink" href="partenaires.html">Partenaires</a>
@@ -63,9 +68,21 @@
   <span class="star" style="top:40px;left:24%"></span>
   <span class="star" style="top:90px;left:68%;animation-delay:1.3s"></span>
   <div class="in">
-    <div class="eyebrow">Concours photo · jusqu'au 20 août</div>
+    <div class="eyebrow">Concours photo · Résultats</div>
     <h1 class="disp" style="margin-top:14px">La plus belle photo<br>de l'édition 2026</h1>
-    <p class="lead">Tu as capturé un beau moment de la Fête du Port&nbsp;? Envoie-la&nbsp;! Le <strong style="color:var(--cream)">top 3</strong> repart avec un <strong style="color:var(--cream)">t-shirt FDP</strong> et une <strong style="color:var(--cream)">canette FDP</strong>.</p>
+    <p class="lead">Le jury (toujours aussi incompétent) a rendu son verdict. Roulement de tambour&nbsp;: voici le <strong style="color:var(--cream)">top 3</strong> 👇</p>
+  </div>
+</section>
+
+<!-- PALMARÈS -->
+<section class="wrap" style="padding:8px 0 6px;text-align:center">
+  <div class="kick" style="color:var(--pink)">Le palmarès</div>
+  <h2 class="disp" style="margin:8px 0 8px">Le top 3 de l'édition 2026</h2>
+  <p class="lead" style="max-width:580px;margin:0 auto 4px">Après une délibération houleuse (et probablement arrosée), le jury parfaitement incompétent a tranché. Chaque gagnant·e repart avec un <strong style="color:var(--cream)">t-shirt FDP</strong> et une <strong style="color:var(--cream)">canette FDP</strong>. Bravo&nbsp;!</p>
+  <div class="podium">
+    <div class="pod gold"><div class="medal">🥇</div><div class="rank">Médaille d'or</div><div class="who">Kevin</div><div class="note">Sacré meilleur cliché de l'édition. Le jury n'a même pas trouvé à redire — c'est dire.</div></div>
+    <div class="pod"><div class="medal">🥈</div><div class="rank">Médaille d'argent</div><div class="who">Hélène</div><div class="note">Deuxième marche du podium, à un cheveu de l'or (d'après des juges qui ne savent pas compter).</div></div>
+    <div class="pod"><div class="medal">🥉</div><div class="rank">Médaille de bronze</div><div class="who">Victor</div><div class="note">Récompensé pour sa deuxième photo publiée&nbsp;: la preuve qu'insister finit toujours par payer.</div></div>
   </div>
 </section>
 
@@ -107,9 +124,9 @@
   </div>
 
   <div class="form done" id="closed">
-    <div class="big">🏁</div>
+    <div class="big">🏆</div>
     <h2 class="disp" style="font-size:32px;color:var(--yellow);margin:12px 0 8px">Le concours est terminé</h2>
-    <p class="lead" style="margin:0 auto 20px">Merci à toutes et à tous pour vos photos&nbsp;! Le jury (parfaitement incompétent) délibère. Suis <strong style="color:var(--cream)">@lassoduport</strong> pour découvrir le top 3.</p>
+    <p class="lead" style="margin:0 auto 20px">Merci à toutes et à tous pour vos photos&nbsp;! Les résultats sont tombés&nbsp;: retrouve le <strong style="color:var(--cream)">top 3</strong> tout en haut de la page 👆</p>
     <div class="center-cta">
       <a class="btnA" href="https://instagram.com/lassoduport" target="_blank" rel="noopener">Suivre @lassoduport</a>
       <a class="btnB" href="index.html">Retour à l'accueil</a>
@@ -138,7 +155,7 @@
       formEl=byId('form'),doneEl=byId('done');
   var file=null, busy=false;
   var DEADLINE=new Date('2026-08-20T23:59:59+02:00').getTime();
-  if(Date.now()>DEADLINE){ formEl.style.display='none'; byId('closed').style.display=''; }
+  if(Date.now()>DEADLINE){ formEl.style.display='none'; byId('closed').style.display=''; var rl=document.querySelector('.rules'); if(rl)rl.style.display='none'; }
 
   function updateSend(){ sendBtn.classList.toggle('off', !(file && nameEl.value.trim() && consentEl.checked)); }
   [nameEl,consentEl].forEach(function(el){ el.addEventListener('input',updateSend); el.addEventListener('change',updateSend); });
