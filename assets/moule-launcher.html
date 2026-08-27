@@ -45,7 +45,7 @@ input[type=text]::placeholder{color:#7c3f9e;}
     <input type="text" id="nameInput" maxlength="12" placeholder="TON PSEUDO" autocomplete="off" spellcheck="false">
     <button class="btn" id="btnPlay">▶ LANCER</button>
     <button class="btn-sm" id="btnLbMenu">★ SCORES</button>
-    <p style="font-size:clamp(8px,2.4vw,14px);font-weight:800;color:#ffd700;text-shadow:0 0 8px #c026d3,2px 2px #6b21a8;letter-spacing:1.5px;line-height:1.6;border-top:1px solid #6b21a8;padding-top:6px;margin-top:4px;text-align:center;">ATTEINS 5 000 m<br>LE PLUS VITE POSSIBLE<br><span style="font-size:.40em;font-weight:400;letter-spacing:1px;text-shadow:none;color:#ffd700;">MEILLEUR CHRONO = GLOIRE ÉTERNELLE</span></p>
+    <p style="font-size:clamp(8px,2.4vw,14px);font-weight:800;color:#ffd700;text-shadow:0 0 8px #c026d3,2px 2px #6b21a8;letter-spacing:1.5px;line-height:1.6;border-top:1px solid #6b21a8;padding-top:6px;margin-top:4px;text-align:center;">ATTEINS 10 000 m<br>LE PLUS VITE POSSIBLE<br><span style="font-size:.40em;font-weight:400;letter-spacing:1px;text-shadow:none;color:#ffd700;">MEILLEUR CHRONO = GLOIRE ÉTERNELLE</span></p>
   </div>
   <div class="screen hidden" id="sResult">
     <h1>★ RÉSULTAT ★</h1>
@@ -65,7 +65,7 @@ input[type=text]::placeholder{color:#7c3f9e;}
   </div>
   <div class="screen hidden" id="sLb">
     <p style="font-size:clamp(8px,2vw,13px);color:#ffd700">★ HALL OF FAME ★</p>
-    <p class="sub">Meilleurs temps · 5 000 m</p>
+    <p class="sub">Meilleurs temps · 10 000 m</p>
     <div id="lbContent"><p class="loader">CHARGEMENT...</p></div>
     <button class="btn-sm" id="btnBack">← RETOUR</button>
   </div>
@@ -84,7 +84,7 @@ function sbHeaders(extra){
 
 // ══════ SESSION SERVEUR (graine + jeton à usage unique) ══════
 var gameToken=null, gameSeed=0, prng=null, launchCharge=0, simTick=0;
-var raceFinished=false, raceTimeMs=null, submitServerMs=null;
+var raceFinished=false, raceTimeMs=null, submitServerMs=null, serverFinished=false, claimToken=null, flightStartMs=0, lastLoopTs=0;
 function mulberry32(seed){var t=seed>>>0;return function(){t+=0x6D2B79F5;var r=Math.imul(t^(t>>>15),1|t);r^=r+Math.imul(r^(r>>>7),61|r);return((r^(r>>>14))>>>0)/4294967296;};}
 function trackAction(){}
 function fmtTime(ms){ if(ms==null)return '—'; return (ms/1000).toFixed(2)+' s'; }
@@ -93,24 +93,43 @@ function fmtTime(ms){ if(ms==null)return '—'; return (ms/1000).toFixed(2)+' s'
 function startServerGame(){
   return fetch(SB_FN+'/moule-start',{method:'POST',headers:sbHeaders({'Content-Type':'application/json'}),body:'{}'})
     .then(function(r){return r.json();})
-    .then(function(j){ if(!j||!j.token)throw new Error('no token'); gameToken=j.token; gameSeed=j.seed>>>0; prng=mulberry32(gameSeed); return true; });
+    .then(function(j){ if(!j||!j.token)throw new Error('no token'); gameToken=j.token; claimToken=null; return true; }); // la graine n'est PAS reçue ici (anti-triche)
 }
-// Envoie la charge : le serveur REJOUE la partie et calcule le temps officiel
-function submitRun(){
-  if(!gameToken)return Promise.resolve(null);
-  var body={ token:gameToken, charge:launchCharge, name:(playerName||'ANONYME') };
-  gameToken=null; // un seul envoi possible
-  return fetch(SB_FN+'/moule-submit',{method:'POST',headers:sbHeaders({'Content-Type':'application/json'}),body:JSON.stringify(body)})
+// LÂCHER : on envoie la charge (choisie à l'aveugle). Le serveur calcule le temps ET révèle
+// la graine — trop tard pour optimiser. On rejoue alors le vol localement avec cette graine.
+function doSubmit(){
+  if(!gameToken){ phase='ready'; return; }
+  var tok=gameToken; gameToken=null;
+  fetch(SB_FN+'/moule-submit',{method:'POST',headers:sbHeaders({'Content-Type':'application/json'}),body:JSON.stringify({ token:tok, charge:launchCharge })})
     .then(function(r){return r.json();})
-    .then(function(j){ if(j&&j.finished)submitServerMs=j.timeMs; loadCount(); return j; })
-    .catch(function(){ return null; });
+    .then(function(j){
+      if(!j||typeof j.seed!=='number')throw new Error('submit');
+      claimToken=tok;
+      gameSeed=j.seed>>>0; prng=mulberry32(gameSeed);
+      serverFinished=!!j.finished; submitServerMs=(j.finished?j.timeMs:null);
+      armAngle=ARM_LO+(ARM_HI-ARM_LO)*launchCharge;
+      var tip=getTipWorld(),lv=getLaunchVec();
+      M.wx=tip.wx;M.wy=tip.wy;M.vx=lv.vx;M.vy=lv.vy;M.ang=0;M.spin=-0.08;M.dist=0;
+      combo=0;simTick=0;snapT=0;phase='snap';
+    })
+    .catch(function(){ gameToken=null;claimToken=null;gState='menu';show(sMenu);stopBGM();alert('Connexion interrompue, relance une partie.'); });
+}
+// FIN DU VOL : on réclame l'enregistrement. Le serveur n'accepte que si le vrai temps de vol
+// s'est écoulé (preuve-de-jeu) — impossible d'enregistrer un score sans avoir joué la course.
+function claimRun(){
+  if(!claimToken)return;
+  var tok=claimToken; claimToken=null;
+  fetch(SB_FN+'/moule-claim',{method:'POST',headers:sbHeaders({'Content-Type':'application/json'}),body:JSON.stringify({ token:tok, name:(playerName||'ANONYME') })})
+    .then(function(r){return r.json();})
+    .then(function(j){ if(j&&j.finished){ loadCount(); loadTopScore(); } })
+    .catch(function(){});
 }
 
 // ══════ SCORES ══════
 var lastScoreId=null; // id de la dernière partie pour ajouter l'insta après coup
 
 function loadScores(){
-  return fetch(SB_REST+'/scores?select=name,time_ms&time_ms=not.is.null&order=time_ms.asc&limit=20',{headers:sbHeaders()})
+  return fetch(SB_REST+'/scores?select=name,time_ms&time_ms=not.is.null&order=time_ms.asc&limit=80',{headers:sbHeaders()})
     .then(function(r){return r.json();})
     .catch(function(){return[];});
 }
@@ -626,13 +645,13 @@ function drawGrain(){
 var METERS=13,SHORE=650,GY=300,SY=314;
 var GRAVITY=0.176,LAUNCH_SPD=17.6;
 var VX_CAP=100000; // TEST : plafond de vitesse retiré (les combos accélèrent sans limite)
-var FINISH_WX=65130,CELEBRATE_WX=65130,WORLD_END=120000;
-var CELEBRATE_END_WX=78260; // fin de la zone célébration (panneau "MAX 6000m" hommage)
+var FINISH_WX=130130,CELEBRATE_WX=130130,WORLD_END=200000;
+var CELEBRATE_END_WX=143130; // fin de la zone célébration (au-delà de l'arrivée 10 000 m)
 var SQUELETTE_WX=78130; // position des squelettes top 3 (~6010m)
 var ASTRAL_START_WX=78000; // début zone astrale (~6000m)
 var CRABS_DANCE_WX=78130; // début de la zone crabes dansants (~6000m). Couvre jusqu'à ~7100m.
 var REAL_END_WX=143130; // au-delà de l'arrivée (garde-fou)
-var RACE_WX=65130;      // ★ LIGNE D'ARRIVÉE CHRONO = 5 000 m (CRAB_WX + 5000*METERS)
+var RACE_WX=130130;     // ★ LIGNE D'ARRIVÉE CHRONO = 10 000 m (CRAB_WX + 10000*METERS)
 var camX=0;
 function toSX(wx){return wx-camX;}
 function px(cx,cy,x,y,w,h,col){ctx.fillStyle=col;ctx.fillRect(cx+x,cy+y,w,h);}
@@ -1674,7 +1693,7 @@ function drawDecor(dist,t2){
 
 // ══════ FDP LOGOS ══════
 var FDP_DEFS=(function(){
-  // V2 CHRONO : crabes en CONTINU (300 + i*150) jusqu'au-delà des 5 000 m.
+  // V2 CHRONO : crabes en CONTINU (300 + i*150) jusqu'au-delà des 10 000 m.
   // Layout STRICTEMENT identique au moteur serveur (anti-triche par rejeu).
   var a=[]; for(var i=0;i<900;i++)a.push({wx:300+i*150}); return a;
 })();
@@ -1790,7 +1809,7 @@ function drawFDPs(){
 }
 
 // ══════ MOUETTES SPECTACULAIRES ══════
-var GULL_WXS=(function(){var a=[];for(var x=700;x<=64000;x+=1750)a.push(x);return a;})(); // ×3 mouettes (cosmétique), réparties jusqu'à la ligne des 5 000 m
+var GULL_WXS=(function(){var a=[];for(var x=700;x<=64000;x+=1750)a.push(x);return a;})(); // ×3 mouettes (cosmétique), réparties jusqu'à la ligne des 10 000 m
 var gulls=[];
 function resetGulls(){
   gulls=GULL_WXS.map(function(x,i){
@@ -2129,7 +2148,7 @@ function updatePhysics(){
   M.ang+=M.spin*timeScale;
   M.spin*=Math.pow(.976,timeScale);
   M.vx*=Math.pow(.9993,timeScale);
-  // ★ LIGNE D'ARRIVÉE : 5 000 m atteints -> chrono stoppé
+  // ★ LIGNE D'ARRIVÉE : 10 000 m atteints -> chrono stoppé
   if(M.wx>=RACE_WX){ endRun(true); return; }
   // Active/désactive le slow mo selon le combo
   if(combo>=5&&!slowMoActive)setSlowMo(true);
@@ -2200,6 +2219,7 @@ function updatePhysics(){
 function loop(ts){
   requestAnimationFrame(loop);
   bgT=ts*.001;
+  var frameDt=lastLoopTs?Math.min(ts-lastLoopTs,100):16.667; lastLoopTs=ts; // temps réel écoulé (indépendant du refresh)
   if(gState==='play')gameT++;
   var dist=Math.max(0,Math.round((M.wx-CRAB_WX)/METERS));
 
@@ -2225,16 +2245,20 @@ function loop(ts){
 
   if(phase==='ready'){drawCrab(true);drawInstruction('APPUIE ET MAINTIENS POUR LEVER LA PINCE');}
   if(phase==='charging'){
-    armT+=0.018;
+    armT+=0.018*(frameDt/16.667); // charge à vitesse réelle constante sur tous les appareils
     // Monte linéairement de ARM_LO vers ARM_HI puis reste bloqué
     var chargeP=Math.min(armT,1);
     armAngle=ARM_LO+(ARM_HI-ARM_LO)*chargeP;
     if(Math.floor(armT*8)%4===0)sfxCharge();
     drawCrab(true);drawInstruction('RELACHE POUR LANCER !','#ffd700');
   }
-  if(phase==='snap'){snapT++;armAngle+=(ARM_HI-0.3-armAngle)*0.4;drawCrab(false);drawMusselFlying(M.wx,M.wy,M.ang);if(snapT>6)phase='flying';}
+  if(phase==='pending'){drawCrab(true);drawInstruction('...');}
+  if(phase==='snap'){snapT++;armAngle+=(ARM_HI-0.3-armAngle)*0.4;drawCrab(false);drawMusselFlying(M.wx,M.wy,M.ang);if(snapT>6){phase='flying';flightStartMs=ts;}}
   if(phase==='flying'){
-    updatePhysics();
+    // Avance la simulation au temps RÉEL écoulé -> le vol dure exactement le temps officiel,
+    // quel que soit le taux de rafraîchissement de l'écran (60/120/240 Hz).
+    var _tgt=Math.floor((ts-flightStartMs)/16.667),_g=0;
+    while(simTick<_tgt&&phase==='flying'&&_g<800){ updatePhysics(); _g++; }
     checkBeatTop();
     updateFireworks();
     if(toSX(CRAB_WX)>-100)drawCrab(false);
@@ -2327,10 +2351,10 @@ function drawHUD(d){
   ctx.shadowColor='rgba(0,0,0,0.85)';ctx.shadowBlur=4;
   ctx.fillText(tsec.toFixed(2)+'s',W/2,24);
   ctx.shadowBlur=0;
-  // Progression vers la ligne des 5 000 m
+  // Progression vers la ligne des 10 000 m
   ctx.font='6px "Press Start 2P"';ctx.fillStyle='rgba(240,171,252,.85)';
-  ctx.fillText(Math.min(d,5000)+' / 5000 m',W/2,38);
-  var bw=W*0.5, bx=(W-bw)/2, by=44, p=Math.max(0,Math.min(1,d/5000));
+  ctx.fillText(Math.min(d,10000)+' / 10000 m',W/2,38);
+  var bw=W*0.5, bx=(W-bw)/2, by=44, p=Math.max(0,Math.min(1,d/10000));
   ctx.fillStyle='rgba(255,255,255,0.15)';ctx.fillRect(bx,by,bw,3);
   ctx.fillStyle='#f0abfc';ctx.fillRect(bx,by,bw*p,3);
   // Combo — plus haut (3% de H) + plus gros (11px), avec ombre pour le détacher des vagues
@@ -2368,7 +2392,7 @@ function onDown(){
   if(phase==='done'){showResult();return;}
   if(phase==='ready'||phase==='charging'){if(phase==='ready')armT=0;phase='charging';isDown=true;}
 }
-function onUp(){if(!isDown||gState!=='play')return;isDown=false;trackAction();if(phase==='charging'){launchCharge=Math.min(armT,1);simTick=0;prng=mulberry32(gameSeed);var tip=getTipWorld(),lv=getLaunchVec();M.wx=tip.wx;M.wy=tip.wy;M.vx=lv.vx;M.vy=lv.vy;M.ang=0;M.spin=-0.08;M.dist=0;sfxLaunch();snapT=0;phase='snap';flightStartT=Date.now();}}
+function onUp(){if(!isDown||gState!=='play')return;isDown=false;trackAction();if(phase==='charging'){launchCharge=Math.min(armT,1);phase='pending';sfxLaunch();doSubmit();}}
 canvas.addEventListener('touchstart',function(e){e.preventDefault();onDown();},{passive:false});
 canvas.addEventListener('touchend',function(e){e.preventDefault();onUp();},{passive:false});
 canvas.addEventListener('mousedown',function(e){e.preventDefault();onDown();});
@@ -2379,31 +2403,23 @@ document.addEventListener('keyup',function(e){if(e.key===' '){e.preventDefault()
 // ══════ RESULT ══════
 function getTimeComment(ms){
   var s=ms/1000;
-  if(s<18)return '★ VITESSE LUMIERE ★';
-  if(s<19)return 'CANON !! Un vrai pilote de moule';
-  if(s<21)return 'Tres rapide !';
-  if(s<24)return 'Solide, affine ta charge !';
-  if(s<28)return 'Bien joue ! Tu peux aller plus vite';
+  if(s<20)return '★ VITESSE LUMIERE ★';
+  if(s<22)return 'CANON !! Un vrai pilote de moule';
+  if(s<25)return 'Tres rapide !';
+  if(s<29)return 'Solide, affine ta charge !';
+  if(s<35)return 'Bien joue ! Tu peux aller plus vite';
   return 'Arrive ! Maintenant, gagne en vitesse...';
 }
-// Fin de partie (arrivée à 5 000 m ou abandon) — appelée UNE seule fois
+// Fin de partie (arrivée à 10 000 m ou abandon) — appelée UNE seule fois
 function endRun(finished){
   if(phase==='done')return;
   phase='done';
-  raceFinished=finished;
-  raceTimeMs=finished?Math.round(simTick/60*1000):null;
-  submitServerMs=null;
+  raceFinished=serverFinished;   // le serveur fait autorité
+  raceTimeMs=submitServerMs;
   stopBGM();
-  if(finished)sfxFDP();
-  // Le serveur REJOUE la partie et renvoie le temps OFFICIEL (anti-triche)
-  submitRun().then(function(j){
-    if(j&&j.finished&&submitServerMs!=null){
-      var el=document.getElementById('resDist');
-      if(el&&raceFinished)el.textContent=fmtTime(submitServerMs);
-    }
-    loadTopScore();
-  });
+  if(raceFinished)sfxFDP();
   showResult();
+  if(raceFinished)claimRun();    // enregistrement : n'aboutit que si le vol a bien duré (preuve-de-jeu)
 }
 function showResult(){
   document.getElementById('resName').textContent=(playerName||'').toUpperCase();
@@ -2413,7 +2429,7 @@ function showResult(){
     document.getElementById('resComment').textContent=getTimeComment(ms);
   } else {
     document.getElementById('resDist').textContent='ABANDON';
-    document.getElementById('resComment').textContent='Pas atteint 5 000 m, reessaie !';
+    document.getElementById('resComment').textContent='Pas atteint 10 000 m, reessaie !';
   }
   var box=document.getElementById('topInstaBox');
   if(box)box.classList.add('hidden');
@@ -2463,7 +2479,7 @@ document.getElementById('btnConfirmInsta').onclick=function(){ var box=document.
 document.getElementById('btnShare').onclick=function(){
   var b=document.getElementById('btnShare');
   var orig=b.textContent;
-  var text=raceFinished?('J\'ai atteint 5 000 m en '+fmtTime(submitServerMs!=null?submitServerMs:raceTimeMs)+' à La Moule Volante ★ Bats-moi sur fdp.bzh !'):('Je me suis vautré à La Moule Volante... fais mieux sur fdp.bzh !');
+  var text=raceFinished?('J\'ai atteint 10 000 m en '+fmtTime(submitServerMs!=null?submitServerMs:raceTimeMs)+' à La Moule Volante ★ Bats-moi sur fdp.bzh !'):('Je me suis vautré à La Moule Volante... fais mieux sur fdp.bzh !');
   var url='https://fdp.bzh';
   function copyFallback(){
     if(navigator.clipboard&&navigator.clipboard.writeText){
@@ -2482,9 +2498,10 @@ function showLb(){
   document.getElementById('lbContent').innerHTML='<p class="loader">CHARGEMENT...</p>';
   loadScores().then(function(scores){
     var medals=['1er','2e','3e'],rc=['rank-gold','rank-silver','rank-bronze'];
-    if(!scores||!scores.length){document.getElementById('lbContent').innerHTML='<p class="sub">Sois le premier a franchir 5 000 m !</p>';return;}
+    if(!scores||!scores.length){document.getElementById('lbContent').innerHTML='<p class="sub">Sois le premier a franchir 10 000 m !</p>';return;}
+    var seen={},uniq=[];scores.forEach(function(s){var k=(s.name||'').toUpperCase();if(!seen[k]){seen[k]=1;uniq.push(s);}});uniq=uniq.slice(0,10);
     var html='<table class="lb-table"><thead><tr><th>#</th><th>NOM</th><th>TEMPS</th></tr></thead><tbody>';
-    scores.slice(0,10).forEach(function(sc,i){html+='<tr class="'+(sc.name===(playerName||'').toUpperCase()?'me':'')+'"><td class="'+(rc[i]||'')+'">'+(medals[i]||i+1)+'</td><td>'+sc.name+'</td><td>'+fmtTime(sc.time_ms)+'</td></tr>';});
+    uniq.forEach(function(sc,i){html+='<tr class="'+(sc.name===(playerName||'').toUpperCase()?'me':'')+'"><td class="'+(rc[i]||'')+'">'+(medals[i]||i+1)+'</td><td>'+sc.name+'</td><td>'+fmtTime(sc.time_ms)+'</td></tr>';});
     document.getElementById('lbContent').innerHTML=html+'</tbody></table>';
   }).catch(function(){
     document.getElementById('lbContent').innerHTML='<p class="sub">Erreur de chargement</p>';
