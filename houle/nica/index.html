@@ -44,7 +44,8 @@ header h1{font-size:15px;margin:0;font-weight:650;flex:1;white-space:nowrap;over
 #manual output{color:var(--txt);font-weight:600}
 #manual input{width:100%}
 #foot{display:flex;align-items:center;gap:10px;padding:6px 12px 0;font-size:11px;color:var(--mut)}
-#foot input{width:90px}
+#foot input{width:80px}
+#foot #src{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:38vw}
 #foot .sp{flex:1}
 #ctl{display:flex;align-items:center;gap:12px;padding:6px 12px 0;font-size:12px;color:var(--mut);flex-wrap:wrap}
 #ctl label{display:flex;align-items:center;gap:4px}
@@ -80,7 +81,7 @@ header h1{font-size:15px;margin:0;font-weight:650;flex:1;white-space:nowrap;over
       <label>Marée (niveau) <output id="oL"></output><input id="iL" type="range" min="-1.5" max="1.5" step="0.25" value="0"></label>
     </div>
     <div id="ctl"><div class="seg sm"><button id="vM" class="on">Mètres</button><button id="vX">Concentration</button></div><label><input id="iS" type="checkbox">Houle seule</label><label><input id="iW" type="checkbox" checked>Vent côte</label><a href="../" style="margin-left:auto;color:var(--acc);text-decoration:none">Bretagne ›</a></div>
-    <div id="foot"><span id="src"></span><span class="sp"></span>Opacité <input id="iO" type="range" min="0" max="1" step="0.05" value="0.8"></div>
+    <div id="foot"><select id="mdl" style="background:#0f141a;color:var(--txt);border:1px solid var(--line);border-radius:6px;font-size:11px;padding:2px 4px"><option value="gfs">GFS (comme Windguru)</option><option value="mf">Météo-France</option></select><span id="src"></span><span class="sp"></span>Opacité <input id="iO" type="range" min="0" max="1" step="0.05" value="0.8"></div>
   </div>
   <div id="load">Chargement des cartes…</div>
   <div id="info"><div class="card">
@@ -88,7 +89,7 @@ header h1{font-size:15px;margin:0;font-weight:650;flex:1;white-space:nowrap;over
     <p>Les couleurs donnent la hauteur estimée des vagues près du bord, pour chaque houle prévue au large (houle principale, houle secondaire et mer du vent combinées), à la hauteur de marée du créneau.</p>
     <p>Le calcul suit la houle depuis le large et la fait tourner selon le relief du fond (réfraction) et grossir en remontant les petits fonds. 459 situations ont été pré-calculées pour le Pacifique (directions 150° à 310° tous les 10°, périodes 8 à 24 s, trois niveaux de marée : −1,5 m, 0, +1,5 m). Heures affichées en heure locale du Nicaragua puis interpolées.</p>
     <p><b>Modèle expérimental.</b> Fond EMODnet (maille ~100 m) : les roches, bancs et la diffraction derrière les pointes ne sont pas bien représentés, et les concentrations sont exagérées. Compare avec ce que tu vois à l'eau.</p>
-    <p>Chaque houle est étalée en direction comme une vraie houle (±15° pour une houle longue, ±20 à 30° en dessous de 14 s, ±45° pour la mer du vent). Les houles sont calculées séparément puis leurs énergies s'additionnent. Le mode « Concentration » montre combien chaque endroit reçoit par rapport au large, sans l'effet de la profondeur : bleu = abrité, rouge = la houle se concentre, comme une vraie houle, ce qui adoucit les traînées. Le trait coloré le long de la côte, dans les terres, indique le vent du créneau par rapport à l'orientation locale du rivage. Non pris en compte : courants de marée (Raz de Sein), effet du vent sur la hauteur, diffraction derrière les pointes.</p><p>Touche la carte pour le détail à un endroit. Prévisions : Open-Meteo (houle Météo-France MFWAM, vent). Image : Sentinel-2 cloudless 2023 par EOX (s2maps.eu), données Copernicus modifiées ; au large, relief du fond EMODnet.</p>
+    <p>Chaque houle est étalée en direction comme une vraie houle (±15° pour une houle longue, ±20 à 30° en dessous de 14 s, ±45° pour la mer du vent). Les houles sont calculées séparément puis leurs énergies s'additionnent. Le mode « Concentration » montre combien chaque endroit reçoit par rapport au large, sans l'effet de la profondeur : bleu = abrité, rouge = la houle se concentre, comme une vraie houle, ce qui adoucit les traînées. Le trait coloré le long de la côte, dans les terres, indique le vent du créneau par rapport à l'orientation locale du rivage. Non pris en compte : courants de marée (Raz de Sein), effet du vent sur la hauteur, diffraction derrière les pointes.</p><p>Touche la carte pour le détail à un endroit. Prévisions : Open-Meteo — houle au choix GFS/NOAA (le modèle de Windguru) ou Météo-France MFWAM (période de pic quand elle est fournie), vent et niveau d'eau. Image : Sentinel-2 cloudless 2023 par EOX (s2maps.eu), données Copernicus modifiées ; au large, relief du fond EMODnet.</p>
     <button id="ic">OK</button></div></div>
 </div>
 <script src="leaflet.js"></script>
@@ -204,13 +205,25 @@ let FC=null,src='';
 const MU='https://marine-api.open-meteo.com/v1/marine?latitude=11.80&longitude=-86.90&hourly=wave_height,swell_wave_height,swell_wave_direction,swell_wave_period,secondary_swell_wave_height,secondary_swell_wave_direction,secondary_swell_wave_period,wind_wave_height,wind_wave_direction,wind_wave_period,sea_level_height_msl&timezone=GMT&forecast_days=7';
 const AU='https://api.open-meteo.com/v1/forecast?latitude=11.93&longitude=-86.62&hourly=wind_speed_10m,wind_direction_10m,wind_gusts_10m&wind_speed_unit=kmh&timezone=GMT&forecast_days=7';
 const TZ='America/Managua',UT=s=>new Date(s+'Z'),HR=d=>+d.toLocaleString('en-GB',{hour:'2-digit',hour12:false,timeZone:TZ})%24;
-try{ // live (works when the page is hosted outside claude.ai)
-  const ctl=new AbortController();setTimeout(()=>ctl.abort(),6000);
-  const [m,a]=await Promise.all([fetch(MU,{signal:ctl.signal}).then(r=>r.json()),fetch(AU,{signal:ctl.signal}).then(r=>r.json())]);
-  FC={time:m.hourly.time,...m.hourly,...a.hourly,generated:new Date().toISOString()};delete FC.time_;src='Prévisions en direct (Open-Meteo)';
-}catch(e){
-  try{FC=await (await fetch('forecast.json',{cache:'no-store'})).json();const g=new Date(FC.generated);src='Prévisions du '+g.toLocaleString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});}catch(e2){FC=null;src='Prévisions indisponibles';}
+let MODEL='gfs';try{MODEL=localStorage.getItem('houleModel')||'gfs';}catch(e){}
+const MU_MF=MU.replace('swell_wave_period,','swell_wave_period,swell_wave_peak_period,');
+const MU_GFS=MU.replace('&hourly=','&models=ncep_gfswave025&hourly=').replace(',sea_level_height_msl','');
+const SWK=['swell_wave_height','swell_wave_direction','swell_wave_period','secondary_swell_wave_height','secondary_swell_wave_direction','secondary_swell_wave_period','wind_wave_height','wind_wave_direction','wind_wave_period','wave_height'];
+async function getJ(u,ms){const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),ms);try{const r=await fetch(u,{signal:ctl.signal});const j=await r.json();if(!j.hourly)throw new Error(j.reason||'no data');return j;}finally{clearTimeout(t);}}
+async function loadFC(){
+  try{
+    const [m,a]=await Promise.all([getJ(MU_MF,7000),getJ(AU,7000)]);
+    const fc={...m.hourly,...a.hourly,time:m.hourly.time,generated:new Date().toISOString()};let lab='Météo-France';
+    if(MODEL==='gfs'){try{const g=await getJ(MU_GFS,7000);const idx={};g.hourly.time.forEach((t,i)=>idx[t]=i);
+        if(g.hourly.swell_wave_height.some(v=>v!=null)){for(const k of SWK){if(!g.hourly[k])continue;fc[k]=fc.time.map(t=>idx[t]!=null?g.hourly[k][idx[t]]:null);}lab='GFS (NOAA)';}
+      }catch(e){lab='Météo-France (GFS indisponible)';}}
+    if(lab.startsWith('Météo')&&fc.swell_wave_peak_period){fc.swell_wave_period=fc.swell_wave_period.map((v,i)=>fc.swell_wave_peak_period[i]??v);}
+    FC=fc;src=lab.includes('indisponible')?'GFS indispo → MF':'en direct';
+  }catch(e){
+    try{FC=await (await fetch('forecast.json',{cache:'no-store'})).json();const g=new Date(FC.generated);src='Prévisions du '+g.toLocaleString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});}catch(e2){FC=null;src='Prévisions indisponibles';}
+  }
 }
+await loadFC();
 $('src').textContent=src;
 function comps(i){const f=FC,c=[];
   const add=(h,d,t,name)=>{if(h!=null&&d!=null&&t!=null&&h>0.05)c.push({h,dir:d,T:t,name});};
@@ -241,6 +254,8 @@ function buildStrip(){
   $('strip').querySelectorAll('.slot').forEach(s=>s.onclick=()=>show(+s.dataset.i));
   return first;}
 let firstIdx=-1; if(FC){firstIdx=buildStrip();}
+$('mdl').value=MODEL;
+$('mdl').onchange=async()=>{MODEL=$('mdl').value;try{localStorage.setItem('houleModel',MODEL);}catch(e){}$('src').textContent='Chargement…';await loadFC();$('src').textContent=src;if(FC){firstIdx=buildStrip();if(!cur||cur.mode==='F')show(firstIdx);}};
 
 // ---- manual mode ----
 async function manual(){const D=+$('iD').value,T=+$('iT').value,Hh=+$('iH').value,Lv=+$('iL').value;
