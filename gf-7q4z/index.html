@@ -1,0 +1,889 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#26146e">
+<title>Goéland et Frites</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Yellowtail&display=swap">
+<style>
+/* Plein écran portrait. Vu du dessus : le terre-plein, la barquette, le goéland, les crabes. Le chrono en haut.
+   Couleurs 2027 : le couchant « Vice City » du Goéland Oiseau. Pas de boîte : le titre flotte sur la scène,
+   le bas de l'écran s'assombrit juste assez pour lire, et un gros bouton autocollant. Un seul thème, par choix. */
+:root{
+  color-scheme: dark;
+  --bg:#26146e; --panel:transparent; --line:#7c269e; --ink:#fff6fb; --mute:#ffd6e8; --hot:#ff3e8c; --hot-dk:#26146e;
+  --gold:#ffd05a; --cyan:#4fe8e2; --out:#26146e; --onhot:#fff; --glow:rgba(255,62,140,.5);
+  --orange:#ff8040; --violet:#7c269e;
+  --sunset:linear-gradient(180deg,#ffe27a 0 28%,#ffb03a 28% 50%,#ff5a8a 50% 76%,#d23bc8 76% 100%);
+  --f:"Press Start 2P", ui-monospace, Menlo, monospace;
+  --f-script:"Yellowtail", "Brush Script MT", cursive;
+}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflow:hidden;overscroll-behavior:none}
+.stage{container-type:inline-size;position:relative;height:100%;max-width:560px;margin:0 auto;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;background:var(--bg)}
+#cv{position:absolute;inset:0;width:100%;height:100%;display:block;image-rendering:pixelated}
+/* le bas de l'écran se couvre d'un voile du couchant, seulement à l'accueil et à l'arrivée */
+.scrim{position:absolute;inset:auto 0 0 0;height:52%;pointer-events:none;opacity:0;transition:opacity .35s;
+  background:linear-gradient(to top,rgba(38,20,110,.92) 0%,rgba(38,20,110,.72) 38%,rgba(124,38,158,.28) 72%,rgba(124,38,158,0) 100%)}
+.stage[data-ui="menu"] .scrim,.stage[data-ui="over"] .scrim{opacity:1}
+.ui{position:absolute;inset:0;display:flex;flex-direction:column;padding-block:12px max(20px,env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));pointer-events:none;font-size:11px;font-size:clamp(10px,2.9cqw,16px)}
+
+/* en course : le chrono, et les frites qui restent */
+.hud{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.time{font-size:2.8em;line-height:1.3;color:#fff;font-variant-numeric:tabular-nums;text-shadow:-2px 0 0 var(--out),0 -2px 0 var(--out),2px 0 0 var(--out),0 2px 0 var(--out),4px 4px 0 var(--hot)}
+.left{text-align:right;font-size:1.8em;line-height:1.35;color:var(--gold);text-shadow:-2px 0 0 var(--out),0 -2px 0 var(--out),2px 0 0 var(--out),0 2px 0 var(--out),3px 3px 0 var(--orange)}
+.left small{display:block;font-size:.4em;letter-spacing:.12em;color:#fff;text-shadow:2px 2px 0 var(--out)}
+
+/* le titre : GOÉLAND en lettres de couchant, « et frites » en néon turquoise, de travers */
+.title{font-size:1em;margin:max(2.2em,14vh) 0 0;display:flex;flex-direction:column;align-items:center;font-weight:400;line-height:1;text-align:center}
+.t1{font-size:3.3em;letter-spacing:.02em;color:#ffb03a;background:var(--sunset);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(3px 3px 0 var(--out)) drop-shadow(2px 2px 0 var(--out)) drop-shadow(0 0 14px rgba(255,62,140,.55))}
+.t2{font-family:var(--f-script);font-size:5.2em;line-height:.9;margin:-.05em 0 0 1.4em;transform:rotate(-8deg);color:#effffe;
+  text-shadow:0 0 3px var(--cyan),0 0 12px var(--cyan),0 0 26px rgba(79,232,226,.7),3px 3px 0 var(--out)}
+
+/* le bas : pas de boîte, du texte posé sur le voile */
+.panel{pointer-events:auto;touch-action:pan-y;margin-top:auto;display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center}
+.panel p{margin:0}
+.verdict{max-width:28em;font-size:.95em;line-height:2;color:#fff;text-shadow:2px 2px 0 var(--out);text-wrap:balance}
+.verdict b{font-weight:400;color:var(--cyan)}
+.verdict.new{color:var(--gold)}
+.big{font-size:3.6em;line-height:1.15;color:#ffb03a;background:var(--sunset);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(3px 3px 0 var(--out)) drop-shadow(2px 2px 0 var(--out));font-variant-numeric:tabular-nums}
+.big small{font-size:.35em;margin-left:6px}
+.stats{margin:0;width:100%;max-width:30em;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.stats div{min-width:0;display:flex;flex-direction:column-reverse;align-items:center;gap:6px}
+.stats dt{font-size:.6em;line-height:1.5;color:var(--cyan);text-shadow:1px 1px 0 var(--out)}
+.stats dd{margin:0;font-size:1.05em;line-height:1.3;color:#fff;text-shadow:2px 2px 0 var(--out);font-variant-numeric:tabular-nums;white-space:nowrap}
+/* le bouton : une plaque de borne d'arcade. Coins en escalier, aplats, lettres aux couleurs du score, curseur qui clignote */
+.play{appearance:none;background:none;border:0;padding:0;cursor:pointer;min-width:min(80%,20em);font-family:var(--f);font-size:1.5em;color:#fff;
+  filter:drop-shadow(0 5px 0 #120a3a)}
+.px{--st:4px;clip-path:polygon(0 calc(var(--st)*2),var(--st) calc(var(--st)*2),var(--st) var(--st),calc(var(--st)*2) var(--st),calc(var(--st)*2) 0,calc(100% - var(--st)*2) 0,calc(100% - var(--st)*2) var(--st),calc(100% - var(--st)) var(--st),calc(100% - var(--st)) calc(var(--st)*2),100% calc(var(--st)*2),100% calc(100% - var(--st)*2),calc(100% - var(--st)) calc(100% - var(--st)*2),calc(100% - var(--st)) calc(100% - var(--st)),calc(100% - var(--st)*2) calc(100% - var(--st)),calc(100% - var(--st)*2) 100%,calc(var(--st)*2) 100%,calc(var(--st)*2) calc(100% - var(--st)),var(--st) calc(100% - var(--st)),var(--st) calc(100% - var(--st)*2),0 calc(100% - var(--st)*2))}
+.plate{display:block;padding:3px;background:var(--out)}
+.ring{display:block;padding:3px;background:var(--hot)}
+.in{display:flex;align-items:center;justify-content:center;gap:.7em;min-height:52px;padding:12px 22px;background:linear-gradient(180deg,#4a2aa8 0 4px,#2d1677 4px calc(100% - 4px),#1d0e57 calc(100% - 4px))}
+.in::before{content:"";width:0;height:0;border-style:solid;border-width:.45em 0 .45em .6em;border-color:transparent transparent transparent var(--gold);filter:drop-shadow(2px 2px 0 var(--out))}
+.lbl{color:#ffb03a;background:var(--sunset);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(2px 2px 0 #120a3a);letter-spacing:.06em;line-height:1.2}
+.play:active{filter:drop-shadow(0 1px 0 #120a3a);transform:translateY(4px)}
+.play:disabled{opacity:.5}
+.play:focus-visible{outline:3px solid var(--cyan);outline-offset:6px}
+@media (prefers-reduced-motion:no-preference){.play:not(:disabled) .in::before{animation:blink 1s steps(1) infinite}}
+@keyframes blink{50%{opacity:0}}
+</style>
+<style>[hidden]{display:none!important}</style>
+</head>
+<body>
+<div class="stage" id="stage" data-ui="menu">
+  <canvas id="cv" aria-label="Le terre-plein vu du dessus : tape dans la barquette pour que le goéland mange les frites"></canvas>
+  <div class="scrim"></div>
+  <div class="ui">
+    <div class="hud" id="hud" hidden>
+      <div class="time" id="time">0,000</div>
+      <div class="left"><span id="left">50</span><small>FRITES</small></div>
+    </div>
+    <h1 class="title" id="title"><span class="t1">GOÉLAND</span><span class="t2">et frites</span></h1>
+    <section class="panel" id="panel" aria-live="polite">
+      <p class="big" id="big" hidden></p>
+      <dl class="stats" id="stats" hidden></dl>
+      <p class="verdict" id="verdict">50 FRITES. TAPE DANS LA BARQUETTE : À CHAQUE TAP, IL EN GOBE UNE. LE CHRONO PART AU PREMIER COUP DE BEC.</p>
+      <button class="play" id="play" type="button"><span class="plate px"><span class="ring px"><span class="in px"><span class="lbl" id="playLbl">À TABLE</span></span></span></span></button>
+    </section>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  function $(id) { return document.getElementById(id); }
+  var stage = $('stage'), cv = $('cv'), ctx = cv.getContext('2d'), panel = $('panel');
+  var pc = document.createElement('canvas'), g = pc.getContext('2d');
+  /* ---------- les ambiances : le couchant de 2026, et des nuits à essayer pour 2027 ----------
+     css : les couleurs de l'interface ; conc : la teinte du béton ; sun : le reflet du couchant sur l'eau ;
+     night : la lumière (ambiance multipliée, lampes ajoutées), bio : l'écume qui s'allume (plancton) */
+  var PALS = {
+    couchant: { out: '#2b1560', conc: [170, 148, 128], sun: 'rgba(255,170,110,.25)', night: null },
+    cire: { out: '#0a1440', conc: [150, 146, 142], sun: null,
+      css: { bg: '#0d1a4a', panel: 'rgba(12,26,74,.94)', line: '#2c55d6', ink: '#f4f7ff', mute: '#aebbe8', hot: '#ffc400', 'hot-dk': '#a87800', gold: '#ffc400', cyan: '#ffc400', onhot: '#0d1a4a', glow: 'rgba(255,196,0,.35)' },
+      night: { amb: [0.22, 0.27, 0.5], lamps: [{ x: -0.02, y: 'wall', r: 0.95, c: [1.0, 0.72, 0.3], i: 1.15, refl: true }] } },
+    homard: { out: '#082222', conc: [150, 146, 142], sun: null,
+      css: { bg: '#0c2b2b', panel: 'rgba(10,40,40,.94)', line: '#2a9d8f', ink: '#f2fffb', mute: '#a8d8cc', hot: '#ff4a2e', 'hot-dk': '#a8200f', gold: '#7fe8d2', cyan: '#7fe8d2', onhot: '#fff', glow: 'rgba(255,74,46,.4)' },
+      night: { amb: [0.2, 0.28, 0.34], lamps: [{ x: 0.14, y: 'foot', r: 0.3, c: [1.0, 0.86, 0.62], i: 1.0, head: 1 }, { x: 0.5, y: 'foot', r: 0.3, c: [1.0, 0.86, 0.62], i: 1.0, head: 1 }, { x: 0.86, y: 'foot', r: 0.3, c: [1.0, 0.86, 0.62], i: 1.0, head: 1 }] } },
+    plancton: { out: '#03060c', conc: [140, 144, 150], sun: null, bio: true,
+      css: { bg: '#05080f', panel: 'rgba(6,10,20,.94)', line: '#16f2d4', ink: '#eafffb', mute: '#8fb3c4', hot: '#16f2d4', 'hot-dk': '#0a8f7e', gold: '#16f2d4', cyan: '#16f2d4', onhot: '#04101a', glow: 'rgba(22,242,212,.35)' },
+      night: { amb: [0.24, 0.28, 0.42], lamps: [{ x: 0.78, y: 'mid', r: 0.9, c: [0.18, 0.2, 0.28], i: 1 }] } },
+    corail: { out: '#0b1d12', conc: [150, 146, 140], sun: null,
+      css: { bg: '#10261a', panel: 'rgba(16,38,26,.94)', line: '#3f8f5e', ink: '#fff7f4', mute: '#bcd6c2', hot: '#ff7a6b', 'hot-dk': '#b8443a', gold: '#ffb3a7', cyan: '#ffb3a7', onhot: '#fff', glow: 'rgba(255,122,107,.4)' },
+      night: { amb: [0.2, 0.26, 0.26], garland: true, lamps: [] } }
+  };
+  /* 2027 : le couchant « Vice City » du Goéland Oiseau (indigo, violet, rose, orange, jaune, mer turquoise), à l'heure où les lampes s'allument */
+  var VC_CSS = { bg: '#26146e', panel: 'rgba(38,20,110,.0)', line: '#7c269e', ink: '#fff6fb', mute: '#ffd6e8', hot: '#ff3e8c', 'hot-dk': '#26146e', gold: '#ffd05a', cyan: '#4fe8e2', out: '#26146e', onhot: '#fff', glow: 'rgba(255,62,140,.5)' };
+  PALS.vc = { out: '#26146e', conc: [156, 150, 146], sun: 'rgba(255,80,150,.14)', glints: true, css: VC_CSS,
+    night: { amb: [0.86, 0.7, 0.95], soft: 0.65, lamps: [{ x: -0.06, y: 'wall', r: 1.2, c: [1.0, 0.58, 0.24], i: 0.45, glow: 0.24, refl: true }] } };
+  PALS.vcnuit = { out: '#1a0c52', conc: [150, 146, 146], sun: null, glints: true, css: VC_CSS,
+    night: { amb: [0.28, 0.25, 0.56], soft: 0.5, lamps: [{ x: -0.06, y: 'wall', r: 1.05, c: [1.0, 0.62, 0.3], i: 1.25, glow: 0.22, refl: true }] } };
+  PALS.vcneon = { out: '#1a0c52', conc: [150, 146, 146], sun: null, glints: true, css: VC_CSS,
+    night: { amb: [0.38, 0.32, 0.68], soft: 0.55, lamps: [{ x: -0.06, y: 'wall', r: 0.9, c: [1.0, 0.62, 0.3], i: 1.0, glow: 0.2, refl: true }, { x: 1.06, y: 0.55, r: 0.9, c: [1.0, 0.25, 0.65], i: 0.9, glow: 0.3 }] } };
+  var PAL = PALS.vc;
+  var N = 50, TAU = 6.283185307179586, OUT = PAL.out, SC = 2;   // SC : pixels de dessin par unité du goéland et de la barquette (plus de détail)
+  var dpr = 1, W = 2, H = 2, NPX = 2, PW = 2, PH = 2, groundC = null, QY = 10, WH = 24;
+  var state = 'menu', t0 = 0, clock = 0, last = 0, hits = [], misses = 0, lastDown = 0, down = {}, maxDown = 0, refused = 0, warnT = 0, lastHit = -1e9;
+  var store = {
+    get: function (k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },
+    set: function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* stockage indisponible */ } }
+  };
+  var best = store.get('gf_best') || null;
+  function fr(n, d) { return n.toLocaleString('fr-FR', { minimumFractionDigits: d, maximumFractionDigits: d }); }
+  function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+  function rng(seed) { var s = seed >>> 0; return function () { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+
+  /* ---------- son ---------- */
+  var AC = null;
+  function audio() { try { if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); } catch (e) { AC = null; } }
+  function tone(f0, f1, dur, type, vol, delay) {
+    if (!AC) return;
+    try {
+      var o = AC.createOscillator(), gn = AC.createGain(), t = AC.currentTime + (delay || 0);
+      o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+      gn.gain.setValueAtTime(vol, t); gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(gn); gn.connect(AC.destination); o.start(t); o.stop(t + dur + 0.02);
+    } catch (e) { /* pas de son */ }
+  }
+
+  /* ---------- le quai de béton, vu du dessus, dessiné une fois ---------- */
+  function makeGround() {
+    var c2 = document.createElement('canvas'), x2, r = rng(29), x, y, i, k, n, im, d, v;
+    c2.width = PW; c2.height = PH; x2 = c2.getContext('2d');
+    im = x2.createImageData(PW, PH); d = im.data;
+    for (y = 0; y < PH; y++) for (x = 0; x < PW; x++) {                         // le béton : gris chaud, grain fin, taches de la marée et du temps
+      i = (y * PW + x) * 4; n = r();
+      v = 0.5 + 0.13 * Math.sin(x * 0.045 + y * 0.03) * Math.sin(y * 0.06 - x * 0.02) + (n - 0.5) * 0.12;
+      d[i] = PAL.conc[0] + v * 40; d[i + 1] = PAL.conc[1] + v * 36; d[i + 2] = PAL.conc[2] + v * 32; d[i + 3] = 255;
+      if (n < 0.012) { d[i] += 26; d[i + 1] += 24; d[i + 2] += 22; } else if (n > 0.99) { d[i] -= 30; d[i + 1] -= 30; d[i + 2] -= 26; }
+    }
+    x2.putImageData(im, 0, 0);
+    var qy = QY = Math.round(PH * 0.1);                                        // la mer au-dessus (dessinée à chaque image), puis le muret, puis le terre-plein
+    /* le muret : des pierres de granit de toutes les formes et de toutes les tailles, calées les unes contre les autres, avec leurs joints.
+       Chaque pierre est une cellule autour d'une graine ; une graine "lourde" fait une grosse pierre. */
+    var seeds = [], sx2 = -6, STONE = [[204, 178, 146], [192, 162, 132], [214, 190, 160], [184, 150, 124], [200, 168, 150], [176, 156, 134], [210, 176, 138]];
+    while (sx2 < PW + 12) {
+      if (r() < 0.22) { var stp = 14 + r() * 9; seeds.push({ x: sx2 + stp / 2, y: qy + WH / 2 + (r() - 0.5) * 3, w: 3 + r() * 3 }); sx2 += stp; continue; }   // une grosse pierre qui prend toute la hauteur
+      var st1 = 8 + r() * 8, st2 = 8 + r() * 8;
+      seeds.push({ x: sx2 + st1 / 2 + (r() - 0.5) * 3, y: qy + WH * 0.27 + (r() - 0.5) * 3, w: r() * 2 });
+      seeds.push({ x: sx2 + st2 / 2 + (r() - 0.5) * 3 + 3, y: qy + WH * 0.73 + (r() - 0.5) * 3, w: r() * 2 });
+      sx2 += (st1 + st2) / 2;
+    }
+    seeds.forEach(function (sd) { sd.c = STONE[Math.floor(r() * STONE.length)]; sd.t = (r() - 0.5) * 18; sd.lic = r() < 0.18; });
+    im = x2.getImageData(0, qy, PW, WH); d = im.data;
+    for (y = 0; y < WH; y++) for (x = 0; x < PW; x++) {
+      var Y0 = qy + y, b1 = 1e9, b2 = 1e9, s1 = null, s2 = null;
+      for (k = 0; k < seeds.length; k++) {
+        var sd = seeds[k], ddx = (x - sd.x) * 0.7; if (ddx > 40 || ddx < -40) continue;
+        var dd = ddx * ddx + (Y0 - sd.y) * (Y0 - sd.y) - sd.w * sd.w;
+        if (dd < b1) { b2 = b1; s2 = s1; b1 = dd; s1 = sd; } else if (dd < b2) { b2 = dd; s2 = sd; }
+      }
+      var sep = Math.hypot((s2.x - s1.x) * 0.7, s2.y - s1.y), edge = (b2 - b1) / (2 * sep);   // la distance au joint
+      var edgeY = Math.min(y, WH - 1 - y);
+      i = (y * PW + x) * 4;
+      if (edge < 0.6) { d[i] = 126; d[i + 1] = 100; d[i + 2] = 86; continue; }                          // le joint, en creux
+      var cr = s1.c, sh = 0, ux = x - s1.x, uy = Y0 - s1.y;
+      if (edge < 1.8) sh = (ux + uy < 0 ? 20 : -24) * (1.8 - edge) / 1.2;                              // l'arête prend la lumière en haut à gauche, l'ombre en bas à droite
+      if (edgeY < 1) sh -= 8;
+      var gr = r(); if (gr < 0.05) sh -= 38; else if (gr > 0.95) sh += 26; else sh += (gr - 0.5) * 10;  // le grain du granit : mica noir, feldspath clair
+      d[i] = clamp(cr[0] + s1.t + sh, 0, 255); d[i + 1] = clamp(cr[1] + s1.t + sh, 0, 255); d[i + 2] = clamp(cr[2] + s1.t * 0.8 + sh, 0, 255);
+      if (s1.lic && edge > 3 && ((x * 7 + y * 13) % 11) < 3 && r() < 0.5) { d[i] = 222; d[i + 1] = 150; d[i + 2] = 48; }   // le lichen orange des murs de bord de mer
+    }
+    x2.putImageData(im, 0, qy);
+    x2.fillStyle = OUT; x2.fillRect(0, qy, PW, 1); x2.fillRect(0, qy + WH - 1, PW, 1);   // le trait du dessin, côté mer et côté terre-plein
+    x2.fillStyle = 'rgba(60,28,40,.3)'; x2.fillRect(0, qy + WH, PW, 3);           // l'ombre du muret sur le terre-plein
+    return c2;
+  }
+
+  /* ---------- la mer : un clapot, et une série qui vient taper le muret toutes les dix secondes environ ---------- */
+  function hsh(a, b, c) { var v = Math.sin(a * 12.9898 + b * 78.233 + c * 37.719) * 43758.5453; return v - Math.floor(v); }
+  var wave = null, nextWave = 3, hitT = [], wet = [], spray = [], noiseBuf = null;
+  function noise(kind) {                                                          // bruits de base, faits une fois : brun (grave et doux), rose (l'écume)
+    var n = AC.sampleRate * 3, b = AC.createBuffer(1, n, AC.sampleRate), d = b.getChannelData(0), q, last = 0, b0 = 0, b1 = 0, b2 = 0, w;
+    for (q = 0; q < n; q++) {
+      w = Math.random() * 2 - 1;
+      if (kind === 'brown') { last = (last + 0.02 * w) / 1.02; d[q] = last * 3.5; }
+      else { b0 = 0.99765 * b0 + w * 0.099046; b1 = 0.963 * b1 + w * 0.2965164; b2 = 0.57 * b2 + w * 1.0526913; d[q] = (b0 + b1 + b2 + w * 0.1848) * 0.12; }
+    }
+    return b;
+  }
+  var brownBuf = null, pinkBuf = null;
+  function layer(buf, t, dur, type, f0, f1, peak, att, q) {
+    var src = AC.createBufferSource(), fl = AC.createBiquadFilter(), gn = AC.createGain();
+    src.buffer = buf; src.loop = true; fl.type = type; fl.Q.value = q || 0.7;
+    fl.frequency.setValueAtTime(f0, t); fl.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    gn.gain.setValueAtTime(0.0001, t); gn.gain.exponentialRampToValueAtTime(peak, t + att); gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    src.connect(fl); fl.connect(gn); gn.connect(AC.destination); src.start(t, Math.random() * 2); src.stop(t + dur + 0.05);
+  }
+  function swellSound(inT) {                                                     // la série qui arrive : un souffle grave qui enfle jusqu'au mur
+    if (!AC) return;
+    try { if (!brownBuf) brownBuf = noise('brown'); var t = AC.currentTime; layer(brownBuf, t, inT + 0.4, 'lowpass', 220, 520, 0.05, inT, 0.5); } catch (e) { /* pas de son */ }
+  }
+  function splashSound() {                                                       // elle tape : un choc sourd, puis l'écume qui chuinte en se retirant
+    if (!AC) return;
+    try {
+      if (!brownBuf) brownBuf = noise('brown'); if (!pinkBuf) pinkBuf = noise('pink');
+      var t = AC.currentTime;
+      layer(brownBuf, t, 2.2, 'lowpass', 700, 160, 0.11, 0.09, 0.6);
+      layer(pinkBuf, t + 0.08, 2.8, 'bandpass', 2600, 1200, 0.035, 0.35, 0.8);
+      layer(pinkBuf, t + 0.4, 2.4, 'highpass', 4200, 3000, 0.012, 0.6, 0.5);
+    } catch (e) { /* pas de son */ }
+  }
+  var bioP = [];
+  function fw(x, y, w, h, al) { g.fillStyle = al >= 1 ? '#ffffff' : 'rgba(255,255,255,' + al.toFixed(2) + ')'; g.fillRect(x, y, w, h); if (PAL.bio) bioP.push(x, y, w, h, al); }
+  function drawSea(dt) {
+    var x, y, a, k; bioP.length = 0;
+    g.fillStyle = '#1f7fc4'; g.fillRect(0, 0, PW, QY);
+    g.fillStyle = 'rgba(160,232,246,.45)';
+    for (y = 1; y < QY; y += 3) { var xs = Math.round(Math.sin(clock * 0.9 + y * 0.7) * 2); for (x = (y * 7) % 11 + xs; x < PW; x += 11 + (y % 4)) g.fillRect(x, y, 4, 1); }
+    /* la série : une crête un peu en biais, qui se creuse en approchant du mur */
+    nextWave -= dt;
+    if (!wave && nextWave <= 0) { wave = { t: 0, v: QY / (1.6 + Math.random() * 0.6), sl: (Math.random() - 0.5) * 0.16, snd: false }; hitT = []; swellSound((QY + 7) / wave.v - Math.abs(wave.sl) * PW / 2 / wave.v); }
+    if (wave) {
+      wave.t += dt;
+      var any = false;
+      for (x = 0; x < PW; x++) {
+        var yc = Math.round(-8 + wave.v * wave.t + wave.sl * (x - PW / 2));
+        if (yc >= QY - 1) { if (hitT[x] == null) { hitT[x] = clock; wet[x] = 1; if (x % 3 === 0) for (k = 0; k < 2; k++) spray.push({ x: x + Math.random() * 3, y: QY + Math.random() * WH * 0.4, vx: (Math.random() - 0.5) * 30, vy: 25 + Math.random() * 60, t: 0, life: 0.5 + Math.random() * 0.7 }); if (!wave.snd) { wave.snd = true; splashSound(); } scareAt(x); } continue; }
+        any = true;
+        if (yc < -6) continue;
+        var near = clamp(yc / QY, 0, 1);
+        g.fillStyle = 'rgba(8,40,96,' + (0.12 + 0.18 * near).toFixed(2) + ')'; g.fillRect(x, Math.max(0, yc - 6), 1, 5);          // le creux devant la crête
+        g.fillStyle = 'rgba(150,226,250,' + (0.45 + 0.3 * near).toFixed(2) + ')'; g.fillRect(x, Math.max(0, yc - 1), 1, 2);       // la crête
+        if (near > 0.45 && hsh(x, Math.floor(clock * 10), 1) < near - 0.2) fw(x, Math.max(0, yc - 1), 1, 1 + (near > 0.8 ? 1 : 0), 1);   // elle moutonne
+      }
+      if (!any) { wave = null; nextWave = 8.5 + Math.random() * 3; }
+    }
+    if (PAL.sun) { g.fillStyle = PAL.sun; g.fillRect(0, 0, PW, QY); }              // le couchant sur l'eau
+    if (PAL.glints) for (y = 1; y < QY - 2; y += 2) for (x = (y * 5) % 7; x < PW; x += 7) { var gl = hsh(x, y, Math.floor(clock * 2.5 + x * 0.01)); if (gl < 0.035) { g.fillStyle = gl < 0.014 ? '#ffd05a' : '#ff8fbf'; g.fillRect(x, y, 3, 1); } }   // il scintille rose et or
+    /* l'écume : le petit clapot permanent au pied du mur, et la gerbe quand la série tape */
+    for (x = 0; x < PW; x++) {
+      if (hsh(x, Math.floor(clock * 3 + x * 0.05), 2) < 0.45) fw(x, QY - 1 - Math.floor(hsh(x, 3, Math.floor(clock * 3)) * 2), 1, 1, 0.75);
+      var h0 = hitT[x]; if (h0 == null) continue;
+      a = clock - h0; if (a > 2.6) continue;
+      var hh = QY * 0.6 * (a < 0.22 ? a / 0.22 : Math.max(0, 1 - (a - 0.22) / 1.8)), dens = a < 0.4 ? 0.9 : Math.max(0, 0.9 - (a - 0.4) / 2.2);
+      for (y = 0; y < hh; y++) if (hsh(x >> 1, y >> 1, Math.floor(a * 7)) < dens * (1 - y / (hh + 1) * 0.6)) fw(x, QY - 1 - y, 1, 1, y < hh * 0.6 ? 1 : 0.6);
+      if (a < 0.4) { var over = Math.round(WH * 0.9 * (1 - a / 0.4)); for (y = 0; y < over; y++) if (hsh(x >> 1, (y >> 1) + 50, Math.floor(a * 12)) < 0.55 * (1 - y / (over + 1))) fw(x, QY + y, 1, 1, 0.85); }   // la gerbe passe par-dessus le mur
+    }
+    /* le mur mouillé, qui sèche */
+    for (x = 0; x < PW; x++) { if (!wet[x]) continue; wet[x] *= Math.exp(-dt / 2.5); if (wet[x] < 0.02) { wet[x] = 0; continue; } g.fillStyle = 'rgba(70,36,44,' + (wet[x] * 0.32).toFixed(3) + ')'; g.fillRect(x, QY + 1, 1, WH - 2); }
+    /* les gouttes jetées sur le terre-plein */
+    for (k = spray.length - 1; k >= 0; k--) {
+      var sp = spray[k]; sp.t += dt; if (sp.t > sp.life) { spray.splice(k, 1); continue; }
+      sp.x += sp.vx * dt; sp.y += sp.vy * dt; sp.vx *= Math.exp(-3 * dt); sp.vy *= Math.exp(-3 * dt);
+      fw(Math.round(sp.x), Math.round(sp.y), sp.t < 0.15 ? 2 : 1, 1, 0.9 * (1 - sp.t / sp.life));
+    }
+  }
+
+  /* ---------- la nuit : une carte de lumière calculée une fois, tramée en paliers comme un vieux jeu, multipliée sur la scène ---------- */
+  var lightC = null, lampsAt = [], garland = [];
+  var BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+  function makeLight() {
+    lightC = softC = glowC = null; lampsAt = []; garland = [];
+    var nt = PAL.night; if (!nt) return;
+    var L = nt.lamps.map(function (l) { return { x: l.x * PW, y: l.y === 'wall' ? QY + WH * 0.5 : l.y === 'foot' ? QY + WH + 5 : typeof l.y === 'number' ? l.y * PH : PH * 0.45, r: l.r * PW, c: l.c, i: l.i, refl: l.refl, head: l.head, glow: l.glow || 0 }; });
+    if (nt.garland) {                                                              // une guirlande de guinguette tendue au-dessus du terre-plein
+      var cols = [[1, 0.72, 0.3], [1, 0.45, 0.38], [0.55, 1, 0.6], [1, 0.9, 0.7], [0.5, 0.8, 1]], n = 7;
+      for (var q = 0; q < n; q++) { var u = (q + 0.5) / n, gx = u * PW, gy = QY + WH + PH * 0.1 + Math.sin(u * Math.PI) * PH * 0.16 + u * PH * 0.12; garland.push({ x: gx, y: gy, c: cols[q % cols.length] }); L.push({ x: gx, y: gy, r: PW * 0.3, c: cols[q % cols.length], i: 0.75 }); }
+    }
+    lampsAt = L;
+    var c2 = document.createElement('canvas'); c2.width = PW; c2.height = PH;
+    var x2 = c2.getContext('2d'), im = x2.createImageData(PW, PH), d = im.data, x, y, k, i;
+    for (y = 0; y < PH; y++) for (x = 0; x < PW; x++) {
+      var r = nt.amb[0], gg = nt.amb[1], b = nt.amb[2];
+      for (k = 0; k < L.length; k++) { var l = L[k], dd = Math.hypot(x - l.x, y - l.y) / l.r, f = l.i * Math.pow(Math.max(0, 1 - dd), 1.6) + l.i * 0.08 / (1 + dd * dd * 4); r += l.c[0] * f; gg += l.c[1] * f; b += l.c[2] * f; }
+      var th = (BAYER[(y & 3) * 4 + (x & 3)] + 0.5) / 16;
+      i = (y * PW + x) * 4;
+      d[i] = Math.min(255, Math.floor(r * 7 + th) / 7 * 255); d[i + 1] = Math.min(255, Math.floor(gg * 7 + th) / 7 * 255); d[i + 2] = Math.min(255, Math.floor(b * 7 + th) / 7 * 255); d[i + 3] = 255;
+    }
+    x2.putImageData(im, 0, 0); lightC = c2;
+    var sf = nt.soft == null ? 0.5 : nt.soft, c3 = document.createElement('canvas'), x3, im3, d3, c4 = document.createElement('canvas'), x4, im4, d4;
+    c3.width = c4.width = PW; c3.height = c4.height = PH; x3 = c3.getContext('2d'); x4 = c4.getContext('2d');
+    im3 = x3.createImageData(PW, PH); d3 = im3.data; im4 = x4.createImageData(PW, PH); d4 = im4.data;
+    for (y = 0; y < PH; y++) for (x = 0; x < PW; x++) {
+      i = (y * PW + x) * 4;
+      for (k = 0; k < 3; k++) d3[i + k] = 255 - (255 - d[i + k]) * (1 - sf);       // les personnages : moins assombris, pour qu'on voie bien où taper
+      d3[i + 3] = 255;
+      var gr = 0, gg2 = 0, gb = 0;
+      for (k = 0; k < L.length; k++) { var l2 = L[k]; if (!l2.glow) continue; var e = Math.hypot(x - l2.x, y - l2.y) / l2.r, f2 = l2.glow * Math.pow(Math.max(0, 1 - e), 2); gr += l2.c[0] * f2; gg2 += l2.c[1] * f2; gb += l2.c[2] * f2; }
+      var th2 = (BAYER[(y & 3) * 4 + (x & 3)] + 0.5) / 16;
+      d4[i] = Math.min(255, Math.floor(gr * 14 + th2) / 14 * 255); d4[i + 1] = Math.min(255, Math.floor(gg2 * 14 + th2) / 14 * 255); d4[i + 2] = Math.min(255, Math.floor(gb * 14 + th2) / 14 * 255); d4[i + 3] = 255;
+    }
+    x3.putImageData(im3, 0, 0); x4.putImageData(im4, 0, 0); softC = c3; glowC = c4;
+    fgC.width = f2C.width = PW; fgC.height = f2C.height = PH;
+  }
+  var softC = null, glowC = null, fgC = document.createElement('canvas'), fgX = fgC.getContext('2d'), f2C = document.createElement('canvas'), f2X = f2C.getContext('2d'), mainG = null;
+  function lightBack() { if (!lightC) return; g.globalCompositeOperation = 'multiply'; g.drawImage(lightC, 0, 0); g.globalCompositeOperation = 'source-over'; mainG = g; g = fgX; g.clearRect(0, 0, PW, PH); g.imageSmoothingEnabled = false; }
+  function lightFront() {
+    if (!lightC) return;
+    g = mainG;
+    f2X.globalCompositeOperation = 'source-over'; f2X.clearRect(0, 0, PW, PH); f2X.drawImage(fgC, 0, 0);
+    f2X.globalCompositeOperation = 'multiply'; f2X.drawImage(softC, 0, 0);
+    f2X.globalCompositeOperation = 'destination-in'; f2X.drawImage(fgC, 0, 0); f2X.globalCompositeOperation = 'source-over';
+    g.drawImage(f2C, 0, 0);
+    g.globalCompositeOperation = 'lighter'; g.drawImage(glowC, 0, 0); g.globalCompositeOperation = 'source-over';
+  }
+  function nightPost() {
+    if (!lightC) return;
+    g.globalCompositeOperation = 'lighter';
+    var k, x, y;
+    for (k = 0; k < lampsAt.length; k++) {                                         // le reflet des lampes qui tremble sur l'eau
+      var l = lampsAt[k]; if (!l.refl) continue;
+      for (y = 1; y < QY; y += 2) { var w2 = Math.max(0, 1 - Math.abs(y - QY) / (QY * 1.4)); for (x = Math.max(0, Math.round(l.x - 10)); x < l.x + l.r * 0.6; x += 3) if (hsh(x, y, Math.floor(clock * 4)) < 0.35 * w2 * Math.max(0, 1 - (x - l.x) / (l.r * 0.6))) { g.fillStyle = 'rgba(255,190,90,.55)'; g.fillRect(x, y, 3, 1); } }
+    }
+    if (PAL.bio) for (k = 0; k < bioP.length; k += 5) { g.fillStyle = 'rgba(40,255,220,' + (bioP[k + 4] * 0.9).toFixed(2) + ')'; g.fillRect(bioP[k], bioP[k + 1], bioP[k + 2], bioP[k + 3]); }   // le plancton s'allume dans l'écume
+    g.globalCompositeOperation = 'source-over';
+    for (k = 0; k < lampsAt.length; k++) {                                         // les balises basses, vues du dessus
+      var b = lampsAt[k]; if (!b.head) continue;
+      g.fillStyle = OUT; g.fillRect(Math.round(b.x) - 3, Math.round(b.y) - 3, 6, 6);
+      g.fillStyle = '#3a4a4a'; g.fillRect(Math.round(b.x) - 2, Math.round(b.y) - 2, 4, 4); g.fillStyle = '#fff1c8'; g.fillRect(Math.round(b.x) - 1, Math.round(b.y) - 1, 2, 2);
+    }
+    if (garland.length) {                                                          // le fil, puis les ampoules, au-dessus de tout
+      g.fillStyle = 'rgba(10,20,14,.8)';
+      for (k = 0; k < garland.length - 1; k++) { var a0 = garland[k], a1 = garland[k + 1]; for (var t2 = 0; t2 < 1; t2 += 0.04) { var sag = Math.sin(t2 * Math.PI) * 6; g.fillRect(Math.round(a0.x + (a1.x - a0.x) * t2), Math.round(a0.y + (a1.y - a0.y) * t2 + sag), 1, 1); } }
+      g.fillRect(0, Math.round(garland[0].y - 8), Math.round(garland[0].x), 1); g.fillRect(Math.round(garland[garland.length - 1].x), Math.round(garland[garland.length - 1].y), PW, 1);
+      for (k = 0; k < garland.length; k++) { var gb = garland[k], cc = gb.c; g.fillStyle = 'rgba(' + Math.round(cc[0] * 255) + ',' + Math.round(cc[1] * 255) + ',' + Math.round(cc[2] * 255) + ',.35)'; g.fillRect(Math.round(gb.x) - 3, Math.round(gb.y) - 2, 6, 6); g.fillStyle = '#fffbe8'; g.fillRect(Math.round(gb.x) - 1, Math.round(gb.y), 2, 3); }
+    }
+  }
+  function applyPal() { if (PAL.css) for (var k in PAL.css) document.documentElement.style.setProperty('--' + k, PAL.css[k]); }
+
+  /* ---------- les petits crabes de La Moule Volante, craintifs : ils approchent des frites, et détalent dès que la barquette vient sur eux ---------- */
+  var crabs = [], CS = 2, crC = document.createElement('canvas'), crX = crC.getContext('2d', { willReadFrequently: true }), olC = document.createElement('canvas'), olX = olC.getContext('2d');
+  crC.width = crC.height = olC.width = olC.height = 26;
+  function cpx(cx, cy, x, y, w, h, col) { crX.fillStyle = col; crX.fillRect(Math.round(cx + x), Math.round(cy + y), Math.max(1, Math.round(w)), Math.max(1, Math.round(h))); }
+  function smallCrab(prox, legJ, lookDx, lookDy, seed) {   // le dessin de drawSmallCrab (La Moule Volante), au pas de 2 pixels
+    var s = CS, cx = 13, cy = 14, freq = 0.8 + prox * 5, twitch = Math.sin(clock * freq * 8 + seed) * (0.3 + prox * 1.4) * s / 6 * 2, open = prox * s * 0.7;
+    crX.clearRect(0, 0, 26, 26);
+    cpx(cx, cy, -s * 4.5, -s * 1 + legJ * 0.6, s, s * 1.5, '#902010'); cpx(cx, cy, -s * 4, s * 0.3 + legJ, s, s * 1.5, '#902010'); cpx(cx, cy, -s * 4.5, s * 1.5 - legJ * 0.4, s, s * 1.2, '#902010');
+    cpx(cx, cy, s * 3.5, -s * 1 - legJ * 0.6, s, s * 1.5, '#902010'); cpx(cx, cy, s * 3, s * 0.3 - legJ, s, s * 1.5, '#902010'); cpx(cx, cy, s * 3.5, s * 1.5 + legJ * 0.4, s, s * 1.2, '#902010');
+    cpx(cx, cy, -s * 3.5, -s * 2.5, s * 0.8, s, '#a02808'); cpx(cx, cy, -s * 4, -s * 3.5, s * 1.5, s, '#a02808');
+    cpx(cx, cy, -s * 4.2, -s * 4.3 - open + twitch, s * 1.8, s * 0.8, '#c82810'); cpx(cx, cy, -s * 4.2, -s * 3 + open * 0.4 - twitch, s * 1.8, s * 0.4, '#c82810');
+    cpx(cx, cy, s * 2.7, -s * 2.5, s * 0.8, s, '#a02808'); cpx(cx, cy, s * 2.5, -s * 3.5, s * 1.5, s, '#a02808');
+    cpx(cx, cy, s * 2.4, -s * 4.3 - open - twitch, s * 1.8, s * 0.8, '#c82810'); cpx(cx, cy, s * 2.4, -s * 3 + open * 0.4 + twitch, s * 1.8, s * 0.4, '#c82810');
+    cpx(cx, cy, -s * 2.5, s * 1, s * 5, s, '#902010'); cpx(cx, cy, -s * 3, -s * 0.5, s * 6, s * 1.7, '#b02010'); cpx(cx, cy, -s * 2.5, -s * 1.5, s * 5, s * 1.2, '#c82010');
+    cpx(cx, cy, -s * 2, -s * 2, s * 4, s * 0.7, '#e03020'); cpx(cx, cy, -s, -s * 2, s * 2, s * 0.5, '#ff5530');
+    cpx(cx, cy, -s * 1.3, -s * 2.8, s * 0.5, s * 0.8, '#902010'); cpx(cx, cy, s * 0.8, -s * 2.8, s * 0.5, s * 0.8, '#902010');
+    var shut = prox > 0.4 && ((clock * (3 + prox * 6) + seed) % 1) < 0.16;                // il cligne quand il panique
+    if (shut) { cpx(cx, cy, -s * 1.6, -s * 3.15, s, s * 0.3, '#0a0a0a'); cpx(cx, cy, s * 0.6, -s * 3.15, s, s * 0.3, '#0a0a0a'); }
+    else {
+      cpx(cx, cy, -s * 1.6, -s * 3.5, s, s, '#0a0a0a'); cpx(cx, cy, s * 0.6, -s * 3.5, s, s, '#0a0a0a');
+      cpx(cx + lookDx, cy + lookDy, -s * 1.4, -s * 3.3, s * 0.4, s * 0.4, '#fff'); cpx(cx + lookDx, cy + lookDy, s * 0.8, -s * 3.3, s * 0.4, s * 0.4, '#fff');
+    }
+    olX.clearRect(0, 0, 26, 26); olX.globalCompositeOperation = 'source-over'; olX.drawImage(crC, 0, 0);   // son liseré, comme le goéland et la barquette
+    olX.globalCompositeOperation = 'source-in'; olX.fillStyle = OUT; olX.fillRect(0, 0, 26, 26); olX.globalCompositeOperation = 'source-over';
+  }
+  function makeCrabs() {
+    var n = clamp(Math.round(PW * PH / 9300), 4, 8), k, tries;            // un tiers de moins qu'avant : ils vont et viennent hors de l'écran
+    crabs = [];
+    for (k = 0; k < n; k++) {
+      var c = { x: 0, y: 0, face: -Math.PI / 2, st: 'wait', tm: Math.random() * 2, mv: false, mt: 0, rc: (k % 3 === 2 ? 30 + Math.random() * 50 : 5 + Math.random() * 13) * SC, side: Math.random() < 0.5 ? -1 : 1, legP: Math.random() * 9, stress: 0, vx: 0, vy: 0, seed: Math.random() * 9 };
+      for (tries = 0; tries < 30; tries++) { c.x = k % 3 === 1 ? (Math.random() < 0.5 ? -30 : PW + 30) : 8 + Math.random() * (PW - 16); c.y = QY + WH + 8 + Math.random() * (PH - QY - WH - 16); if (Math.hypot(c.x - T.x, c.y - T.y) > 60 * SC) break; }
+      crabs.push(c);
+    }
+  }
+  function flee(c, fx, fy, pw) {
+    var a = Math.atan2(c.y - fy, c.x - fx) + (Math.random() - 0.5) * 0.9, sp = (85 + Math.random() * 55) * (pw || 1);
+    c.st = 'run'; c.tm = 0.45 + Math.random() * 0.5; c.vx = Math.cos(a) * sp; c.vy = Math.sin(a) * sp; c.side = -c.side;
+  }
+  function scareAt(x) { for (var k = 0; k < crabs.length; k++) { var c = crabs[k]; if (c.st !== 'run' && c.y < QY + WH + 34 && Math.abs(c.x - x) < 40 && Math.random() < 0.08) flee(c, x, QY, 0.8); } }
+  function scarePeck() { for (var k = 0; k < crabs.length; k++) { var c = crabs[k], d = Math.hypot(c.x - T.x, c.y - T.y) - 24 * SC; if (c.st !== 'run' && d < c.rc * 1.3 && Math.random() < 0.35) flee(c, T.x, T.y); } }
+  function updCrabs(dt) {
+    var TR = 24 * SC, GR = 16 * SC * GS, k, j;
+    for (k = 0; k < crabs.length; k++) {
+      var c = crabs[k], dxT = c.x - T.x, dyT = c.y - T.y, dT = Math.hypot(dxT, dyT), dG = Math.hypot(c.x - B.x, c.y - B.y) - GR, d = Math.min(dT - TR, dG);
+      var aim = Math.atan2(-dyT, -dxT), closing = dT > 1 ? (T.vx * dxT + T.vy * dyT) / dT : 0, mov = 0;
+      if (c.st !== 'run' && (d < c.rc * 0.45 || (closing > 70 && d < c.rc * 1.1))) flee(c, dG < dT - TR ? B.x : T.x, dG < dT - TR ? B.y : T.y);
+      if (c.st === 'run') {
+        c.x += c.vx * dt; c.y += c.vy * dt; c.vx *= Math.exp(-1.2 * dt); c.vy *= Math.exp(-1.2 * dt); mov = 1.6;
+        c.tm -= dt; if (c.tm < 0) { c.st = 'wait'; c.tm = (c.x < -10 || c.x > PW + 10 || c.y > PH + 10) ? 1.5 + Math.random() * 4 : 0.4 + Math.random() * 1.2; }
+      } else if (c.st === 'wait') {
+        c.tm -= dt; if (c.tm < 0) { c.st = 'go'; c.mt = 0; c.mv = false; }
+      } else {
+        c.mt -= dt; if (c.mt < 0) { c.mv = !c.mv; c.mt = c.mv ? 0.35 + Math.random() * 0.6 : 0.2 + Math.random() * 0.7; if (Math.random() < 0.08) c.side = -c.side; }
+        if (c.mv) {
+          var sp = 24 + 10 * Math.sin(c.seed * 3), mx, my;
+          if (d > c.rc * 1.15) { var ma = aim + c.side * 0.85; mx = Math.cos(ma); my = Math.sin(ma); }                                   // il approche de biais, comme un crabe
+          else { var ta = aim + c.side * Math.PI / 2, rr = clamp((d - c.rc) / (c.rc * 0.3 + 6), -1, 1); mx = Math.cos(ta) + Math.cos(aim) * rr; my = Math.sin(ta) + Math.sin(aim) * rr; sp *= 0.6; }   // puis il tourne autour, en crabe : de côté
+          var mn = Math.hypot(mx, my) || 1; c.x += mx / mn * sp * dt; c.y += my / mn * sp * dt; mov = 1;
+        }
+      }
+      var fa = aim - c.face; while (fa > Math.PI) fa -= TAU; while (fa < -Math.PI) fa += TAU;
+      fa += Math.sin(clock * 0.7 + c.seed * 5) * 0.3; while (fa > Math.PI) fa -= TAU; while (fa < -Math.PI) fa += TAU;
+      if (c.st !== 'run') c.face += fa * Math.min(1, 4 * dt);
+      c.legP += dt * 26 * mov;
+      var want = c.st === 'run' ? 1 : clamp(1 - (d - c.rc * 0.5) / (c.rc * 1.1), 0, 1);
+      c.stress += (want * want - c.stress) * Math.min(1, 6 * dt);
+    }
+    solveCrabs();
+  }
+  /* les crabes sont en dur : ils se cognent entre eux, la barquette les pousse, ils contournent le goéland */
+  var CR = 8, OFF = 70;                                                         // OFF : jusqu'où ils peuvent s'éloigner hors de l'écran                                                                    // le rayon d'un crabe, pattes comprises
+  function pushOut(c, px, py, r, kick) {
+    var ex = c.x - px, ey = c.y - py, e = Math.hypot(ex, ey), m = r + CR;
+    if (e >= m) return false;
+    if (e < 0.01) { ex = 1; ey = 0; e = 1; }
+    c.x = px + ex / e * m; c.y = py + ey / e * m;
+    return true;
+  }
+  function solveCrabs() {
+    var n = crabs.length, it, k, j, ca = Math.cos(T.a), sa = Math.sin(T.a), hw = TW / 2 * SC + CR - 1, hh = TH / 2 * SC + CR - 1, gx = Math.cos(B.a), gy = Math.sin(B.a);
+    for (it = 0; it < 4; it++) {
+      for (k = 0; k < n; k++) {
+        var c = crabs[k];
+        for (j = k + 1; j < n; j++) {                                            // entre crabes : chacun recule de la moitié du chevauchement, et le choc se transmet
+          var o = crabs[j], ex = o.x - c.x, ey = o.y - c.y, e = Math.hypot(ex, ey);
+          if (e >= CR * 2) continue;
+          if (e < 0.01) { ex = Math.random() - 0.5; ey = Math.random() - 0.5; e = Math.hypot(ex, ey); }
+          var nx = ex / e, ny = ey / e, pu = (CR * 2 - e) / 2;
+          c.x -= nx * pu; c.y -= ny * pu; o.x += nx * pu; o.y += ny * pu;
+          if (it === 0) {
+            var rel = (c.vx - o.vx) * nx + (c.vy - o.vy) * ny;
+            if (rel > 0) { c.vx -= nx * rel * 0.6; c.vy -= ny * rel * 0.6; o.vx += nx * rel * 0.6; o.vy += ny * rel * 0.6;
+              if (o.st !== 'run' && rel > 40) { o.st = 'run'; o.tm = 0.25 + Math.random() * 0.2; } }   // bousculé, il part en crabe
+          }
+        }
+        /* la barquette : un rectangle tourné, qui pousse et emporte */
+        var dx = c.x - T.x, dy = c.y - T.y, lu = dx * ca + dy * sa, lv = -dx * sa + dy * ca;
+        if (Math.abs(lu) < hw && Math.abs(lv) < hh) {
+          if (hw - Math.abs(lu) < hh - Math.abs(lv)) lu = Math.sign(lu || 1) * hw; else lv = Math.sign(lv || 1) * hh;
+          c.x = T.x + lu * ca - lv * sa; c.y = T.y + lu * sa + lv * ca;
+          if (it === 0 && Math.hypot(T.vx, T.vy) > 30) { c.vx = T.vx * 1.1; c.vy = T.vy * 1.1; c.st = 'run'; c.tm = 0.3 + Math.random() * 0.3; }
+        }
+        /* le goéland : trois disques, le corps, la tête, les ailes croisées */
+        pushOut(c, B.x, B.y, 6.5 * SC * GS); pushOut(c, B.x + gx * 9 * SC * GS, B.y + gy * 9 * SC * GS, 3.5 * SC * GS); pushOut(c, B.x - gx * 13 * SC * GS, B.y - gy * 13 * SC * GS, 3 * SC * GS);
+        if (c.x < -OFF) { c.x = -OFF; c.vx = Math.abs(c.vx); } if (c.x > PW + OFF) { c.x = PW + OFF; c.vx = -Math.abs(c.vx); }   // pas de mur sur les côtés : ils sortent de l'écran
+        if (c.y < QY + WH + 7) { c.y = QY + WH + 7; c.vy = Math.abs(c.vy); } if (c.y > PH + OFF) { c.y = PH + OFF; c.vy = -Math.abs(c.vy); }
+      }
+    }
+  }
+  var rtC = document.createElement('canvas'), rtX = rtC.getContext('2d'), RT = 34; rtC.width = rtC.height = RT;
+  var outRGB = [parseInt(OUT.slice(1, 3), 16), parseInt(OUT.slice(3, 5), 16), parseInt(OUT.slice(5, 7), 16)];
+  function drawCrabs() {
+    for (var k = 0; k < crabs.length; k++) {
+      if (crabs[k].x < -20 || crabs[k].x > PW + 20 || crabs[k].y > PH + 20) continue;   // hors de l'écran
+      var c = crabs[k], legJ = Math.round(Math.sin(c.legP) * (c.st === 'run' ? 1.4 : 1)) + (c.stress > 0.3 ? Math.round(Math.sin(clock * 18 + c.seed) * c.stress * 0.8) : 0);
+      var th = Math.round((c.face + Math.PI / 2) / (TAU / 16)) * (TAU / 16), ca = Math.cos(th), sa = Math.sin(th), mag = 0.7 + c.stress * 0.5;
+      smallCrab(c.stress, legJ, 0, -Math.round(mag), c.seed);                     // il regarde devant lui : la barquette
+      var src = crX.getImageData(0, 0, 26, 26).data, out = rtX.createImageData(RT, RT), od = out.data, x, y, h = RT / 2, a = new Uint8Array(RT * RT);
+      for (y = 0; y < RT; y++) for (x = 0; x < RT; x++) {
+        var dx = x + 0.5 - h, dy = y + 0.5 - h, sx = Math.floor(dx * ca + dy * sa + 13), sy = Math.floor(-dx * sa + dy * ca + 13.5);
+        if (sx < 0 || sy < 0 || sx > 25 || sy > 25) continue;
+        var si = (sy * 26 + sx) * 4; if (src[si + 3] < 128) continue;
+        var oi = (y * RT + x) * 4; od[oi] = src[si]; od[oi + 1] = src[si + 1]; od[oi + 2] = src[si + 2]; od[oi + 3] = 255; a[y * RT + x] = 1;
+      }
+      for (y = 1; y < RT - 1; y++) for (x = 1; x < RT - 1; x++) {                 // le liseré, autour de la forme tournée
+        if (a[y * RT + x]) continue;
+        if (a[y * RT + x - 1] || a[y * RT + x + 1] || a[(y - 1) * RT + x] || a[(y + 1) * RT + x]) { var oj = (y * RT + x) * 4; od[oj] = outRGB[0]; od[oj + 1] = outRGB[1]; od[oj + 2] = outRGB[2]; od[oj + 3] = 255; }
+      }
+      rtX.putImageData(out, 0, 0);
+      var X0 = Math.round(c.x), Y0 = Math.round(c.y);
+      g.fillStyle = 'rgba(60,28,40,.28)'; g.fillRect(X0 - 7, Y0 - 4, 14, 10); g.fillRect(X0 - 5, Y0 - 6, 10, 14);   // son ombre, ronde : il est vu du dessus
+      g.drawImage(rtC, X0 - h - 1, Y0 - h - 2);
+    }
+  }
+
+  /* ---------- le goéland vu du dessus : chaque pixel est calculé dans son repère à lui, puis tourné ----------
+     u : vers l'avant (le bec), v : vers sa droite. Un goéland argenté : tête blanche, manteau gris, ailes repliées croisées sur la queue,
+     pointes noires à miroirs blancs, pattes roses, bec jaune à tache rouge, gros œil jaune cerclé de rouge. */
+  /* ---------- le goéland vu du dessus : « l'argenté élancé ». Chaque pixel est calculé dans son repère à lui, puis tourné ----------
+     u : vers l'avant (le bec), v : vers sa droite. Petite tête en œuf, l'œil sur le côté (on le voit dépasser de la silhouette),
+     manteau gris en fuseau, croissant blanc des tertiaires, rémiges noires croisées avec leur bout blanc, pattes roses.
+     Le bec s'ouvre de haut en bas : vu d'en haut, la mandibule du haut raccourcit et celle du bas dépasse avec sa tache rouge. */
+  var GC = { W: '#ffffff', w: '#efeef7', s: '#d6d4e6', m: '#b4bcd6', M: '#9fa8c6', d: '#858fae', k: '#24203e', K: '#17142c',
+    y: '#f8c22a', Y: '#ffdc6a', o: '#e0801a', r: '#e23a2e', e: '#15102b', E: '#ffe04a', R: '#e0563a', f: '#f0a08c', F: '#c86e5e', g: '#b9b6cc', L: '#cfd5e6' };
+  function H(a, b) { var v = Math.sin(a * 12.9898 + b * 78.233) * 43758.5453; return v - Math.floor(v); }
+  function makeGull(G) {
+    return function (u, v, P) {
+      var neck = P.neck || 0, hx = G.hx, hy = G.hy;
+      var hu = G.chest + G.neckL + hx * 0.6 + (G.neckL + 4.2) * neck, du, dv, q, av = Math.abs(v), v0 = v;
+      var hv = (P.look || 0) * 1.1 * Math.max(0, Math.min(1, (u - G.chest + 1) / 4));   // il tourne la tête : le cou suit
+      if (u > G.chest - 1) { v = v - hv; av = Math.abs(v); }
+      /* l'œil, au bord de la tête : il peut dépasser un peu de la silhouette */
+      if (G.eye === 'side') {
+        for (q = -1; q <= 1; q += 2) {
+          du = u - (hu + hx * 0.2); dv = v - q * (hy - 0.3);
+          var e2 = du * du + dv * dv;
+          if (e2 < 1.05) { if (P.blink) return 'w'; if (e2 < 0.3 && du > -0.2) return 'e'; return e2 < 0.62 ? 'E' : 'R'; }
+        }
+      }
+      /* la tête renversée en arrière (P.up) : le bec pointe vers la caméra, grand ouvert. Vu du dessus, c'est un losange jaune
+         (la mandibule du haut vers l'arrière de la tête, celle du bas vers l'avant, avec sa tache rouge), et dedans le rose de la bouche,
+         la langue, le fond de la gorge. */
+      var up = P.up || 0;
+      if (up > 0.05) {
+        var mu = u - (hu + hx * 0.15), mrx = 0.5 + 3.5 * up, mry = 0.5 + 2.9 * up, ma = Math.abs(mu) / mrx + Math.abs(v) / mry, mo = P.beak || 0;
+        if (ma < 1) {
+          if (ma > 1 - 0.34 / up || mo < 0.2) return mu < 0 ? 'Y' : (mu > mrx * 0.55 && v > 0 && G.spot ? 'r' : 'y');   // le bord des mandibules
+          if (ma < 0.22) return '#4a0b22';                                         // le fond de la gorge
+          if (mu > mrx * 0.15 && Math.abs(v) < mry * 0.4) return '#ff9aaa';          // la langue
+          return '#e4486a';
+        }
+      }
+      /* le bec */
+      var b0 = hu + hx * 0.8, blE = G.bl * (1 - up); du = u - b0;
+      if (du >= 0 && du < blE) {
+        var half = G.bw0 * (1 - du / G.bl * 0.45) - (du > G.bl - 1.2 ? (du - G.bl + 1.2) * 0.5 : 0), op = (P.beak || 0) * 1.5 * (du / G.bl);
+        if (P.beak > 0.05) {                        // un goéland ouvre le bec de haut en bas : vu du dessus, la mandibule du haut se relève et paraît plus courte,
+          var Lu = G.bl * (1 - 0.28 * P.beak);       // celle du bas dépasse devant avec sa tache rouge, et on voit le rose de la bouche aux commissures
+          if (Math.abs(v) < half) { if (du < Lu) return du > Lu - 1.1 ? 'o' : (v < -0.3 ? 'Y' : 'y'); return du > G.bl - 1.6 && G.spot ? 'r' : 'o'; }
+          if (du < 1.6 && Math.abs(v) < half + 0.55 * P.beak) return '#c8405a';
+        } else if (Math.abs(v) < half) { if (du > G.bl - 1.2) return 'o'; if (du > G.bl - 2.6 && v > 0.2 && G.spot) return 'r'; return v < -0.3 ? 'Y' : 'y'; }
+      }
+      /* la tête : un œuf, plus long que large, le front plus étroit */
+      du = (u - hu) / hx; dv = v / (hy * (1 - Math.max(0, du) * 0.18));
+      var h2 = du * du + dv * dv;
+      if (h2 < 1) {
+        if (G.eye === 'top') { var ey = av - hy * 0.62, ex = u - hu - hx * 0.15, ee = ex * ex + ey * ey; if (ee < 1.2) { if (P.blink) return 'w'; return ee < 0.4 ? 'e' : ee < 0.75 ? 'E' : 'R'; } }
+        if (G.brow) {                               // l'arcade : un trait gris en biais au-dessus de l'œil, qui lui donne l'air renfrogné
+          var bu = u - (hu + hx * 0.05), bvv = av - (hy - 1.15) + bu * 0.45;
+          if (bu > -1.2 && bu < 1.4 && Math.abs(bvv) < 0.42) return 'd';
+        }
+        if (G.streak && du < 0.4 && H(Math.round(u * 1.4), Math.round(v * 1.4)) < 0.32 + (du < -0.2 ? 0.2 : 0)) return 'g';
+        if (h2 > 0.62 && v > 0) return 's';
+        return du > 0.2 || v < 0 ? 'W' : 'w';
+      }
+      v = v0; av = Math.abs(v);
+      if (u > G.chest - 1) { var vn = v - hv; /* le cou */
+        if (u < hu && Math.abs(vn) < G.nw) return vn > G.nw * 0.45 ? 's' : 'W'; }
+      /* les doigts roses qui dépassent */
+      var st = Math.sin(P.step || 0);
+      for (q = -1; q <= 1; q += 2) {
+        du = u - (G.foot + q * st * 1.3); dv = av - (G.bw * 0.62);
+        if (v * q > 0 && du * du / 1.6 + dv * dv / 1.0 < 1 && du > -0.3) return dv > 0.2 ? 'F' : 'f';
+      }
+      /* le corps : fuseau, épaules en avant, effilé vers la queue */
+      var t = u > G.sh ? (u - G.sh) / (G.chest - G.sh) : (G.sh - u) / (G.sh - G.tail);
+      var pp = u > G.sh ? G.p : G.pb, bw = t < 1 ? G.bw * Math.pow(1 - Math.pow(t, pp), 1 / pp) : 0;
+      if (G.loose && u < G.sh) bw += G.loose * Math.max(0, Math.min(1, (G.sh - u) / 6)) * (1 - Math.max(0, t - 0.7) / 0.3);   // les ailes lâches débordent
+      if (av < bw) {
+        if (u > G.chest - 1.8) return v > 1.5 ? 's' : 'W';                          // la poitrine
+        if (av > bw - 0.9) return v > 0 ? 'd' : 'M';                                 // le bord des ailes
+        if (G.juv && ((Math.floor(u * 0.9) + Math.floor(av * 0.9)) % 2 === 0) && (u - Math.floor(u * 0.9) / 0.9) < 0.45) return 'L';   // les liserés clairs des plumes du jeune
+        if (G.juv && H(Math.floor(u * 1.8) + 7, Math.floor(av * 1.8)) < 0.16) return 'd';
+        if (av < 1.1 && u > G.tail + 6) return u > G.sh + 1.5 ? 'm' : 'M';          // le dos
+        if (!G.juv && u < G.sh - 5 && u > G.tail + 1.8 && av > 0.6 && av < 1.9 + (u - G.tail) * 0.05) return 'W';   // le croissant blanc des tertiaires
+        if (!G.juv && Math.abs(av - G.bw * 0.55 - (u - G.sh) * 0.05) < 0.4 && u > G.sh - 4.5) return 'L';          // la ligne des scapulaires
+        if (u < G.tail + 1.5) return 'k';
+        return v > 0 ? 'M' : 'm';
+      }
+      /* les rémiges noires, longues, croisées derrière la queue, avec leurs miroirs */
+      var p0 = G.tail + 3;
+      if (u < p0 && u > G.tip) {
+        for (q = -1; q <= 1; q += 2) {
+          var cv2 = q * (G.spread + (u - p0) * G.conv), wd = G.pw * (1 - Math.pow((p0 - u) / (p0 - G.tip), 3) * 0.6);
+          if (Math.abs(v - cv2) < wd) {
+            if (!G.juv && u < G.tip + 1.6 && Math.abs(v - cv2) < 0.9) return 'W';                 // le petit bout blanc
+            if (!G.juv && Math.abs(u - (G.tip + 4.2)) < 0.7 && Math.abs(v - cv2) < 0.6) return 'W';   // le miroir
+            if (!G.juv && G.mirror2 && Math.abs(u - (G.tip + 5.6)) < 0.6 && Math.abs(v - cv2) < 0.7) return 'W';
+            return q > 0 ? 'K' : 'k';
+          }
+        }
+        if (u > G.tail - 2.5 && av < 2.0 - (G.tail - u) * 0.4) return G.juv ? 'd' : 's';   // la queue, sous les ailes
+      }
+      return null;
+    };
+  }
+
+  var GULL = { chest: 6.2, neckL: 0.9, hx: 3.6, hy: 2.9, nw: 2.4, bl: 6.4, bw0: 1.25, spot: true, eye: 'side', foot: 3.5, sh: 0, bw: 6.2, tail: -13.5, p: 2.2, pb: 1.55, tip: -24.5, spread: 1.6, conv: 0.1, pw: 1.2, mirror2: false };
+  var gullAt = makeGull(GULL), GS = 1.6;            // GS : le goéland est dessiné 1,6 fois plus grand que la barquette (un vrai goéland fait deux barquettes de long)
+  var gullBuf = null;
+  function drawGull(cx, cy, ang, P, shadow) {      // rasterise le goéland tourné, pixel par pixel, avec son liseré
+    var R0 = Math.ceil(27 * SC * GS), S = R0 * 2 + 1, ca = Math.cos(ang), sa = Math.sin(ang), x, y, u, v, k, col, ix = Math.round(cx), iy = Math.round(cy);
+    if (!gullBuf || gullBuf.length !== S * S) gullBuf = new Array(S * S);
+    for (y = 0; y < S; y++) for (x = 0; x < S; x++) {
+      var dx = x - R0 + 0.5 - (cx - ix), dy = y - R0 + 0.5 - (cy - iy);
+      u = (dx * ca + dy * sa) / (SC * GS); v = (-dx * sa + dy * ca) / (SC * GS);
+      gullBuf[y * S + x] = gullAt(u, v, P);
+    }
+    if (shadow) {                                   // l'ombre, portée par le soleil bas
+      g.fillStyle = 'rgba(40,24,70,.28)';
+      for (y = 0; y < S; y++) for (x = 0; x < S; x++) if (gullBuf[y * S + x]) g.fillRect(ix - R0 + x + 5 * SC, iy - R0 + y + 6 * SC, 1, 1);
+    }
+    g.fillStyle = OUT;
+    for (y = 0; y < S; y++) for (x = 0; x < S; x++) {
+      if (gullBuf[y * S + x]) continue;
+      k = y * S + x;
+      if ((x > 0 && gullBuf[k - 1]) || (x < S - 1 && gullBuf[k + 1]) || (y > 0 && gullBuf[k - S]) || (y < S - 1 && gullBuf[k + S])) g.fillRect(ix - R0 + x, iy - R0 + y, 1, 1);
+    }
+    for (y = 0; y < S; y++) for (x = 0; x < S; x++) {
+      col = gullBuf[y * S + x]; if (!col) continue;
+      g.fillStyle = GC[col] || col; g.fillRect(ix - R0 + x, iy - R0 + y, 1, 1);
+    }
+  }
+
+  /* ---------- la barquette : carton blanc à rayures rouges, 50 frites, un peu de ketchup ---------- */
+  var TW = 38, TH = 26, fries = [];
+  function makeFries() {
+    var r = rng(1234 + Math.floor(Math.random() * 1e6)), i;
+    fries = [];
+    for (i = 0; i < N; i++) fries.push({ x: -12.5 + r() * 25, y: -6.5 + r() * 13, a: r() * Math.PI, l: 5 + Math.floor(r() * 4), z: r(), on: true });
+    fries.sort(function (p, q) { return p.z - q.z; });
+  }
+  /* ---------- les barquettes : en plastique à rainures (vues du dessus : un rebord, des parois en pente striées, un fond plat), ou le carton rayé ---------- */
+  var TRAYS = {
+    carton: null,
+    blanc: { rim: '#fbfbf6', wl: ['#ffffff', '#d9dad3'], wm: ['#d8d8d1', '#bdbdb6'], wd: ['#b9b9b2', '#989892'], bot: '#ecebe3', edge: '#c9c8c0', sh: 0.3 },
+    rouge: { rim: '#ff7462', wl: ['#ff8c78', '#e8402f'], wm: ['#e0402f', '#b82a1e'], wd: ['#b52a1e', '#86180f'], bot: '#d6352a', edge: '#a92419', sh: 0.3 },
+    cristal: { rim: 'rgba(255,255,255,.92)', wl: ['rgba(255,255,255,.8)', 'rgba(215,232,255,.32)'], wm: ['rgba(240,246,255,.6)', 'rgba(190,210,240,.25)'], wd: ['rgba(200,214,240,.5)', 'rgba(140,160,205,.22)'], bot: 'rgba(235,244,255,.14)', edge: 'rgba(255,255,255,.55)', sh: 0.14 },
+    noir: { rim: '#6a6a78', wl: ['#6a6a7e', '#45455a'], wm: ['#45455a', '#30303e'], wd: ['#33333f', '#1d1d25'], bot: '#26262e', edge: '#3a3a46', sh: 0.35 }
+  };
+  var TRAY = 'cristal';
+  function drawTray(cx, cy, ang) {
+    var ca = Math.cos(ang), sa = Math.sin(ang), x, y, u, v, col, ix = Math.round(cx), iy = Math.round(cy), R0 = 26 * SC, i, f, k, TS = TRAYS[TRAY];
+    function plasticAt(u, v) {
+      var hw = TW / 2, hh = TH / 2, rc = 5, WALL = 5.6, qx = Math.abs(u) - (hw - rc), qy = Math.abs(v) - (hh - rc);
+      var d = Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) + Math.min(Math.max(qx, qy), 0) - rc;
+      if (d > 0) return null;
+      if (d > -0.6) return OUT;
+      if (d > -1.7) return TS.rim;                                                 // le rebord plat
+      if (d > -WALL) {                                                            // la paroi en pente, avec ses rainures
+        var ox, oy, sr;
+        if (qx > 0 && qy > 0) { var ql = Math.hypot(qx, qy); ox = Math.sign(u) * qx / ql; oy = Math.sign(v) * qy / ql; sr = Math.atan2(qy, qx) * rc * 1.6 + (u > 0 ? 50 : 0) + (v > 0 ? 100 : 0); }
+        else if (qx > qy) { ox = Math.sign(u); oy = 0; sr = v; } else { ox = 0; oy = Math.sign(v); sr = u; }
+        var lit = -(ox * ca - oy * sa) * -0.6 - (ox * sa + oy * ca) * -0.8, rib = Math.floor((sr + 60) / 1.5) & 1;   // la lumière vient d'en haut à gauche
+        if (d < -WALL + 0.8) return TS.edge;
+        return lit > 0.3 ? TS.wl[rib] : lit < -0.3 ? TS.wd[rib] : TS.wm[rib];
+      }
+      return TS.bot;
+    }
+    var trayAt = TS ? plasticAt : function (u, v) {
+      var au = Math.abs(u), av = Math.abs(v);
+      if (au > TW / 2 || av > TH / 2) return null;
+      if (au > TW / 2 - 0.5 || av > TH / 2 - 0.5) return OUT;
+      if (au > TW / 2 - 3 || av > TH / 2 - 3) {                                 // le rebord, rayé de rouge
+        if (av > TH / 2 - 3 && Math.floor((u + 40) / 4) % 2 === 0) return '#e23a2e';
+        if (au > TW / 2 - 3 && Math.floor((v + 40) / 4) % 2 === 0) return '#e23a2e';
+        return u + v < 0 ? '#ffffff' : '#f1e8d8';
+      }
+      if (av > TH / 2 - 4) return '#cbbfa8';                                    // l'ombre du rebord, dedans
+      return '#e9dcc4';
+    };
+    g.fillStyle = 'rgba(40,24,70,' + (TS ? TS.sh : 0.3) + ')';
+    for (y = -R0; y <= R0; y++) for (x = -R0; x <= R0; x++) { u = (x * ca + y * sa) / SC; v = (-x * sa + y * ca) / SC; if (trayAt(u, v)) g.fillRect(ix + x + 3 * SC, iy + y + 4 * SC, 1, 1); }
+    for (y = -R0; y <= R0; y++) for (x = -R0; x <= R0; x++) { u = (x * ca + y * sa) / SC; v = (-x * sa + y * ca) / SC; col = trayAt(u, v); if (col) { g.fillStyle = col; g.fillRect(ix + x, iy + y, 1, 1); } }
+    /* le ketchup, dans un coin */
+    for (y = -6; y <= 6; y++) for (x = -8; x <= 8; x++) if (x * x / 64 + y * y / 36 < 1 - 0.15 * Math.sin(x * 1.3 + y)) { u = 11 * SC + x; v = -6 * SC + y; g.fillStyle = x + y < -6 ? '#ff8a7a' : x + y < 2 ? '#e8362c' : '#b81e1c'; g.fillRect(Math.round(ix + u * ca - v * sa), Math.round(iy + u * sa + v * ca), 1, 1); }
+    /* les frites */
+    for (i = 0; i < fries.length; i++) {
+      f = fries[i]; if (!f.on) continue;
+      var fa = ang + f.a, fc = Math.cos(fa), fs = Math.sin(fa), bx = ix + (f.x * ca - f.y * sa) * SC, by = iy + (f.x * sa + f.y * ca) * SC, L = f.l * SC;
+      for (k = 0; k < L; k++) {                    // le liseré brun de la frite
+        var px = Math.round(bx + (k - L / 2) * fc), py = Math.round(by + (k - L / 2) * fs);
+        g.fillStyle = '#7a4a10'; g.fillRect(px - 1, py - 1, 4, 4);
+      }
+      for (k = 0; k < L; k++) {                    // la frite : dorée, plus claire sur le dessus, bouts plus cuits
+        var qx = Math.round(bx + (k - L / 2) * fc), qy = Math.round(by + (k - L / 2) * fs);
+        g.fillStyle = k < 2 || k > L - 3 ? '#d99a2a' : f.z > 0.5 ? '#ffe27a' : '#ffd23f'; g.fillRect(qx, qy, 2, 2);
+        if (k > 1 && k < L - 2 && k % 3) { g.fillStyle = '#fff3b8'; g.fillRect(qx, qy, 1, 1); }
+      }
+    }
+  }
+
+  /* ---------- l'état de la scène ---------- */
+  var toss = null, T = { x: 0, y: 0, vx: 0, vy: 0, a: 0, va: 0 }, B = { x: 0, y: 0, a: 0, step: 0 }, peck = 0, peckT = 9, blinkT = 0, look = 0, flying = [], crumbs = [], burp = 0;
+  var zone = { x0: 0, y0: 0, x1: 0, y1: 0 };
+  function setZone() { zone = { x0: 22 * SC, y0: Math.round(PH * 0.1) + WH + 18 * SC, x1: PW - 22 * SC, y1: Math.round(PH * (state === 'menu' || state === 'over' ? 0.7 : 0.88)) }; }
+  function reset() {
+    setZone(); makeFries();
+    T.x = PW * 0.72; T.y = (zone.y0 + zone.y1) / 2; T.vx = T.vy = 0; T.a = -0.1; T.va = 0;
+    B.x = T.x - (23.6 * GS + 4.4) * SC; B.y = T.y + 6; B.a = 0; flying = []; crumbs = []; burp = 0; peckT = 9; toss = null;
+  }
+  function resize() {
+    dpr = Math.min(3, window.devicePixelRatio || 1);
+    var r = stage.getBoundingClientRect();
+    W = cv.width = Math.max(2, Math.round(r.width * dpr)); H = cv.height = Math.max(2, Math.round(r.height * dpr));
+    NPX = Math.max(1, Math.round(W / 220));
+    PW = pc.width = Math.ceil(W / NPX); PH = pc.height = Math.ceil(H / NPX);
+    groundC = makeGround(); setZone(); makeLight();
+    if (!fries.length) reset();
+    makeCrabs(); hitT = []; wet = []; spray = [];
+  }
+  window.addEventListener('resize', resize);
+
+  function setUi(p) { stage.dataset.ui = p; $('panel').hidden = p !== 'menu' && p !== 'over'; $('title').hidden = p !== 'menu'; $('hud').hidden = p === 'menu'; }
+  $('play').addEventListener('click', function () {
+    audio(); state = 'ready'; hits = []; misses = 0; down = {}; maxDown = 0; refused = 0; warnT = 0; lastHit = -1e9; F1 = { h: [], zz: 0, two: false, G: null, X: null, lastX: 0 }; reset(); setUi('ready');
+    $('left').textContent = N; $('time').textContent = '0,000';
+  });
+
+  /* ---------- un coup de bec ---------- */
+  function strike(tt) {
+    var left = fries.filter(function (f) { return f.on; }), f = left[Math.floor(Math.random() * left.length)];
+    f.on = false;
+    var ca = Math.cos(T.a), sa = Math.sin(T.a);
+    if (hits.length >= N) toss = { t: 0, l: f.l, spin: (Math.random() < 0.5 ? -1 : 1) * (9 + Math.random() * 5), snd: 0 };   // la dernière : il la jette en l'air
+    else flying.push({ x: T.x + (f.x * ca - f.y * sa) * SC, y: T.y + (f.x * sa + f.y * ca) * SC, a: T.a + f.a, l: f.l, t: 0, tx: 0, ty: 0 });
+    for (var k = 0; k < 4; k++) crumbs.push({ x: T.x + (Math.random() - 0.5) * 20 * SC, y: T.y + (Math.random() - 0.5) * 12 * SC, vx: (Math.random() - 0.5) * 70 * SC, vy: (Math.random() - 0.5) * 70 * SC, t: 0 });
+    var ang = Math.atan2(T.y - B.y, T.x - B.x) + (Math.random() - 0.5) * 2.4, pw = (55 + Math.random() * 70) * SC * (toss ? 0.3 : 1);   // la tête pousse la barquette, un peu au hasard
+    T.vx += Math.cos(ang) * pw; T.vy += Math.sin(ang) * pw; T.va += (Math.random() - 0.5) * 6;
+    peck = 1; peckT = 0; scarePeck();
+    tone(260 + Math.random() * 60, 120, 0.05, 'square', 0.05); tone(900, 1400, 0.03, 'triangle', 0.03, 0.04);
+  }
+  stage.addEventListener('pointerdown', function (e) {
+    if (e.target.closest && e.target.closest('.panel')) return;
+    if (state !== 'ready' && state !== 'run') return;
+    e.preventDefault();
+    var tt = performance.now(), r = stage.getBoundingClientRect(), px = (e.clientX - r.left) * dpr / NPX, py = (e.clientY - r.top) * dpr / NPX;
+    var dx = px - T.x, dy = py - T.y, ca = Math.cos(-T.a), sa = Math.sin(-T.a), u = dx * ca - dy * sa, v = dx * sa + dy * ca;
+    var inside = Math.abs(u) < (TW / 2 + 5) * SC && Math.abs(v) < (TH / 2 + 5) * SC;          // la barquette, avec un peu de marge pour le doigt
+    if (!inside) { if (state === 'run') misses++; crumbs.push({ x: px, y: py, vx: 0, vy: 0, t: 0, miss: true }); return; }
+    if (!oneFinger(e, tt, (e.clientX - r.left) - T.x * NPX / dpr, (e.clientY - r.top) - T.y * NPX / dpr)) { refused++; warnT = 0.9; return; }
+    if (state === 'ready') { state = 'run'; t0 = tt; }
+    lastHit = tt;
+    hits.push({ t: tt - t0 });
+    strike(tt);
+    $('left').textContent = N - hits.length;
+    if (hits.length >= N) finish();
+  }, { passive: false });
+  /* ---------- un seul doigt ----------
+     1) un doigt qui se pose alors qu'un autre touche encore la vitre ne compte pas ;
+     2) deux coups de bec comptés sont séparés d'au moins 80 ms (plus de 12 par seconde, aucun doigt seul ne suit une barquette qui bouge) ;
+     3) deux doigts qui alternent sans se chevaucher tapent en zigzag : un coup ici, un coup à un centimètre, un coup ici…
+        Dès que ce zigzag se répète, on reconnaît les deux doigts (par leur place par rapport à la barquette) et seul celui
+        qui tape le plus près du milieu de la barquette compte. Les positions sont en pixels CSS : 1 cm ≈ 38 px. */
+  var F1 = { h: [], zz: 0, two: false, G: null, X: null, lastX: 0 }, NEAR = 14, FAR = 26;
+  function oneFinger(e, tt, rx, ry) {
+    var others = Object.keys(down).filter(function (k) { return +k !== e.pointerId; }).length;
+    var h = F1.h; h.push([rx, ry]); if (h.length > 3) h.shift();
+    if (h.length === 3) {
+      var a = h[0], b = h[1], c = h[2], dAC = Math.hypot(a[0] - c[0], a[1] - c[1]), dAB = Math.hypot(a[0] - b[0], a[1] - b[1]), dBC = Math.hypot(b[0] - c[0], b[1] - c[1]);
+      if (dAC < NEAR && dAB > FAR && dBC > FAR) F1.zz++; else F1.zz = Math.max(0, F1.zz - 1);
+      if (!F1.two && F1.zz >= 3) {
+        var P = [(a[0] + c[0]) / 2, (a[1] + c[1]) / 2], Q = b;
+        F1.two = true; F1.lastX = tt;
+        if (Math.hypot(P[0], P[1]) <= Math.hypot(Q[0], Q[1])) { F1.G = P; F1.X = Q; } else { F1.G = Q; F1.X = P; }   // le doigt gardé : le plus près du milieu
+      }
+    }
+    if (F1.two && tt - F1.lastX > 1200) { F1.two = false; F1.zz = 0; }
+    if (others > 0) return false;
+    if (F1.two) {
+      var dG = Math.hypot(rx - F1.G[0], ry - F1.G[1]), dX = Math.hypot(rx - F1.X[0], ry - F1.X[1]);
+      if (dX < dG) { F1.X = [F1.X[0] * 0.6 + rx * 0.4, F1.X[1] * 0.6 + ry * 0.4]; F1.lastX = tt; return false; }
+      F1.G = [F1.G[0] * 0.6 + rx * 0.4, F1.G[1] * 0.6 + ry * 0.4];
+    }
+    if (tt - lastHit < 80) return false;
+    return true;
+  }
+  stage.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+  window.addEventListener('pointerdown', function (e) { lastDown = performance.now(); down[e.pointerId] = 1; var n = Object.keys(down).length; if (state === 'run' && n > maxDown) maxDown = n; }, true);
+  function up(e) { delete down[e.pointerId]; }
+  window.addEventListener('pointerup', up, true); window.addEventListener('pointercancel', up, true);
+
+  function finish() {
+    state = 'over';                                                                // le rot vient après la frite rattrapée
+    var ms = hits[hits.length - 1].t, prev = best, isNew = !best || ms < best;
+    if (isNew) { best = ms; store.set('gf_best', best); }
+    $('time').textContent = fr(ms / 1000, 3);
+    var iv = [], i, m = 0, sd = 0;
+    for (i = 1; i < hits.length; i++) iv.push(hits[i].t - hits[i - 1].t);
+    for (i = 0; i < iv.length; i++) m += iv[i]; m /= Math.max(1, iv.length);
+    for (i = 0; i < iv.length; i++) sd += (iv[i] - m) * (iv[i] - m); sd = Math.sqrt(sd / Math.max(1, iv.length));
+    setTimeout(function () {
+      var v = $('verdict');
+      v.textContent = isNew && prev ? 'NOUVEAU RECORD !' : prev ? 'TON RECORD : ' + fr(prev / 1000, 3) + ' S' : 'PREMIER CHRONO';
+      v.classList.toggle('new', isNew && !!prev);
+      $('big').innerHTML = fr(ms / 1000, 3) + '<small>S</small>'; $('big').hidden = false;
+      var rows = [['CADENCE', fr(N / (ms / 1000), 1) + ' /S'], ['RATÉS', String(misses)], ['RÉGULARITÉ', fr(m ? sd / m * 100 : 0, 0) + ' %'], ['REFUSÉS', String(refused)]];
+      $('stats').innerHTML = rows.map(function (r) { return '<div><dt>' + r[0] + '</dt><dd>' + r[1] + '</dd></div>'; }).join(''); $('stats').hidden = false;
+      $('playLbl').textContent = 'REJOUER'; $('play').disabled = true; setUi('over'); setZone();
+      var shown = performance.now();
+      (function arm() { var n2 = performance.now(); if (n2 - shown > 400 && n2 - lastDown > 400) $('play').disabled = false; else setTimeout(arm, 60); })();
+    }, 2100);
+  }
+
+  /* ---------- la boucle ---------- */
+  function frame(ts) {
+    requestAnimationFrame(frame);
+    var dt = Math.min(0.05, Math.max(0, (ts - last) / 1000)); last = ts; clock += dt;
+    if (state === 'run') $('time').textContent = fr((ts - t0) / 1000, 3);
+    /* la barquette glisse, freinée par le béton, et rebondit sur les bords */
+    var fk = Math.exp(-4.2 * dt);
+    T.vx *= fk; T.vy *= fk; T.va *= Math.exp(-5 * dt);
+    T.x += T.vx * dt; T.y += T.vy * dt; T.a += T.va * dt;
+    if (T.x < zone.x0) { T.x = zone.x0; T.vx = Math.abs(T.vx) * 0.6; } if (T.x > zone.x1) { T.x = zone.x1; T.vx = -Math.abs(T.vx) * 0.6; }
+    if (T.y < zone.y0) { T.y = zone.y0; T.vy = Math.abs(T.vy) * 0.6; } if (T.y > zone.y1) { T.y = zone.y1; T.vy = -Math.abs(T.vy) * 0.6; }
+    if (state === 'menu') { T.x += (PW * 0.72 - T.x) * dt; T.y += ((zone.y0 + zone.y1) / 2 - T.y) * dt; }
+    /* le goéland la suit : il se place pour que sa tête tombe dessus, se tourne vers elle, et trottine */
+    var dx = T.x - B.x, dy = T.y - B.y, dist = Math.hypot(dx, dy), want = (23.6 * GS + 3.4) * SC, aim = Math.atan2(dy, dx), da = aim - B.a;
+    while (da > Math.PI) da -= TAU; while (da < -Math.PI) da += TAU;
+    B.a += da * Math.min(1, 12 * dt);
+    var mv = (dist - want) * Math.min(1, 9 * dt);
+    if (Math.abs(dist - want) > 0.5) { B.x += dx / dist * mv; B.y += dy / dist * mv; B.step += Math.abs(mv) * 0.9 / SC; }
+    peckT += dt; peck = peckT < 0.05 ? peckT / 0.05 : Math.max(0, 1 - (peckT - 0.05) / 0.09);
+    blinkT -= dt; if (blinkT < -0.12) blinkT = 1.5 + Math.random() * 3;
+    if (state === 'menu' || state === 'over') look += ((Math.sin(clock * 0.9) > 0.3 ? 1 : Math.sin(clock * 0.9) < -0.3 ? -1 : 0) - look) * Math.min(1, 6 * dt);
+    else look *= 0.8;
+    if (state === 'menu' && Math.sin(clock * 1.7) > 0.97 && peckT > 0.6) { peckT = 0; }   // à l'accueil, il picore de temps en temps
+
+    g.imageSmoothingEnabled = false;
+    if (groundC) g.drawImage(groundC, 0, 0);
+    drawSea(dt); updCrabs(dt);
+    lightBack();                                                                   // la nuit tombe sur le décor ; crabes, barquette et goéland restent plus lisibles
+    drawCrabs();
+    drawTray(T.x, T.y, T.a);
+    for (var i = flying.length - 1; i >= 0; i--) {                                 // la frite gobée file vers le bec
+      var f = flying[i]; f.t += dt; if (f.t > 0.1) { flying.splice(i, 1); continue; }
+      var hx = B.x + Math.cos(B.a) * 19 * SC * GS, hy = B.y + Math.sin(B.a) * 19 * SC * GS, k = f.t / 0.1, fx = f.x + (hx - f.x) * k, fy = f.y + (hy - f.y) * k;
+      for (var kk = 0; kk < 8; kk++) { g.fillStyle = kk < 2 || kk > 5 ? '#d99a2a' : '#ffd23f'; g.fillRect(Math.round(fx + Math.cos(f.a) * (kk - 4)), Math.round(fy + Math.sin(f.a) * (kk - 4)), 2, 2); }
+    }
+    var GP = { neck: peck, beak: peck > 0.25 ? peck : 0, look: look, step: B.step, blink: blinkT < 0 ? 1 : 0, up: 0 }, tf = null;
+    if (toss) {
+      /* la dernière frite : 0 – 0,12 s il la pince, 0,12 – 0,3 s coup de tête, elle monte en tournant ; la tête se renverse,
+         le bec s'ouvre en grand vers nous ; vers 1 s elle retombe dedans, GLOUPS ; puis le rot */
+      var q = toss.t += dt, gx = Math.cos(B.a), gy = Math.sin(B.a), U = GULL, sc = SC * GS;
+      function headU(nk) { return U.chest + U.neckL + U.hx * 0.6 + (U.neckL + 4.2) * nk; }
+      var AIR0 = 0.24, AIR = 0.78, upA = clamp((q - 0.3) / 0.22, 0, 1) * (1 - clamp((q - AIR0 - AIR - 0.05) / 0.25, 0, 1));
+      GP.neck = q < 0.12 ? 1 : q < AIR0 ? 1 - (q - 0.12) / (AIR0 - 0.12) * 0.6 : 0.4 - 0.2 * upA; GP.beak = q < 0.12 ? 0 : q < AIR0 ? 0 : upA; GP.up = upA; GP.look = 0;
+      var tipU = headU(1) + U.hx * 0.8 + U.bl, mouthU = headU(0.2) + U.hx * 0.15;
+      if (q < AIR0) { var kk = q < 0.12 ? 0 : (q - 0.12) / (AIR0 - 0.12); tf = { u: tipU - kk * 3, h: kk * 6, a: B.a + Math.PI / 2 }; }          // pincée au bout du bec
+      else if (q < AIR0 + AIR) { var tau = (q - AIR0) / AIR; tf = { u: tipU - 3 + (mouthU - tipU + 3) * tau, h: 6 + 150 * tau * (1 - tau) - 6 * tau, a: B.a + Math.PI / 2 + toss.spin * (q - AIR0) }; }
+      if (q >= AIR0 && toss.snd === 0) { toss.snd = 1; tone(300, 900, 0.18, 'triangle', 0.05); }                            // hop
+      if (q >= AIR0 + AIR && toss.snd === 1) { toss.snd = 2; tone(520, 160, 0.16, 'square', 0.07); tone(240, 120, 0.12, 'sine', 0.06, 0.06); }   // GLOUPS
+      if (q >= AIR0 + AIR + 0.35 && toss.snd === 2) { toss.snd = 3; burp = 1; tone(140, 70, 0.45, 'sawtooth', 0.08); }                       // le rot
+      if (q > 3) toss = null;
+      if (tf) { tf.x = B.x + gx * tf.u * sc; tf.y = B.y + gy * tf.u * sc; }
+    }
+    drawGull(B.x, B.y, B.a, GP, true);
+    if (tf) {                                                                       // la frite en l'air : plus haut = plus grosse, son ombre reste au sol
+      var hgt = Math.max(0, tf.h), zoom = 1 + hgt / 70, Lf = toss.l * SC * zoom, oy = -hgt * 0.35 * SC, fc = Math.cos(tf.a), fs = Math.sin(tf.a), kq;
+      if (hgt > 2) { g.fillStyle = 'rgba(40,24,70,' + (0.3 * (1 - hgt / 120)).toFixed(2) + ')'; for (kq = 0; kq < toss.l * SC; kq++) g.fillRect(Math.round(tf.x + (kq - toss.l * SC / 2) * fc) + 3, Math.round(tf.y + (kq - toss.l * SC / 2) * fs) + 4, 2, 2); }
+      var th2 = Math.max(2, Math.round(2 * zoom));
+      for (kq = 0; kq < Lf; kq++) { g.fillStyle = '#7a4a10'; g.fillRect(Math.round(tf.x + (kq - Lf / 2) * fc) - 1, Math.round(tf.y + oy + (kq - Lf / 2) * fs) - 1, th2 + 2, th2 + 2); }
+      for (kq = 0; kq < Lf; kq++) { g.fillStyle = kq < 2 * zoom || kq > Lf - 2 * zoom ? '#d99a2a' : '#ffd23f'; g.fillRect(Math.round(tf.x + (kq - Lf / 2) * fc), Math.round(tf.y + oy + (kq - Lf / 2) * fs), th2, th2); }
+    }
+    for (i = crumbs.length - 1; i >= 0; i--) {                                     // les miettes, et les taps à côté
+      var c = crumbs[i]; c.t += dt; if (c.t > (c.miss ? 0.3 : 0.4)) { crumbs.splice(i, 1); continue; }
+      if (c.miss) { var rr = (3 + c.t * 30) * SC; g.fillStyle = 'rgba(255,84,112,' + (1 - c.t / 0.3).toFixed(2) + ')'; for (var a = 0; a < 12; a++) g.fillRect(Math.round(c.x + Math.cos(a / 12 * TAU) * rr), Math.round(c.y + Math.sin(a / 12 * TAU) * rr), 1, 1); continue; }
+      c.x += c.vx * dt; c.y += c.vy * dt; c.vx *= 0.9; c.vy *= 0.9;
+      g.fillStyle = '#e8b54a'; g.fillRect(Math.round(c.x), Math.round(c.y), 2, 2);
+    }
+    lightFront(); nightPost();
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(pc, 0, 0, PW * NPX, PH * NPX);
+    if (burp > 0) {                                                                // BURP
+      burp = Math.max(0, burp - dt * 0.6);
+      ctx.font = Math.round(W / 14) + 'px "Press Start 2P", monospace'; ctx.textAlign = 'center';
+      var bxp = clamp((B.x + Math.cos(B.a) * 20 * SC * GS) * NPX, W * 0.2, W * 0.8), byp = (B.y - 22 * SC) * NPX - (1 - burp) * W * 0.08;
+      ctx.globalAlpha = Math.min(1, burp * 2); ctx.fillStyle = OUT; ctx.fillText('BURP !', bxp + 3, byp + 3); ctx.fillStyle = '#ffd05a'; ctx.fillText('BURP !', bxp, byp); ctx.globalAlpha = 1;
+    }
+    if (warnT > 0 && state === 'run') {                                           // le rappel de la règle, quand un tap est refusé
+      warnT -= dt;
+      ctx.font = Math.round(W / 24) + 'px "Press Start 2P", monospace'; ctx.textAlign = 'center';
+      var wy = (T.y - 34 * SC) * NPX; ctx.globalAlpha = Math.min(1, warnT * 3);
+      ctx.fillStyle = OUT; ctx.fillText('UN SEUL DOIGT !', W / 2 + 2, wy + 2); ctx.fillStyle = '#4fe8e2'; ctx.fillText('UN SEUL DOIGT !', W / 2, wy); ctx.globalAlpha = 1;
+    }
+    if (state === 'ready' && Math.floor(clock * 2.4) % 3) {
+      ctx.font = Math.round(W / 26) + 'px "Press Start 2P", monospace'; ctx.textAlign = 'center';
+      ctx.fillStyle = OUT; ctx.fillText('TAPE DANS LA BARQUETTE', W / 2 + 2, (T.y + 30 * SC) * NPX + 2); ctx.fillStyle = '#ffffff'; ctx.fillText('TAPE DANS LA BARQUETTE', W / 2, (T.y + 30 * SC) * NPX);
+    }
+  }
+  function start() { applyPal(); resize(); setUi('menu'); if (best) $('verdict').innerHTML = 'TON RECORD : <b>' + fr(best / 1000, 3) + ' S</b><br>50 FRITES, TAPE DANS LA BARQUETTE.'; last = performance.now(); requestAnimationFrame(frame); }
+  if (window.claude && window.claude.hot && window.claude.hot.ready) window.claude.hot.ready(start); else start();
+})();
+</script>
+</body>
+</html>
