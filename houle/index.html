@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0d1117">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Houle – Cap Sizun, Iroise & Pays bigouden</title>
+<link rel="stylesheet" href="leaflet.css">
+<style>
+:root{--bg:#0d1117;--panel:#161b22;--line:#2b333d;--txt:#e6edf3;--mut:#8b96a3;--acc:#3fb6ff}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);font:14px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;overflow:hidden}
+#app{position:fixed;inset:0;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top)}
+header{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--panel);border-bottom:1px solid var(--line);z-index:5}
+header h1{font-size:15px;margin:0;font-weight:650;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{background:none;border:0;color:var(--mut);padding:6px 10px;font:inherit;font-size:13px}
+.seg button.on{background:var(--acc);color:#001018;font-weight:600}
+#map{flex:1;background:#0b1622}
+#now{position:absolute;left:10px;top:calc(56px + env(safe-area-inset-top));z-index:500;background:rgba(13,17,23,.86);border:1px solid var(--line);border-radius:10px;padding:8px 10px;max-width:calc(100% - 20px);font-size:13px;pointer-events:none}
+#now b{font-size:15px}
+#now .row{display:flex;gap:12px;flex-wrap:wrap}
+#legend{position:absolute;right:10px;top:calc(56px + env(safe-area-inset-top));z-index:500;background:rgba(13,17,23,.86);border:1px solid var(--line);border-radius:10px;padding:6px 8px;font-size:11px;color:var(--mut)}
+#legend canvas{display:block;width:16px;height:130px;border-radius:3px}
+#legend .lg{display:flex;gap:6px}
+#legend .lab{display:flex;flex-direction:column;justify-content:space-between;height:130px}
+#bottom{background:var(--panel);border-top:1px solid var(--line);padding:8px 0 calc(8px + env(safe-area-inset-bottom));z-index:5}
+#strip{display:flex;gap:6px;overflow-x:auto;padding:0 10px 4px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+.day{display:flex;flex-direction:column;gap:4px}
+.dname{font-size:11px;color:var(--mut);padding-left:2px;position:sticky;left:0}
+.slots{display:flex;gap:5px}
+.slot{flex:0 0 auto;width:62px;border:1px solid var(--line);border-radius:9px;padding:5px 4px;text-align:center;background:#0f141a;scroll-snap-align:start;cursor:pointer}
+.slot.on{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc) inset;background:#0d2230}
+.slot .h{font-size:11px;color:var(--mut)}
+.slot .hs{font-size:15px;font-weight:650}
+.slot .tp{font-size:11px}
+.ar{display:inline-block;line-height:1}
+.slot .ar{font-size:13px}
+.slot .wd{font-size:10px;color:var(--mut);margin-top:2px}
+#manual{display:none;padding:2px 14px 4px;gap:8px 16px;grid-template-columns:1fr 1fr}
+#manual label{font-size:12px;color:var(--mut);display:flex;flex-direction:column;gap:2px}
+#manual output{color:var(--txt);font-weight:600}
+#manual input{width:100%}
+#foot{display:flex;align-items:center;gap:10px;padding:6px 12px 0;font-size:11px;color:var(--mut)}
+#foot input{width:80px}
+#foot #src{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:38vw}
+#foot .sp{flex:1}
+#ctl{display:flex;align-items:center;gap:12px;padding:6px 12px 0;font-size:12px;color:var(--mut);flex-wrap:wrap}
+#ctl label{display:flex;align-items:center;gap:4px}
+#ctl input{width:auto}
+.seg.sm button{padding:4px 9px;font-size:12px}
+.lbl{color:#fff;font-size:11px;font-weight:600;text-shadow:0 0 3px #000,0 0 6px #000;white-space:nowrap}
+.leaflet-popup-content{font-size:13px;line-height:1.4;margin:10px 12px}
+.leaflet-container{background:#0b1622}
+#load{position:absolute;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;background:rgba(13,17,23,.9);font-size:14px}
+#info{display:none;position:absolute;inset:0;z-index:1100;background:rgba(0,0,0,.6);align-items:center;justify-content:center;padding:16px}
+#info .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;max-width:460px;font-size:13px}
+#info h2{font-size:15px;margin:0 0 8px}
+#info button{margin-top:10px;background:var(--acc);border:0;border-radius:8px;padding:8px 14px;font:inherit;font-weight:600}
+.ibtn{background:none;border:1px solid var(--line);color:var(--mut);border-radius:50%;width:28px;height:28px;font:inherit;font-weight:700}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>Houle · Sein → Bénodet</h1>
+    <div class="seg"><button id="mF" class="on">Prévision</button><button id="mM">Manuel</button></div>
+    <button class="ibtn" id="ib" aria-label="Informations">i</button>
+  </header>
+  <div id="map"></div>
+  <div id="now"></div>
+  <div id="legend"><div class="lg"><canvas id="lgc" width="16" height="130"></canvas><div class="lab" id="lgl"></div></div><div id="lgu" style="margin-top:4px">m</div><div id="wl" style="margin-top:6px;line-height:1.5">Vent côte<br><span style="color:#28dc5a">■</span> de terre<br><span style="color:#fad228">■</span> travers<br><span style="color:#f03c32">■</span> de mer<br><span style="color:#e6f0ff">■</span> calme</div></div>
+  <div id="bottom">
+    <div id="strip"></div>
+    <div id="manual">
+      <label>Direction <output id="oD"></output><input id="iD" type="range" min="170" max="340" step="5" value="270"></label>
+      <label>Période <output id="oT"></output><input id="iT" type="range" min="6" max="22" step="1" value="12"></label>
+      <label>Hauteur au large <output id="oH"></output><input id="iH" type="range" min="0.5" max="8" step="0.25" value="2"></label>
+      <label>Marée (niveau) <output id="oL"></output><input id="iL" type="range" min="-2.5" max="2.5" step="0.25" value="0"></label>
+    </div>
+    <div id="ctl"><div class="seg sm"><button id="vM" class="on">Mètres</button><button id="vX">Concentration</button></div><label><input id="iS" type="checkbox">Houle seule</label><label><input id="iW" type="checkbox" checked>Vent côte</label><a href="nica/" style="margin-left:auto;color:var(--acc);text-decoration:none">Nicaragua ›</a></div>
+    <div id="foot"><select id="mdl" style="background:#0f141a;color:var(--txt);border:1px solid var(--line);border-radius:6px;font-size:11px;padding:2px 4px"><option value="gfs">GFS (comme Windguru)</option><option value="mf">Météo-France</option></select><span id="src"></span><span class="sp"></span>Opacité <input id="iO" type="range" min="0" max="1" step="0.05" value="0.8"></div>
+  </div>
+  <div id="load">Chargement des cartes…</div>
+  <div id="info"><div class="card">
+    <h2>Comment lire la carte</h2>
+    <p>Les couleurs donnent la hauteur estimée des vagues près du bord, pour chaque houle prévue au large (houle principale, houle secondaire et mer du vent combinées), à la hauteur de marée du créneau.</p>
+    <p>Le calcul suit la houle depuis le large et la fait tourner selon le relief du fond (réfraction) et grossir en remontant les petits fonds. 513 situations ont été pré-calculées (directions 170° à 350° tous les 10°, périodes 6 à 22 s, trois niveaux de marée) puis interpolées.</p>
+    <p><b>Modèle expérimental.</b> Fond EMODnet (maille ~100 m) : les roches, bancs et la diffraction derrière les pointes ne sont pas bien représentés, et les concentrations sont exagérées. Compare avec ce que tu vois à l'eau.</p>
+    <p>Chaque houle est étalée en direction comme une vraie houle (±15° pour une houle longue, ±20 à 30° en dessous de 14 s, ±45° pour la mer du vent). Les houles sont calculées séparément puis leurs énergies s'additionnent. Le mode « Concentration » montre combien chaque endroit reçoit par rapport au large, sans l'effet de la profondeur : bleu = abrité, rouge = la houle se concentre, comme une vraie houle, ce qui adoucit les traînées. Le trait coloré le long de la côte, dans les terres, indique le vent du créneau par rapport à l'orientation locale du rivage. Non pris en compte : courants de marée (Raz de Sein), effet du vent sur la hauteur, diffraction derrière les pointes.</p><p>Touche la carte pour le détail à un endroit. Prévisions : Open-Meteo — houle au choix GFS/NOAA (le modèle de Windguru) ou Météo-France MFWAM (période de pic quand elle est fournie), vent et niveau d'eau. Image : Sentinel-2 cloudless 2023 par EOX (s2maps.eu), données Copernicus modifiées ; au large, relief du fond EMODnet.</p>
+    <button id="ic">OK</button></div></div>
+</div>
+<script src="leaflet.js"></script>
+<script>
+(async function(){
+const $=id=>document.getElementById(id);
+const META=await (await fetch('meta.json')).json();
+const B=META.bounds, W=META.w, H=META.h, N=W*H, ND=META.dirs.length;
+const bounds=L.latLngBounds([[B.south,B.west],[B.north,B.east]]);
+const map=L.map('map',{zoomSnap:0.25,zoomControl:false,attributionControl:true,maxBounds:bounds.pad(0.15),maxBoundsViscosity:0.8});
+map.attributionControl.setPrefix(false).addAttribution('Sentinel-2 cloudless 2023 © EOX · EMODnet · Open-Meteo');
+const PCS=await (await fetch('sat/pieces.json')).json();PCS.forEach(p=>L.imageOverlay(p.f,[[p.south,p.west],[p.north,p.east]]).addTo(map));
+map.fitBounds(bounds);map.setMinZoom(map.getZoom()-0.5);map.fitBounds([[47.80,-4.90],[48.07,-4.30]],{paddingTopLeft:[0,40]});map.setMaxZoom(16);
+[['La Torche',47.838,-4.352],['Audierne',48.019,-4.537],['Pointe du Raz',48.039,-4.739],['Île de Sein',48.037,-4.851],['Chaussée de Sein',48.045,-4.97],['Douarnenez',48.093,-4.33],['Bénodet',47.875,-4.106],['Penmarc\'h',47.805,-4.37],['Crozon – Morgat',48.225,-4.50]].forEach(([n,la,lo])=>L.marker([la,lo],{icon:L.divIcon({className:'lbl',html:n,iconSize:null}),interactive:false}).addTo(map));
+const cv=document.createElement('canvas');cv.width=W;cv.height=H;const cx=cv.getContext('2d');
+let wave=null;
+
+// ---- load atlas ----
+function loadImg(src){return new Promise((ok,ko)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=ko;i.src=src;});}
+function gray(img){const c=document.createElement('canvas');c.width=img.width;c.height=img.height;const g=c.getContext('2d',{willReadFrequently:true});g.drawImage(img,0,0);const d=g.getImageData(0,0,img.width,img.height).data;const o=new Uint8Array(img.width*img.height);for(let i=0;i<o.length;i++)o[i]=d[i*4];return o;}
+const fmt=t=>(t>=0?'+':'')+t.toFixed(1);
+const A={};const pend={};
+function ensure(key){if(A[key])return Promise.resolve();const[ti,pi]=key.split('_').map(Number);const g=ti+'_'+pi;
+  if(!pend[g])pend[g]=loadImg(`atlas/t${fmt(META.tides[ti])}_T${META.periods[pi]}.webp`).then(im=>{const all=gray(im);for(let d=0;d<ND;d++)A[g+'_'+d]=all.subarray(d*N,(d+1)*N);});
+  return pend[g];}
+const DEP=gray(await loadImg('atlas/depth.png'));const COAST=await (await fetch('coast.json')).json();let wlay=null;
+
+// ---- interpolation in the atlas ----
+const D0=META.dirs[0],D1=META.dirs[ND-1];
+function weights(dir,T,tide){
+  dir=((dir%360)+360)%360; if(dir<D0-60)dir+=360; let fade=1;
+  if(dir<D0){fade=Math.max(0,(dir-(D0-30))/30);dir=D0;}
+  if(dir>D1){fade=Math.max(0,((D1+30)-dir)/30);dir=D1;}
+  T=Math.min(22,Math.max(6,T)); tide=Math.min(2.5,Math.max(-2.5,tide));
+  const dj=(dir-D0)/10,pj=(T-6)/2,tj=(tide+2.5)/2.5;
+  const d0=Math.min(ND-2,Math.floor(dj)),p0=Math.min(META.periods.length-2,Math.floor(pj)),t0=Math.min(1,Math.floor(tj));
+  const wd=dj-d0,wp=pj-p0,wt=tj-t0,out=[];
+  for(const[a,wa]of[[0,1-wt],[1,wt]])for(const[b,wb]of[[0,1-wp],[1,wp]])for(const[c,wc]of[[0,1-wd],[1,wd]]){const w=wa*wb*wc*fade;if(w>1e-3)out.push([(t0+a)+'_'+(p0+b)+'_'+(d0+c),w]);}
+  return out;
+}
+function spreadDirs(c){const sg=c.name==='Mer du vent'?25:(c.T>=14?8:c.T>=10?12:16);const o=[-2,-1,0,1,2].map(k=>k*sg*0.9);let ws=o.map(x=>Math.exp(-0.5*(x/sg)**2));const t=ws.reduce((a,b)=>a+b,0);return o.map((x,i)=>[c.dir+x,ws[i]/t]);}
+const KSC={};
+function ksArr(T,tide){const key=T.toFixed(1)+'_'+tide.toFixed(2);if(KSC[key])return KSC[key];
+  const g=9.81,w=2*Math.PI/T,cg0=g*T/(4*Math.PI),o=new Float32Array(N);
+  for(let i=0;i<N;i++){const v=DEP[i];if(v===255){o[i]=1;continue;}const d=Math.max(0.3,v/4-2.5+tide);
+    let k=w*w/g/Math.sqrt(Math.tanh(w*w/g*d));for(let n=0;n<3;n++){const th=Math.tanh(k*d);k-=(g*k*th-w*w)/(g*th+g*k*d*(1-th*th));}
+    const c=w/k,kh=Math.min(k*d,30),cg=c/2*(1+2*kh/Math.sinh(2*kh));o[i]=Math.sqrt(cg0/cg);}
+  const ks=Object.keys(KSC);if(ks.length>12)delete KSC[ks[0]];return KSC[key]=o;}
+let VIEW='m';
+async function field(comps,tide){
+  if($('iS').checked&&comps.some(c=>c.name&&c.name!=='Mer du vent'))comps=comps.filter(c=>c.name!=='Mer du vent');
+  const keys=new Set();for(const c of comps){if(c.h>0.05)for(const[d]of spreadDirs(c))for(const[key]of weights(d,c.T,tide))keys.add(key);}
+  await Promise.all([...keys].map(k=>ensure(k)));
+  const E=new Float32Array(N);const k=META.scale/255;const f=new Float32Array(N);let H2=0;
+  for(const c of comps){ if(!(c.h>0.05))continue; const h2=c.h*c.h*k*k;H2+=c.h*c.h;
+    const KS=VIEW==='x'?ksArr(c.T,tide):null;
+    for(const[d,wd]of spreadDirs(c)){const ws=weights(d,c.T,tide); f.fill(0);
+      for(const[key,w]of ws){const arr=A[key];for(let i=0;i<N;i++)f[i]+=arr[i]*w;}
+      const g=h2*wd; if(KS){for(let i=0;i<N;i++){const r=f[i]/KS[i];E[i]+=g*r*r;}} else for(let i=0;i<N;i++)E[i]+=g*f[i]*f[i];}}
+  const out=new Float32Array(N);
+  for(let i=0;i<N;i++){const v=DEP[i]; if(v===255){out[i]=-1;continue;} const d=v/4-2.5+tide; if(d<=0.2){out[i]=-1;continue;}
+    out[i]=VIEW==='x'?(H2>0?Math.sqrt(E[i]/H2):1):Math.min(Math.sqrt(E[i]),0.78*d);}
+  out.used=comps;return out;
+}
+// colour ramp
+const RAMP=[[0,[20,40,90]],[.15,[30,90,170]],[.3,[40,170,200]],[.45,[90,210,140]],[.6,[230,220,70]],[.75,[250,150,40]],[.9,[235,60,50]],[1,[200,40,170]]];
+function col(x){x=Math.max(0,Math.min(1,x));for(let i=1;i<RAMP.length;i++){if(x<=RAMP[i][0]){const[a,ca]=RAMP[i-1],[b,cb]=RAMP[i],t=(x-a)/(b-a);return ca.map((v,j)=>v+(cb[j]-v)*t);}}return RAMP[RAMP.length-1][1];}
+let vmax=3,last=null;
+const DIV=[[0,[25,45,120]],[.25,[45,110,200]],[.45,[150,200,235]],[.5,[240,240,235]],[.6,[250,215,120]],[.75,[245,130,50]],[.9,[220,40,40]],[1,[160,20,120]]];
+function colD(x){x=Math.max(0,Math.min(1,x));for(let i=1;i<DIV.length;i++){if(x<=DIV[i][0]){const[a,ca]=DIV[i-1],[b,cb]=DIV[i],t=(x-a)/(b-a);return ca.map((v,j)=>v+(cb[j]-v)*t);}}return DIV[DIV.length-1][1];}
+const rx=r=>0.5+Math.log(Math.max(r,1e-3))/Math.log(3)/2;   // x0.33 -> 0, x1 -> 0.5, x3 -> 1
+const cv2=document.createElement('canvas');cv2.width=W*2;cv2.height=H*2;const cx2=cv2.getContext('2d');
+function draw(F,offH){
+  last=F; vmax=Math.max(1.5,Math.ceil(offH*1.6*2)/2);
+  const im=cx.createImageData(W,H),d=im.data;
+  for(let i=0;i<N;i++){const v=F[i];if(v<0){d[i*4+3]=0;continue;}const c=VIEW==='x'?colD(rx(v)):col(v/vmax);d[i*4]=c[0];d[i*4+1]=c[1];d[i*4+2]=c[2];d[i*4+3]=255;}
+  cx.putImageData(im,0,0);
+  cx2.clearRect(0,0,W*2,H*2);cx2.imageSmoothingEnabled=true;cx2.imageSmoothingQuality='high';cx2.drawImage(cv,0,0,W*2,H*2);
+  const url=cv2.toDataURL();const ld=$('load');if(ld)ld.remove();
+  if(!wave){wave=L.imageOverlay(url,bounds,{opacity:+$('iO').value,interactive:false}).addTo(map);} else wave.setUrl(url);
+  legend();
+}
+function windLayer(){
+  if(wlay){map.removeLayer(wlay);wlay=null;}
+  if(!($('iW').checked&&cur&&cur.wind&&cur.wind[0]!=null))return;
+  const[sp,wf]=cur.wind;wlay=L.layerGroup();
+  const cls=b=>{if(sp<8)return 0;const diff=Math.abs(((wf-b+540)%360)-180);return diff>120?1:diff>60?2:3;};
+  const COL=['#eef4ff','#2fd36b','#f5c518','#ef4136'];
+  for(const line of COAST){let run=[line[0]],k=cls(line[0][2]);
+    const flush=()=>{if(run.length>1){L.polyline(run.map(p=>[p[0],p[1]]),{color:'#000',weight:8,opacity:.35,lineCap:'round',lineJoin:'round',interactive:false}).addTo(wlay);
+      L.polyline(run.map(p=>[p[0],p[1]]),{color:COL[k],weight:5,opacity:.95,lineCap:'round',lineJoin:'round',interactive:false}).addTo(wlay);}};
+    for(let j=1;j<line.length;j++){const kk=cls(line[j][2]);run.push(line[j]);if(kk!==k){flush();run=[line[j]];k=kk;}}
+    flush();}
+  wlay.addTo(map);
+}
+function legend(){const c=$('lgc').getContext('2d');
+  for(let y=0;y<130;y++){const cc=VIEW==='x'?colD(1-y/129):col(1-y/129);c.fillStyle=`rgb(${cc.map(Math.round)})`;c.fillRect(0,y,16,1);}
+  $('lgl').innerHTML=VIEW==='x'?['×3','×1,7','×1','×0,6','×0,3'].map(t=>`<span>${t}</span>`).join(''):[1,.75,.5,.25,0].map(f=>`<span>${(vmax*f).toFixed(vmax<3?1:0)}</span>`).join('');
+  $('lgu').textContent=VIEW==='x'?'vs large':'m';}
+$('iO').oninput=()=>wave&&wave.setOpacity(+$('iO').value);
+$('iW').onchange=()=>windLayer();
+function rerender(){if(cur&&cur.mode==='F')show(cur.idx);else manual();}
+$('vM').onclick=()=>{VIEW='m';$('vM').classList.add('on');$('vX').classList.remove('on');rerender();};
+$('vX').onclick=()=>{VIEW='x';$('vX').classList.add('on');$('vM').classList.remove('on');rerender();};
+$('iS').onchange=()=>rerender();
+
+// ---- forecast ----
+const DIRN=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSO','SO','OSO','O','ONO','NO','NNO'];
+const card=d=>DIRN[Math.round(((d%360)+360)%360/22.5)%16];
+const arrow=(d,cls='ar')=>`<span class="${cls}" style="transform:rotate(${(d+180)%360}deg)">↑</span>`;
+let FC=null,src='';
+const MU='https://marine-api.open-meteo.com/v1/marine?latitude=47.90&longitude=-5.10&hourly=wave_height,swell_wave_height,swell_wave_direction,swell_wave_period,secondary_swell_wave_height,secondary_swell_wave_direction,secondary_swell_wave_period,wind_wave_height,wind_wave_direction,wind_wave_period,sea_level_height_msl&timezone=Europe%2FParis&forecast_days=7';
+const AU='https://api.open-meteo.com/v1/forecast?latitude=48.0&longitude=-4.55&hourly=wind_speed_10m,wind_direction_10m,wind_gusts_10m&wind_speed_unit=kmh&timezone=Europe%2FParis&forecast_days=7';
+let MODEL='gfs';try{MODEL=localStorage.getItem('houleModel')||'gfs';}catch(e){}
+const MU_MF=MU.replace('swell_wave_period,','swell_wave_period,swell_wave_peak_period,');
+const MU_GFS=MU.replace('&hourly=','&models=ncep_gfswave025&hourly=').replace(',sea_level_height_msl','');
+const SWK=['swell_wave_height','swell_wave_direction','swell_wave_period','secondary_swell_wave_height','secondary_swell_wave_direction','secondary_swell_wave_period','wind_wave_height','wind_wave_direction','wind_wave_period','wave_height'];
+async function getJ(u,ms){const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),ms);try{const r=await fetch(u,{signal:ctl.signal});const j=await r.json();if(!j.hourly)throw new Error(j.reason||'no data');return j;}finally{clearTimeout(t);}}
+async function loadFC(){
+  try{
+    const [m,a]=await Promise.all([getJ(MU_MF,7000),getJ(AU,7000)]);
+    const fc={...m.hourly,...a.hourly,time:m.hourly.time,generated:new Date().toISOString()};let lab='Météo-France';
+    if(MODEL==='gfs'){try{const g=await getJ(MU_GFS,7000);const idx={};g.hourly.time.forEach((t,i)=>idx[t]=i);
+        if(g.hourly.swell_wave_height.some(v=>v!=null)){for(const k of SWK){if(!g.hourly[k])continue;fc[k]=fc.time.map(t=>idx[t]!=null?g.hourly[k][idx[t]]:null);}lab='GFS (NOAA)';}
+      }catch(e){lab='Météo-France (GFS indisponible)';}}
+    if(lab.startsWith('Météo')&&fc.swell_wave_peak_period){fc.swell_wave_period=fc.swell_wave_period.map((v,i)=>fc.swell_wave_peak_period[i]??v);}
+    FC=fc;src=lab.includes('indisponible')?'GFS indispo → MF':'en direct';
+  }catch(e){
+    try{FC=await (await fetch('forecast.json',{cache:'no-store'})).json();const g=new Date(FC.generated);src='Prévisions du '+g.toLocaleString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});}catch(e2){FC=null;src='Prévisions indisponibles';}
+  }
+}
+await loadFC();
+$('src').textContent=src;
+function comps(i){const f=FC,c=[];
+  const add=(h,d,t,name)=>{if(h!=null&&d!=null&&t!=null&&h>0.05)c.push({h,dir:d,T:t,name});};
+  add(f.swell_wave_height[i],f.swell_wave_direction[i],f.swell_wave_period[i],'Houle');
+  add(f.secondary_swell_wave_height[i],f.secondary_swell_wave_direction[i],f.secondary_swell_wave_period[i],'Houle 2');
+  add(f.wind_wave_height[i],f.wind_wave_direction[i],f.wind_wave_period[i],'Mer du vent');
+  return c;}
+let cur=null;
+let tok=0;
+async function show(i){const my=++tok;
+  const f=FC,c=comps(i),tide=f.sea_level_height_msl[i]??0;
+  const F=await field(c,tide);if(my!==tok)return;const offH=Math.sqrt((F.used||c).reduce((s,x)=>s+x.h*x.h,0));draw(F,Math.max(offH,0.6));
+  const t=new Date(f.time[i]);
+  cur={mode:'F',idx:i,c,tide,wind:[f.wind_speed_10m[i],f.wind_direction_10m[i],f.wind_gusts_10m[i]]};windLayer();
+  $('now').innerHTML=`<div><b>${t.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric'})} ${t.getHours()}h</b> · marée ${tide>=0?'+':''}${tide.toFixed(1)} m</div>`+
+   c.map(x=>`<div class="row" style="${F.used&&!F.used.includes(x)?'opacity:.4':''}"><span>${x.name} ${x.h.toFixed(1)} m</span><span>${x.T.toFixed(0)} s</span><span>${arrow(x.dir)} ${card(x.dir)} ${Math.round(x.dir)}°</span></div>`).join('')+
+   `<div class="row"><span>Vent ${arrow(cur.wind[1])} ${card(cur.wind[1])} ${Math.round(cur.wind[0])} km/h (raf. ${Math.round(cur.wind[2])})</span></div>`;
+  document.querySelectorAll('.slot').forEach(s=>s.classList.toggle('on',+s.dataset.i===i));
+}
+function buildStrip(){
+  const f=FC,now=Date.now();let html='',day='',first=-1;
+  f.time.forEach((ts,i)=>{const t=new Date(ts);if(t.getHours()%3)return;if(t.getTime()<now-3*3600e3)return;if(first<0)first=i;
+    const dn=t.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric'});
+    if(dn!==day){if(day)html+='</div></div>';html+=`<div class="day"><div class="dname">${dn}</div><div class="slots">`;day=dn;}
+    const h=f.swell_wave_height[i],p=f.swell_wave_period[i],d=f.swell_wave_direction[i],ws=f.wind_speed_10m[i],wd=f.wind_direction_10m[i];
+    html+=`<div class="slot" data-i="${i}"><div class="h">${t.getHours()}h</div><div class="hs">${h!=null?h.toFixed(1):'–'}</div><div class="tp">${p!=null?p.toFixed(0)+'s':''} ${d!=null?arrow(d):''}</div><div class="wd">${wd!=null?arrow(wd,'ar'):''} ${ws!=null?Math.round(ws):''}</div></div>`;});
+  html+='</div></div>';$('strip').innerHTML=html;
+  $('strip').querySelectorAll('.slot').forEach(s=>s.onclick=()=>show(+s.dataset.i));
+  return first;}
+let firstIdx=-1; if(FC){firstIdx=buildStrip();}
+$('mdl').value=MODEL;
+$('mdl').onchange=async()=>{MODEL=$('mdl').value;try{localStorage.setItem('houleModel',MODEL);}catch(e){}$('src').textContent='Chargement…';await loadFC();$('src').textContent=src;if(FC){firstIdx=buildStrip();if(!cur||cur.mode==='F')show(firstIdx);}};
+
+// ---- manual mode ----
+async function manual(){const D=+$('iD').value,T=+$('iT').value,Hh=+$('iH').value,Lv=+$('iL').value;
+  $('oD').textContent=`${D}° ${card(D)}`;$('oT').textContent=`${T} s`;$('oH').textContent=`${Hh} m`;$('oL').textContent=`${Lv>=0?'+':''}${Lv} m`;
+  const c=[{h:Hh,dir:D,T}];const my=++tok;const F=await field(c,Lv);if(my!==tok)return;cur={mode:'M',c,tide:Lv,wind:null};draw(F,Hh);windLayer();
+  $('now').innerHTML=`<div><b>Mode manuel</b></div><div class="row"><span>Houle ${Hh} m</span><span>${T} s</span><span>${arrow(D)} ${card(D)} ${D}°</span></div><div>Marée ${Lv>=0?'+':''}${Lv} m</div>`;}
+let rq=0;['iD','iT','iH','iL'].forEach(id=>$(id).oninput=()=>{cancelAnimationFrame(rq);rq=requestAnimationFrame(manual);});
+function setMode(m){$('mF').classList.toggle('on',m==='F');$('mM').classList.toggle('on',m==='M');$('strip').style.display=m==='F'?'flex':'none';$('manual').style.display=m==='M'?'grid':'none';
+  if(m==='M')manual();else if(FC)show(cur&&cur.mode==='F'&&cur.idx!=null?cur.idx:firstIdx);setTimeout(()=>map.invalidateSize(),50);}
+$('mF').onclick=()=>setMode('F');$('mM').onclick=()=>setMode('M');
+$('ib').onclick=()=>$('info').style.display='flex';$('ic').onclick=()=>$('info').style.display='none';
+
+// ---- tap for details ----
+function idxAt(ll){const x=(ll.lng-B.west)/(B.east-B.west)*W;const my=v=>Math.log(Math.tan(Math.PI/4+v*Math.PI/360));
+  const y=(my(B.north)-my(ll.lat))/(my(B.north)-my(B.south))*H;const i=Math.floor(y),j=Math.floor(x);if(i<0||j<0||i>=H||j>=W)return -1;return i*W+j;}
+map.on('click',e=>{if(!cur||!last)return;const k=idxAt(e.latlng);if(k<0)return;const v=DEP[k];
+  if(v===255||last[k]<0){L.popup().setLatLng(e.latlng).setContent('Terre / estran à cette marée').openOn(map);return;}
+  const dep=v/4-2.5+cur.tide;const parts=cur.c.map(c=>{let e=0;for(const[d,wd]of spreadDirs(c)){let f=0;for(const[key,w]of weights(d,c.T,cur.tide))f+=(A[key]?A[key][k]:0)*w;f*=META.scale/255;e+=wd*f*f;}return {c,f:Math.sqrt(e)};});
+  // local shore orientation from depth gradient (points to deeper water)
+  const gx=(DEP[k+1]??v)-(DEP[k-1]??v),gy=(DEP[k-W]??v)-(DEP[k+W]??v);let txt='';
+  if(cur.wind&&(gx||gy)&&dep<25){const seaward=(Math.atan2(gx,gy)*180/Math.PI+360)%360;const wfrom=cur.wind[1];let diff=Math.abs(((wfrom-seaward+540)%360)-180);
+    txt=`<br>Vent ${diff>120?'<b>de terre</b> (offshore)':diff<60?'de mer (onshore)':'de travers'}`;}
+  L.popup().setLatLng(e.latlng).setContent((VIEW==='x'?`<b>×${last[k].toFixed(2)}</b> par rapport au large<br>`:`<b>≈ ${last[k].toFixed(1)} m</b> estimés ici<br>`)+`Fond ≈ ${dep.toFixed(1)} m à cette marée<br>`+parts.map(p=>`${card(p.c.dir)} ${p.c.T.toFixed(0)} s : ×${p.f.toFixed(2)}`).join('<br>')+txt).openOn(map);});
+
+if(FC&&firstIdx>=0){show(firstIdx);const el=document.querySelector('.slot.on');el&&el.scrollIntoView({inline:'start',block:'nearest'});} else setMode('M');
+})();
+</script>
+</body>
+</html>
