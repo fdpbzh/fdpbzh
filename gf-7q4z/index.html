@@ -38,10 +38,10 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
 .left small{display:block;font-size:.4em;letter-spacing:.12em;color:#fff;text-shadow:2px 2px 0 var(--out)}
 
 /* le titre : GOÉLAND en lettres de couchant, « vitesse » en néon turquoise, de travers */
-.title{font-size:1em;margin:max(2.2em,14vh) 0 0;display:flex;flex-direction:column;align-items:center;font-weight:400;line-height:1;text-align:center}
-.t1{font-size:3.3em;letter-spacing:.02em;color:#ffb03a;background:var(--sunset);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+.title{font-size:1em;margin:max(calc(10vh + 56px),23vh) 0 0;display:flex;flex-direction:column;align-items:center;font-weight:400;line-height:1;text-align:center}
+.t1{font-size:3.75em;letter-spacing:.02em;color:#ffb03a;background:var(--sunset);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
   filter:drop-shadow(3px 3px 0 var(--out)) drop-shadow(2px 2px 0 var(--out)) drop-shadow(0 0 14px rgba(255,62,140,.55))}
-.t2{font-family:var(--f-script);font-size:5.2em;line-height:.9;margin:-.05em 0 0 1.4em;transform:rotate(-8deg);color:#effffe;
+.t2{position:relative;font-family:var(--f-script);font-size:5.2em;line-height:.9;margin:-.32em 0 0 1.4em;transform:rotate(-8deg);color:#effffe;
   text-shadow:0 0 3px var(--cyan),0 0 12px var(--cyan),0 0 26px rgba(79,232,226,.7),3px 3px 0 var(--out)}
 
 /* le bas : pas de boîte, du texte posé sur le voile */
@@ -73,8 +73,12 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
 .share:focus-visible{outline:3px solid var(--cyan);outline-offset:2px}
 .links{display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin-top:-8px}
 .testtag{font-size:.7em;letter-spacing:.1em;color:var(--gold);text-shadow:2px 2px 0 var(--out)}
-.rec{font-size:.72em;line-height:2;color:var(--cyan);text-shadow:2px 2px 0 var(--out)}
-.rec b{font-weight:400;color:#fff}
+.rec{display:flex;flex-direction:column;align-items:center;gap:10px;font-size:.78em;line-height:1.6;text-shadow:2px 2px 0 var(--out)}
+.rec ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:auto minmax(0,auto) auto;gap:4px 14px;align-items:baseline}
+.rec li{display:contents}.rec .rk{color:var(--cyan);text-align:right}.rec .nm{color:#fff;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rec .tm{color:var(--gold);font-variant-numeric:tabular-nums;text-align:right}
+.rec li:first-child>span{font-size:1.2em}
+@media (max-height:720px){.title{margin-top:calc(10vh + 52px)}.panel{gap:10px}.links{margin-top:-4px}.testtag{display:none!important}}
+.rec .lr{margin:0;font-size:.85em;color:var(--hot)}.rec .lr b{font-weight:400;color:#fff}
 .pseudo{appearance:none;box-sizing:border-box;width:min(80%,20em);font-family:var(--f);font-size:1.15em;letter-spacing:.06em;text-align:center;text-transform:uppercase;color:#fff;padding:12px 10px;
   background:rgba(38,20,110,.75);border:3px solid var(--cyan);border-radius:0;outline:none;box-shadow:4px 4px 0 var(--out);user-select:text;-webkit-user-select:text}
 .pseudo::placeholder{color:#9fe9e4;opacity:.8}
@@ -105,7 +109,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
 </head>
 <body>
 <div class="stage" id="stage" data-ui="menu">
-  <canvas id="cv" aria-label="Le terre-plein vu du dessus : tape dans la barquette pour que le goéland mange les frites"></canvas>
+  <canvas id="cv" aria-label="Le terre-plein vu du dessus : un goéland et sa barquette de frites"></canvas>
   <div class="scrim"></div>
   <div class="ui">
     <div class="hud" id="hud" hidden>
@@ -117,8 +121,8 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
       <p class="big" id="big" hidden></p>
       <dl class="stats" id="stats" hidden></dl>
       <p class="testtag" id="testtag" hidden>MODE TEST · CLASSEMENT DU GROUPE</p>
-      <p class="verdict" id="verdict">50 FRITES. TAPE DANS LA BARQUETTE : À CHAQUE TAP, IL EN GOBE UNE. LE CHRONO PART AU PREMIER COUP DE BEC.</p>
-      <p class="rec" id="rec" hidden></p>
+      <p class="verdict" id="verdict" hidden></p>
+      <div class="rec" id="rec" hidden></div>
       <input class="pseudo" id="pseudo" type="text" maxlength="12" placeholder="TON PSEUDO" aria-label="Ton pseudo pour le classement" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="go">
       <button class="play" id="play" type="button"><span class="plate px"><span class="ring px"><span class="in px"><span class="lbl" id="playLbl">À TABLE</span></span></span></span></button>
       <div class="links"><button class="share" id="share" type="button" hidden>&gt; PARTAGER</button><button class="share" id="boardBtn" type="button">&gt; CLASSEMENT</button></div>
@@ -430,11 +434,55 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
     var a = Math.atan2(c.y - fy, c.x - fx) + (Math.random() - 0.5) * 0.9, sp = (85 + Math.random() * 55) * (pw || 1);
     c.st = 'run'; c.tm = 0.45 + Math.random() * 0.5; c.vx = Math.cos(a) * sp; c.vy = Math.sin(a) * sp; c.side = -c.side;
   }
-  function scareAt(x) { for (var k = 0; k < crabs.length; k++) { var c = crabs[k]; if (c.st !== 'run' && c.y < QY + WH + 34 && Math.abs(c.x - x) < 40 && Math.random() < 0.08) flee(c, x, QY, 0.8); } }
+  function scareAt(x) { for (var k = 0; k < crabs.length; k++) { var c = crabs[k]; if (!c.fe && c.st !== 'run' && c.y < QY + WH + 34 && Math.abs(c.x - x) < 40 && Math.random() < 0.08) flee(c, x, QY, 0.8); } }
   function scarePeck() { for (var k = 0; k < crabs.length; k++) { var c = crabs[k], d = Math.hypot(c.x - T.x, c.y - T.y) - 24 * SC; if (c.st !== 'run' && d < c.rc * 1.3 && Math.random() < 0.35) flee(c, T.x, T.y); } }
+  /* ---------- la fin : le goéland repu s'en va, les crabes se ruent sur la barquette vide, constatent, et repartent ---------- */
+  function wrapA(a) { while (a > Math.PI) a -= TAU; while (a < -Math.PI) a += TAU; return a; }
+  function slotAt(th) {                                                         // la place au bord de la barquette, à l'angle th (repère de la barquette)
+    var hw = TW / 2 * SC + CR, hh = TH / 2 * SC + CR, lc = Math.cos(th), ls = Math.sin(th), r = 1 / Math.max(Math.abs(lc) / hw, Math.abs(ls) / hh, 1e-6);
+    return [T.x + Math.cos(T.a + th) * r, T.y + Math.sin(T.a + th) * r];
+  }
+  function startFeast() {
+    var cand = [], k, j, base = Math.random() * TAU;
+    for (k = 0; k < 28; k++) { var th = base + k * TAU / 28, pt = slotAt(th); if (pt[1] > QY + WH + 10 && pt[0] > 6 && pt[0] < PW - 6) cand.push({ th: th, x: pt[0], y: pt[1], used: false }); }   // seulement les places qu'on peut atteindre (pas contre le mur)
+    var order = crabs.slice().sort(function (a, b) { return Math.hypot(a.x - T.x, a.y - T.y) - Math.hypot(b.x - T.x, b.y - T.y); });
+    for (k = 0; k < order.length; k++) {                                         // chacun prend la place libre la plus proche de lui, sans toucher les voisines
+      var c = order[k], bi = -1, bd = 1e9;
+      for (j = 0; j < cand.length; j++) { if (cand[j].used) continue; var dd = Math.hypot(cand[j].x - c.x, cand[j].y - c.y); if (dd < bd) { bd = dd; bi = j; } }
+      if (bi < 0) { c.fe = 'leave'; c.lv = c.x < PW / 2 ? Math.PI - 0.4 : 0.4; c.ls = 30; c.tm = 0; c.q = 0; continue; }
+      cand[bi].used = true; var nb = cand[(bi + 1) % cand.length], pb = cand[(bi + cand.length - 1) % cand.length]; if (nb) nb.used = true; if (pb) pb.used = true;
+      c.fe = 'rush'; c.th = cand[bi].th; c.dl = Math.random() * 0.6; c.pk = 2.4 + Math.random() * 1.8; c.q = 0; c.rt = 0;
+    }
+  }
+  function endFeast() { for (var k = 0; k < crabs.length; k++) { var c = crabs[k]; if (c.fe) { c.fe = null; c.q = 0; flee(c, T.x, T.y); } } }
+  function feastCrab(c, dt) {
+    var pt = slotAt(c.th), tx = pt[0], ty = pt[1], aim = Math.atan2(T.y - c.y, T.x - c.x), want = aim, mov = 0, sw = 0;
+    if (c.fe === 'rush') {
+      if (c.dl > 0) { c.dl -= dt; want = aim; }
+      else {
+        var dx = tx - c.x, dy = ty - c.y, d = Math.hypot(dx, dy), sp = 78 + 18 * Math.sin(c.seed * 5);
+        c.rt += dt;
+        if (d < 3 || (d < 24 && c.rt > 2.5) || c.rt > 5) { c.fe = 'poke'; c.tm = c.pk; }   // arrivé (ou coincé par un voisin : il fouille d'où il est)
+        else { var st = Math.min(d, sp * dt); c.x += dx / d * st; c.y += dy / d * st; mov = 1.7; want = Math.atan2(dy, dx) + c.side * Math.PI / 2; sw = 0.55; }   // il file de côté, comme un crabe
+      }
+    } else if (c.fe === 'poke') {                                                // il fouille : petits coups de pince contre la barquette
+      var pinch = Math.max(0, Math.sin(clock * 9 + c.seed * 7)) * 1.6;
+      c.x += (tx - Math.cos(aim) * -pinch - c.x) * Math.min(1, 8 * dt); c.y += (ty - Math.sin(aim) * -pinch - c.y) * Math.min(1, 8 * dt);
+      mov = 0.35; c.tm -= dt; c.q = c.tm < 1.1 ? Math.min(1, (1.1 - c.tm) * 4) : 0;
+      if (c.tm < 0) { var r0 = 0.15 + Math.random() * 0.6; c.fe = 'leave'; c.lv = c.x < T.x ? Math.PI - r0 : r0; c.ls = 28 + Math.random() * 16; c.tm = 0.7; }
+    } else {                                                                     // rien à manger : il repart à ses affaires
+      c.x += Math.cos(c.lv) * c.ls * dt; c.y += Math.sin(c.lv) * c.ls * dt; mov = 1; want = c.lv + c.side * Math.PI / 2;
+      c.tm -= dt; c.q = Math.max(0, c.tm / 0.7);
+      if (c.x < -28 || c.x > PW + 28 || c.y > PH + 28) { c.fe = null; c.q = 0; c.st = 'wait'; c.tm = 5 + Math.random() * 8; }
+    }
+    c.face += wrapA(want - c.face) * Math.min(1, 6 * dt);
+    c.legP += dt * 26 * mov;
+    c.stress += (sw - c.stress) * Math.min(1, 6 * dt);
+  }
   function updCrabs(dt) {
     var TR = 24 * SC, GR = 16 * SC * GS, k, j;
     for (k = 0; k < crabs.length; k++) {
+      if (crabs[k].fe) { feastCrab(crabs[k], dt); continue; }
       var c = crabs[k], dxT = c.x - T.x, dyT = c.y - T.y, dT = Math.hypot(dxT, dyT), dG = Math.hypot(c.x - B.x, c.y - B.y) - GR, d = Math.min(dT - TR, dG);
       var aim = Math.atan2(-dyT, -dxT), closing = dT > 1 ? (T.vx * dxT + T.vy * dyT) / dT : 0, mov = 0;
       if (c.st !== 'run' && (d < c.rc * 0.45 || (closing > 70 && d < c.rc * 1.1))) flee(c, dG < dT - TR ? B.x : T.x, dG < dT - TR ? B.y : T.y);
@@ -791,12 +839,13 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
 
   /* ---------- l'état de la scène ---------- */
   var T = { x: 0, y: 0, vx: 0, vy: 0, a: 0, va: 0 }, B = { x: 0, y: 0, a: 0, step: 0 }, peck = 0, peckT = 9, blinkT = 0, look = 0, flying = [], crumbs = [], burp = 0;
+  var leave = null, gone = false, enter = null, capT = -9, capV = null;                                   // le goéland qui s'en va, puis revient pour la partie suivante
   var zone = { x0: 0, y0: 0, x1: 0, y1: 0 }, sim = null, simStart = 0, trace = [], seed = 0;
   function setZone() { zone = { x0: 22 * SC, y0: Math.round(PH * 0.1) + WH + 18 * SC, x1: PW - 22 * SC, y1: Math.round(PH * (state === 'menu' || state === 'over' ? 0.7 : 0.88)) }; }
   function reset() {
     setZone(); makeFries();
     sim = GVSIM.create(seed, PW, PH, NPX / dpr); simStart = performance.now(); T = sim.T; B = sim.B; trace = [];   // une partie neuve, sur sa graine
-    flying = []; crumbs = []; burp = 0; peckT = 9;
+    flying = []; crumbs = []; burp = 0; peckT = 9; leave = null; gone = false; capT = -9;
   }
   function resize() {
     dpr = Math.min(3, window.devicePixelRatio || 1);
@@ -819,7 +868,10 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
     }
     $('share').hidden = true; $('rec').hidden = true; audio(); state = 'ready'; down = {}; maxDown = 0; warnT = 0; penalty = 0;
     if (sess) { seed = sess.seed >>> 0; sid = sess.sid; sess = null; } else { seed = nextSeed(); sid = null; }   // hors ligne : on joue quand même
+    var out = gone || (leave && leave.go), ox = B.x, oy = B.y;
     reset(); hits = sim.hits; misses = 0; refused = 0; setUi('ready');
+    if (out) enter = { x: ox < PW / 2 ? Math.min(ox, -40) : Math.max(ox, PW + 40), y: oy, t: 0 };
+    endFeast();
     $('left').textContent = N; $('time').textContent = '0,000';
   });
 
@@ -862,7 +914,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
   window.addEventListener('pointerup', up, true); window.addEventListener('pointercancel', up, true);
 
   function finish() {
-    state = 'over'; burp = 1;
+    state = 'over'; burp = 1; leave = { t: 0 };
     var ms = sim.result, prev = best, isNew = !best || ms < best;
     if (isNew) { best = ms; store.set('gf_best', best); }
     $('time').textContent = fr(ms / 1000, 3);
@@ -881,14 +933,15 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
     for (i = 0; i < iv.length; i++) m += iv[i]; m /= Math.max(1, iv.length);
     for (i = 0; i < iv.length; i++) sd += (iv[i] - m) * (iv[i] - m); sd = Math.sqrt(sd / Math.max(1, iv.length));
     setTimeout(function () {
-      var v = $('verdict');
+      var v = $('verdict'); v.hidden = false;
       baseVerdict = isNew && prev ? 'TON NOUVEAU RECORD !' : prev ? 'TON RECORD : ' + fr(prev / 1000, 3) + ' S' : 'PREMIER CHRONO';
       var extra = verdictText(); v.innerHTML = baseVerdict + (extra ? '<br>' + extra : ''); $('testtag').hidden = true;
       v.classList.toggle('new', isNew && !!prev);
       $('big').innerHTML = fr(ms / 1000, 3) + '<small>S</small>'; $('big').hidden = false;
       var rows = [['CADENCE', fr(N / (ms / 1000), 1) + ' /S'], ['RATÉS', String(misses)], ['RÉGULARITÉ', fr(m ? sd / m * 100 : 0, 0) + ' %'], ['REFUSÉS', String(refused)]];
-      $('stats').innerHTML = rows.map(function (r) { return '<div><dt>' + r[0] + '</dt><dd>' + r[1] + '</dd></div>'; }).join(''); $('stats').hidden = false;
+      $('stats').innerHTML = rows.map(function (r) { return '<div><dt>' + r[0] + '</dt><dd>' + r[1] + '</dd></div>'; }).join(''); $('stats').hidden = true;
       $('playLbl').textContent = 'REJOUER'; $('play').disabled = true; setUi('over'); setZone();
+      capT = -9;                                                                    // la barquette remonte au-dessus du panneau, pour qu'on voie la suite
       lastMs = ms; makeCard(ms); $('share').hidden = false; $('share').textContent = '> PARTAGER';
       var shown = performance.now();
       (function arm() { var n2 = performance.now(); if (n2 - shown > 400 && n2 - lastDown > 400) $('play').disabled = false; else setTimeout(arm, 60); })();
@@ -915,10 +968,11 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
   function loadBoard() { api({ action: 'board' }, function (d) { if (d && d.top) { boardData = d; showRec(); fillSheet(); } }); }
   function showRec() {
     var d = boardData, el = $('rec'); if (!d) { el.hidden = true; return; }
-    var L = [];
-    if (d.day) L.push('RECORD DU JOUR : <b>' + esc(d.day.name) + '</b> ' + secs(d.day.time_ms));
-    if (d.best) L.push('RECORD : <b>' + esc(d.best.name) + '</b> ' + secs(d.best.time_ms));
-    el.innerHTML = L.join('<br>'); el.hidden = !L.length || state === 'over';
+    var top = (d.top || []).slice(0, 3), h = '';                                    // l'accueil : le podium et la lanterne rouge, rien d'autre
+    if (top.length) h += '<ol>' + top.map(function (r, i) { return '<li><span class="rk">' + (i + 1) + (i ? 'E' : 'ER') + '</span><span class="nm">' + esc(r.name) + '</span><span class="tm">' + fr(r.time_ms / 1000, 3) + '</span></li>'; }).join('') + '</ol>';
+    var w = d.worst, inTop = w && top.some(function (r) { return r.name === w.name && r.time_ms === w.time_ms; });
+    if (w && !inTop) h += '<p class="lr">LANTERNE ROUGE · <b>' + esc(w.name) + '</b> ' + fr(w.time_ms / 1000, 3) + '</p>';
+    el.innerHTML = h; el.hidden = !h || state !== 'menu';
   }
   function fillSheet() {
     var d = boardData, ol = $('topList'), fx = $('facts');
@@ -993,7 +1047,24 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
       var target = Math.floor((ts - simStart) / GVSIM.STEP);
       if (state !== 'run' && state !== 'ready' && target - sim.tick > 600) sim.tick = target - 1;   // page restée en arrière-plan : on saute
       GVSIM.advance(sim, ts - simStart);
-      if (state === 'over' && T.y > zone.y1) T.y += (zone.y1 - T.y) * Math.min(1, 3 * dt);       // à l'arrivée, la barquette remonte au-dessus du panneau
+      if ((state === 'menu' || state === 'over') && !$('panel').hidden && clock - capT > 0.4) {      // la place libre entre le titre et le panneau
+        capT = clock; var sr = stage.getBoundingClientRect(), pr = $('panel').getBoundingClientRect(), u = dpr / NPX, lo = QY + WH + TH * SC / 2 + 22;
+        if (!$('title').hidden) lo = Math.max(lo, ($('title').getBoundingClientRect().bottom - sr.top) * u + TH * SC / 2 + 6);
+        capV = Math.max(lo, (pr.top - sr.top) * u - TH * SC / 2 - 12);
+      }
+      var capY = capV != null ? Math.min(zone.y1, capV) : zone.y1;
+      if (state === 'menu' && T.y > capY) { var dyc = capY - T.y; T.y += dyc; B.y += dyc; }       // à l'accueil, le goéland et sa barquette se posent d'emblée dans la place libre
+      if (state === 'over' && T.y > capY) T.y += (capY - T.y) * Math.min(1, 3 * dt);               // à l'arrivée, la barquette remonte au-dessus du panneau
+    }
+    if (state === 'over' && leave) {                                               // repu, il tourne le dos à la barquette et s'en va en dandinant
+      leave.t += dt;
+      if (leave.t > 1.6) {
+        if (!leave.go) { leave.go = true; B = { x: B.x, y: B.y, a: B.a, step: B.step }; leave.dir = (B.x <= T.x ? Math.PI : 0) + (Math.random() - 0.5) * 0.5; }
+        var lda = wrapA(leave.dir - B.a); B.a += lda * Math.min(1, 4 * dt);
+        var lsp = Math.abs(lda) < 1.2 ? 95 * (1 - Math.abs(lda) / 1.2 * 0.7) : 12;
+        B.x += Math.cos(B.a) * lsp * dt; B.y += Math.sin(B.a) * lsp * dt; B.step += lsp * dt * 0.9 / SC;
+        if (B.x < -95 || B.x > PW + 95) { gone = true; leave = null; startFeast(); }
+      }
     }
     peckT += dt; peck = peckT < 0.05 ? peckT / 0.05 : Math.max(0, 1 - (peckT - 0.05) / 0.09);
     blinkT -= dt; if (blinkT < -0.12) blinkT = 1.5 + Math.random() * 3;
@@ -1012,7 +1083,12 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
       var hx = B.x + Math.cos(B.a) * 19 * SC * GS, hy = B.y + Math.sin(B.a) * 19 * SC * GS, k = f.t / 0.1, fx = f.x + (hx - f.x) * k, fy = f.y + (hy - f.y) * k;
       for (var kk = 0; kk < 8; kk++) { g.fillStyle = kk < 2 || kk > 5 ? '#d99a2a' : '#ffd23f'; g.fillRect(Math.round(fx + Math.cos(f.a) * (kk - 4)), Math.round(fy + Math.sin(f.a) * (kk - 4)), 2, 2); }
     }
-    drawGull(B.x, B.y, B.a, { neck: peck, beak: peck > 0.25 ? peck : 0, look: look, step: B.step, blink: blinkT < 0 ? 1 : 0 }, true);
+    if (enter) {                                                                   // il revient en trottinant pour la partie suivante (dessin seul, la partie ne l'attend pas)
+      enter.t += dt; var ek = Math.min(1, enter.t / 0.55), ee = 1 - (1 - ek) * (1 - ek), exx = enter.x + (B.x - enter.x) * ee, eyy = enter.y + (B.y - enter.y) * ee;
+      var ea = ek < 0.75 ? Math.atan2(B.y - enter.y, B.x - enter.x) : B.a;
+      drawGull(exx, eyy, ea, { neck: peck, beak: peck > 0.25 ? peck : 0, look: 0, step: B.step + enter.t * 14, blink: 0 }, true);
+      if (ek >= 1) enter = null;
+    } else if (!gone) drawGull(B.x, B.y, B.a, { neck: peck, beak: peck > 0.25 ? peck : 0, look: leave && leave.go ? 0 : look, step: B.step, blink: blinkT < 0 ? 1 : 0 }, true);
     for (i = crumbs.length - 1; i >= 0; i--) {                                     // les miettes, et les taps à côté
       var c = crumbs[i]; c.t += dt; if (c.t > (c.miss ? 0.3 : 0.4)) { crumbs.splice(i, 1); continue; }
       if (c.miss) { var rr = (3 + c.t * 30) * SC; g.fillStyle = 'rgba(255,84,112,' + (1 - c.t / 0.3).toFixed(2) + ')'; for (var a = 0; a < 12; a++) g.fillRect(Math.round(c.x + Math.cos(a / 12 * TAU) * rr), Math.round(c.y + Math.sin(a / 12 * TAU) * rr), 1, 1); continue; }
@@ -1036,14 +1112,9 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
       ctx.fillStyle = OUT; ctx.fillText(wt, W / 2 + 2, wy + 2); ctx.fillStyle = '#4fe8e2'; ctx.fillText(wt, W / 2, wy); ctx.globalAlpha = 1;
       if (warnT <= 0) penalty = 0;
     }
-    if (state === 'ready' && Math.floor(clock * 2.4) % 3) {
-      ctx.font = Math.round(W / 26) + 'px "Press Start 2P", monospace'; ctx.textAlign = 'center';
-      ctx.fillStyle = OUT; ctx.fillText('TAPE DANS LA BARQUETTE', W / 2 + 2, (T.y + 30 * SC) * NPX + 2); ctx.fillStyle = '#ffffff'; ctx.fillText('TAPE DANS LA BARQUETTE', W / 2, (T.y + 30 * SC) * NPX);
-    }
   }
   function start() {
     applyPal(); resize(); setUi('menu');
-    if (best) $('verdict').innerHTML = 'TON RECORD : <b>' + fr(best / 1000, 3) + ' S</b><br>50 FRITES, TAPE DANS LA BARQUETTE.';
     $('pseudo').value = myName; $('testtag').hidden = GRP !== 'test';
     prefetch(); loadBoard();
     last = performance.now(); requestAnimationFrame(frame);
