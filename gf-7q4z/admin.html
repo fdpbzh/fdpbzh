@@ -86,6 +86,7 @@ input{background:rgba(18,10,58,.7);border:2px solid var(--cyan);padding:10px;min
       : '<button class="no" data-a="rejected" data-id="' + r.id + '">RETIRER CE TEMPS</button>';
     btn += r.banned ? '' : '<button class="no" data-ban="' + esc(r.name) + '">BANNIR LE PSEUDO</button>';
     return '<div class="card"><div class="row"><span class="nm">' + esc(r.name) + '</span><span class="tm">' + fr(r.time_ms) + ' S</span><span class="g">' + esc(when) + '</span></div>'
+      + '<div class="st" style="color:' + (r.contacts && r.contacts.length ? 'var(--ok)' : 'var(--mute)') + '">' + (r.contacts && r.contacts.length ? 'CONTACT : ' + esc(r.contacts.join(' · ')) : 'SANS CONTACT') + '</div>'
       + (fl ? '<div class="flags">' + fl + '</div>' : '') + '<div class="st">' + esc(stats(r.stats)) + '</div>' + (r.ua ? '<div class="st">' + esc(r.ua) + '</div>' : '')
       + '<div class="bar">' + btn + '</div></div>';
   }
