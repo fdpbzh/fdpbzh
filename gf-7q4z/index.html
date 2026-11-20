@@ -78,6 +78,8 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
 .rec li{display:contents}.rec .rk{color:var(--cyan);text-align:right}.rec .nm{color:#fff;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rec .tm{color:var(--gold);font-variant-numeric:tabular-nums;text-align:right}
 .rec li:first-child>span{font-size:1.2em}
 @media (max-height:720px){.title{margin-top:calc(10vh + 52px)}.panel{gap:10px}.links{margin-top:-4px}.testtag{display:none!important}}
+.turn{display:none}
+@media (orientation:landscape) and (max-height:520px){.turn{display:flex;position:absolute;inset:0;z-index:5;align-items:center;justify-content:center;pointer-events:auto;touch-action:none;background:rgba(22,10,58,.94);color:#fff;text-align:center;font-size:1.4em;line-height:1.8;text-shadow:3px 3px 0 var(--out)}}
 .rec .lr{margin:0;font-size:.85em;color:var(--hot)}.rec .lr b{font-weight:400;color:#fff}
 .pseudo{appearance:none;box-sizing:border-box;width:min(80%,20em);font-family:var(--f);font-size:1.15em;letter-spacing:.06em;text-align:center;text-transform:uppercase;color:#fff;padding:12px 10px;
   background:rgba(38,20,110,.75);border:3px solid var(--cyan);border-radius:0;outline:none;box-shadow:4px 4px 0 var(--out);user-select:text;-webkit-user-select:text}
@@ -127,6 +129,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
       <button class="play" id="play" type="button"><span class="plate px"><span class="ring px"><span class="in px"><span class="lbl" id="playLbl">À TABLE</span></span></span></span></button>
       <div class="links"><button class="share" id="share" type="button" hidden>&gt; PARTAGER</button><button class="share" id="boardBtn" type="button">&gt; CLASSEMENT</button></div>
     </section>
+    <div class="turn" id="turn" aria-live="polite"><p>TOURNE TON<br>TÉLÉPHONE</p></div>
     <section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetH" hidden>
       <h2 class="sheet-h" id="sheetH">CLASSEMENT</h2>
       <ol class="top" id="topList"></ol>
@@ -765,7 +768,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
      le hasard des coups de bec vient d'une graine, et chaque tap (instant, position, autres doigts posés) passe par les mêmes règles.
      Le serveur exécute ce même code sur la trace de la partie : s'il ne retrouve pas les 50 frites, le score n'est pas pris. */
   var GVSIM = (function () {
-    var SC = 2, GS = 1.6, TW = 38, TH = 26, N = 50, STEP = 1000 / 60, DT = 1 / 60, NEAR = 14, FAR = 26, HOLD_UNUSED = 600, TAU = 6.283185307179586;
+    var SC = 2, GS = 1.6, TW = 38, TH = 26, N = 50, PEN = 200, STEP = 1000 / 60, DT = 1 / 60, NEAR = 14, FAR = 26, HOLD_UNUSED = 600, TAU = 6.283185307179586;
     var FK = Math.exp(-4.2 * DT), FA = Math.exp(-5 * DT), WANT = (23.6 * GS + 3.4) * SC;
     function lcg(seed) { var s = seed >>> 0; return function () { s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s / 4294967296; }; }
     function create(seed, PW, PH, k) {                    // k : pixels CSS par pixel de jeu, pour mesurer les doigts en vraie distance
@@ -830,22 +833,23 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
       var hit = { t: t - S.t0 }; S.hits.push(hit); S.F1.acc.push({ rx: rx, ry: ry, hit: hit }); if (S.F1.acc.length > 12) S.F1.acc.shift();
       var ang = Math.atan2(T.y - S.B.y, T.x - S.B.x) + (S.rnd() - 0.5) * 2.4, pw = (55 + S.rnd() * 70) * SC * 1;   // la tête pousse la barquette, au hasard de la graine
       T.vx += Math.cos(ang) * pw; T.vy += Math.sin(ang) * pw; T.va += (S.rnd() - 0.5) * 6;
-      if (S.hits.length >= N) { S.done = true; S.result = S.hits[N - 1].t; }
+      if (S.hits.length >= N) { S.done = true; S.result = S.hits[N - 1].t + S.misses * PEN; }   // chaque tap à côté, une fois la partie lancée, coûte PEN ms
       return { r: 'frite', back: f.back };
     }
-    return { create: create, step: step, advance: advance, tap: tap, N: N, STEP: STEP };
+    return { create: create, step: step, advance: advance, tap: tap, N: N, STEP: STEP, PEN: PEN };
   })();
   /*SIM-END*/
 
   /* ---------- l'état de la scène ---------- */
   var T = { x: 0, y: 0, vx: 0, vy: 0, a: 0, va: 0 }, B = { x: 0, y: 0, a: 0, step: 0 }, peck = 0, peckT = 9, blinkT = 0, look = 0, flying = [], crumbs = [], burp = 0;
   var leave = null, gone = false, enter = null, capT = -9, capV = null;                                   // le goéland qui s'en va, puis revient pour la partie suivante
+  var arena = [0, 0, 1], lastUp = -1, downAt = {}, pens = [];
   var zone = { x0: 0, y0: 0, x1: 0, y1: 0 }, sim = null, simStart = 0, trace = [], seed = 0;
   function setZone() { zone = { x0: 22 * SC, y0: Math.round(PH * 0.1) + WH + 18 * SC, x1: PW - 22 * SC, y1: Math.round(PH * (state === 'menu' || state === 'over' ? 0.7 : 0.88)) }; }
   function reset() {
     setZone(); makeFries();
-    sim = GVSIM.create(seed, PW, PH, NPX / dpr); simStart = performance.now(); T = sim.T; B = sim.B; trace = [];   // une partie neuve, sur sa graine
-    flying = []; crumbs = []; burp = 0; peckT = 9; leave = null; gone = false; capT = -9;
+    sim = GVSIM.create(seed, PW, PH, NPX / dpr); simStart = performance.now(); T = sim.T; B = sim.B; trace = []; arena = [PW, PH, NPX / dpr];   // une partie neuve, sur sa graine
+    flying = []; crumbs = []; burp = 0; peckT = 9; leave = null; gone = false; capT = -9; lastUp = -1; downAt = {}; pens = [];
   }
   function resize() {
     dpr = Math.min(3, window.devicePixelRatio || 1);
@@ -867,7 +871,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
       myName = n; store.set('gv_name', n); $('pseudo').value = n; $('pseudo').blur();
     }
     $('share').hidden = true; $('rec').hidden = true; audio(); state = 'ready'; down = {}; maxDown = 0; warnT = 0; penalty = 0;
-    if (sess) { seed = sess.seed >>> 0; sid = sess.sid; sess = null; } else { seed = nextSeed(); sid = null; }   // hors ligne : on joue quand même
+    if (sess) { seed = sess.seed >>> 0; sid = sess.sid; sess = null; api({ action: 'arm', sid: sid }, function () {}); } else { seed = nextSeed(); sid = null; }   // hors ligne : on joue quand même
     var out = gone || (leave && leave.go), ox = B.x, oy = B.y;
     reset(); hits = sim.hits; misses = 0; refused = 0; setUi('ready');
     if (out) enter = { x: ox < PW / 2 ? Math.min(ox, -40) : Math.max(ox, PW + 40), y: oy, t: 0 };
@@ -888,16 +892,18 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
     tone(260 + Math.random() * 60, 120, 0.05, 'square', 0.05); tone(900, 1400, 0.03, 'triangle', 0.03, 0.04);
   }
   stage.addEventListener('pointerdown', function (e) {
-    if (e.target.closest && (e.target.closest('.panel') || e.target.closest('.sheet'))) return;
+    if (e.target.closest && (e.target.closest('.panel') || e.target.closest('.sheet') || e.target.closest('.turn'))) return;
     if (state !== 'ready' && state !== 'run') return;
     e.preventDefault();
+    if (e.pointerType !== 'touch') return;                                           // souris, stylet : hors jeu
     var tt = performance.now(), r = stage.getBoundingClientRect(), px = (e.clientX - r.left) * dpr / NPX, py = (e.clientY - r.top) * dpr / NPX;
     var others = 0; for (var id in down) if (+id !== e.pointerId && tt - down[id] < 600) others++;
     var t = Math.round((tt - simStart) * 10) / 10, x = Math.round(px * 100) / 100, y = Math.round(py * 100) / 100;
-    if (trace.length < 900) trace.push([t, x, y, others]);                          // la trace, que le serveur rejouera
+    var kind = (e.isTrusted ? 1 : 0) | 2, lift = lastUp >= 0 ? Math.round(tt - lastUp) : -1, size = Math.round(Math.max(e.width || 0, e.height || 0) * 10) / 10;
+    if (trace.length < 900) { trace.push([t, x, y, others, kind, lift, size, -1]); downAt[e.pointerId] = trace.length - 1; }   // la trace, que le serveur rejouera
     var res = GVSIM.tap(sim, t, x, y, others);
     misses = sim.misses; refused = sim.refused;
-    if (res.r === 'rate') { crumbs.push({ x: px, y: py, vx: 0, vy: 0, t: 0, miss: true }); return; }
+    if (res.r === 'rate') { crumbs.push({ x: px, y: py, vx: 0, vy: 0, t: 0, miss: true }); if (state === 'run') pens.push({ x: px, y: py, t: 0 }); return; }
     if (res.back) {                                                                  // deux doigts reconnus : les frites volées reviennent
       for (var bk = 0, fi = 0; bk < res.back && fi < fries.length; fi++) if (!fries[fi].on) { fries[fi].on = true; bk++; }
       penalty = res.back; warnT = 1.6; $('left').textContent = N - sim.hits.length;
@@ -910,7 +916,11 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
   }, { passive: false });
   stage.addEventListener('contextmenu', function (e) { e.preventDefault(); });
   window.addEventListener('pointerdown', function (e) { lastDown = performance.now(); down[e.pointerId] = lastDown; var n = Object.keys(down).length; if (state === 'run' && n > maxDown) maxDown = n; }, true);
-  function up(e) { delete down[e.pointerId]; }
+  function up(e) {
+    delete down[e.pointerId]; var tu = performance.now();
+    if (downAt[e.pointerId] != null && trace[downAt[e.pointerId]]) { var en = trace[downAt[e.pointerId]]; en[7] = Math.round(tu - (simStart + en[0])); }   // la durée d'appui
+    delete downAt[e.pointerId]; if (e.pointerType === 'touch') lastUp = tu;
+  }
   window.addEventListener('pointerup', up, true); window.addEventListener('pointercancel', up, true);
 
   function finish() {
@@ -921,7 +931,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
     tone(140, 70, 0.45, 'sawtooth', 0.08, 0.25);                                  // le rot
     if (sid) {
       lastRes = 'wait';
-      api({ action: 'submit', sid: sid, name: myName, trace: trace, PW: PW, PH: PH, k: NPX / dpr, claimed: ms, ua: navigator.userAgent }, function (d) {
+      api({ action: 'submit', sid: sid, name: myName, trace: trace, PW: arena[0], PH: arena[1], k: arena[2], claimed: ms, ua: navigator.userAgent }, function (d) {
         lastRes = d ? d : 'off'; if (d && d.top) { boardData = d; fillSheet(); }
         if (state === 'over' && !$('panel').hidden) { var vv = $('verdict'), extra = verdictText(); vv.innerHTML = baseVerdict + (extra ? '<br>' + extra : ''); }
         prefetch();
@@ -949,9 +959,16 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
   }
 
   /* ---------- le classement en ligne : une graine par partie, la trace envoyée et rejouée par le serveur ----------
-     #test dans l'adresse met ce téléphone dans le groupe de test (classement à part, traces gardées pour l'analyse), #public le remet au public. */
+     #t-<code> dans l'adresse met ce téléphone dans le groupe de test (classement à part), #public le remet au public.
+     Le code n'est pas dans cette page : c'est le serveur qui le vérifie. */
   var API = 'https://nhsroymqvwrjflagzznz.supabase.co/functions/v1/gv';
-  var GRP = (function () { var h = (location.hash || '').replace('#', ''); if (h === 'test') store.set('gv_grp', 'test'); if (h === 'public') store.set('gv_grp', 'pub'); return store.get('gv_grp') === 'test' ? 'test' : 'pub'; })();
+  var GRP = (function () {
+    var h = (location.hash || '').replace('#', '');
+    if (/^t-[a-z0-9]{4,12}$/.test(h)) { store.set('gv_grp', 'test'); store.set('gv_tk', h.slice(2)); }
+    if (h === 'public') { store.set('gv_grp', 'pub'); store.set('gv_tk', ''); }
+    return store.get('gv_grp') === 'test' && store.get('gv_tk') ? 'test' : 'pub';
+  })();
+  var TOUCH = (navigator.maxTouchPoints || 0) > 0 || 'ontouchstart' in window;     // le jeu se joue au doigt : pas d'ordinateur
   var sess = null, sid = null, boardData = null, myName = store.get('gv_name') || '', lastRes = null, online = true;
   function api(body, cb) {
     var done = false, to = setTimeout(function () { if (!done) { done = true; cb(null); } }, 8000);
@@ -964,7 +981,13 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
   function cleanName(v) { return String(v || '').toUpperCase().replace(/[^A-Z0-9ÀÂÄÉÈÊËÎÏÔÖÙÛÜÇ _.\-']/g, '').replace(/\s+/g, ' ').trim().slice(0, 12); }
   function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function secs(ms) { return fr(ms / 1000, 3) + ' S'; }
-  function prefetch() { api({ action: 'start' }, function (d) { sess = d && d.sid ? d : null; }); }
+  function prefetch() {
+    api({ action: 'start', tk: GRP === 'test' ? store.get('gv_tk') : undefined }, function (d) {
+      sess = d && d.sid ? d : null; if (sess) sess.at = performance.now();
+      if (d && d.grp && d.grp !== GRP) { GRP = d.grp; if (GRP === 'pub') store.set('gv_grp', 'pub'); $('testtag').hidden = GRP !== 'test'; loadBoard(); }   // code de test refusé : retour au public
+    });
+  }
+  setInterval(function () { if (state === 'menu' || state === 'over') { if (!sess || performance.now() - sess.at > 20 * 60000) prefetch(); } }, 60000);   // une session trop vieille est renouvelée
   function loadBoard() { api({ action: 'board' }, function (d) { if (d && d.top) { boardData = d; showRec(); fillSheet(); } }); }
   function showRec() {
     var d = boardData, el = $('rec'); if (!d) { el.hidden = true; return; }
@@ -1041,7 +1064,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
   function frame(ts) {
     requestAnimationFrame(frame);
     var dt = Math.min(0.05, Math.max(0, (ts - last) / 1000)); last = ts; clock += dt;
-    if (state === 'run') $('time').textContent = fr((ts - t0) / 1000, 3);
+    if (state === 'run') $('time').textContent = fr((ts - t0 + sim.misses * GVSIM.PEN) / 1000, 3);   // les ratés coûtent leur pénalité
     /* la barquette glisse et le goéland la suit : c'est la simulation qui avance, au même pas que sur le serveur */
     if (sim) {
       var target = Math.floor((ts - simStart) / GVSIM.STEP);
@@ -1098,6 +1121,15 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
     lightFront(); nightPost();
     ctx.imageSmoothingEnabled = false;
     ctx.drawImage(pc, 0, 0, PW * NPX, PH * NPX);
+    if (pens.length) {                                                             // « +0,2 » : ce que coûte un tap à côté
+      ctx.font = Math.round(W / 24) + 'px "Press Start 2P", monospace'; ctx.textAlign = 'center';
+      for (i = pens.length - 1; i >= 0; i--) {
+        var pn = pens[i]; pn.t += dt; if (pn.t > 0.6) { pens.splice(i, 1); continue; }
+        var pxp = clamp(pn.x * NPX, W * 0.12, W * 0.88), pyp = (pn.y - 8 - pn.t * 22) * NPX; ctx.globalAlpha = Math.min(1, (0.6 - pn.t) * 4);
+        ctx.fillStyle = OUT; ctx.fillText('+' + fr(GVSIM.PEN / 1000, 1), pxp + 2, pyp + 2); ctx.fillStyle = '#ff5470'; ctx.fillText('+' + fr(GVSIM.PEN / 1000, 1), pxp, pyp);
+      }
+      ctx.globalAlpha = 1;
+    }
     if (burp > 0) {                                                                // BURP
       burp = Math.max(0, burp - dt * 0.6);
       ctx.font = Math.round(W / 14) + 'px "Press Start 2P", monospace'; ctx.textAlign = 'center';
@@ -1116,6 +1148,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
   function start() {
     applyPal(); resize(); setUi('menu');
     $('pseudo').value = myName; $('testtag').hidden = GRP !== 'test';
+    if (!TOUCH) { $('pseudo').hidden = true; $('play').hidden = true; $('verdict').innerHTML = 'ÇA SE JOUE AU DOIGT.<br>OUVRE-LE SUR TON TÉLÉPHONE.'; $('verdict').hidden = false; }
     prefetch(); loadBoard();
     last = performance.now(); requestAnimationFrame(frame);
   }

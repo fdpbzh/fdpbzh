@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Yellowtail&display=swap">
 <style>
 /* L'écran d'affichage de la fête : à ouvrir sur une télé ou un vidéoprojecteur, en plein écran.
-   Il se met à jour tout seul toutes les 15 secondes. #test dans l'adresse affiche le classement du groupe de test. */
+   Il se met à jour tout seul toutes les 15 secondes. #t-<code> dans l'adresse affiche le classement du groupe de test. */
 :root{color-scheme:dark;--bg:#26146e;--deep:#160a3a;--ink:#fff6fb;--mute:#d9c6ef;--hot:#ff3e8c;--gold:#ffd05a;--cyan:#4fe8e2;--out:#120a3a;
   --sunset:linear-gradient(180deg,#ffe27a 0 28%,#ffb03a 28% 50%,#ff5a8a 50% 76%,#d23bc8 76% 100%);
   --f:"Press Start 2P",ui-monospace,Menlo,monospace;--f-script:"Yellowtail","Brush Script MT",cursive}
@@ -65,8 +65,9 @@ li.new{animation:flash 1.2s steps(2) 4}
 (function () {
   'use strict';
   var API = 'https://nhsroymqvwrjflagzznz.supabase.co/functions/v1/gv';
-  var GRP = (location.hash || '').indexOf('test') >= 0 ? 'test' : 'pub';
-  var GAME = location.href.split('#')[0].replace(/ecran\.html.*$/, '') + (GRP === 'test' ? '#test' : '');
+  var H = (location.hash || '').replace('#', ''), CODE = /^t-[a-z0-9]{4,12}$/.test(H) ? H : '';     // #t-<code> : le classement du groupe test, et un QR qui y fait entrer
+  var GRP = CODE || H === 'test' ? 'test' : 'pub';
+  var GAME = location.href.split('#')[0].replace(/ecran\.html.*$/, '') + (CODE ? '#' + CODE : '');
   var seen = {}, first = true;
   function $(id) { return document.getElementById(id); }
   function fr(ms) { return (ms / 1000).toLocaleString('fr-FR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }); }

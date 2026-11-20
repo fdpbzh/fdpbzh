@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Goéland Vitesse · admin</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
+<style>
+/* La page de modération : valider ou refuser les temps en attente, bannir un pseudo.
+   La clé est demandée une fois, gardée sur ce téléphone seulement. */
+:root{color-scheme:dark;--bg:#26146e;--deep:#160a3a;--ink:#fff6fb;--mute:#d9c6ef;--hot:#ff3e8c;--gold:#ffd05a;--cyan:#4fe8e2;--ok:#7dff9a;--out:#120a3a;
+  --f:"Press Start 2P",ui-monospace,Menlo,monospace}
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:linear-gradient(180deg,#3a1a8a,var(--deep));color:var(--ink);font-family:var(--f);font-size:11px;line-height:1.7}
+.wrap{max-width:760px;margin:0 auto;padding-block:20px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:22px}
+h1{margin:0;font-size:1.4em;font-weight:400;color:var(--gold);text-shadow:3px 3px 0 var(--out)}
+h2{margin:0 0 10px;font-size:1em;font-weight:400;letter-spacing:.12em;color:var(--cyan);text-shadow:2px 2px 0 var(--out)}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+button,input{font-family:var(--f);font-size:1em;color:var(--ink)}
+button{appearance:none;cursor:pointer;background:#2d1677;border:2px solid var(--cyan);padding:10px 12px;min-height:44px;box-shadow:3px 3px 0 var(--out)}
+button.ok{border-color:var(--ok);color:var(--ok)} button.no{border-color:var(--hot);color:var(--hot)} button.on{background:var(--cyan);color:var(--out)}
+button:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--out)}
+input{background:rgba(18,10,58,.7);border:2px solid var(--cyan);padding:10px;min-height:44px;width:min(100%,22em)}
+.card{background:rgba(18,10,58,.55);box-shadow:inset 0 0 0 2px rgba(255,62,140,.6);padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.row{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:baseline}
+.nm{color:#fff;font-size:1.25em} .tm{color:var(--gold);font-size:1.25em} .g{color:var(--mute)}
+.flags{display:flex;flex-wrap:wrap;gap:6px} .flag{padding:2px 6px;background:var(--hot);color:var(--out)}
+.st{color:var(--mute);font-size:.9em;overflow-wrap:anywhere}
+.list{display:flex;flex-direction:column;gap:10px}
+.empty{color:var(--mute)}
+.msg{color:var(--hot)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>GOÉLAND VITESSE · MODÉRATION</h1>
+  <section id="login" class="card">
+    <h2>CLÉ ADMIN</h2>
+    <div class="bar"><input id="key" type="password" autocomplete="off" placeholder="LA CLÉ"><button id="go" type="button">ENTRER</button></div>
+    <p class="msg" id="lmsg" hidden></p>
+  </section>
+  <div id="main" hidden>
+    <div class="bar"><button id="gPub" type="button" class="on">PUBLIC</button><button id="gTest" type="button">GROUPE TEST</button><button id="reload" type="button">↻ ACTUALISER</button><button id="logout" type="button" class="no">SORTIR</button></div>
+    <section><h2 id="hPend">EN ATTENTE</h2><div class="list" id="pend"></div></section>
+    <section><h2>CLASSEMENT ACTUEL (MEILLEUR TEMPS PAR PSEUDO)</h2><div class="list" id="top"></div></section>
+    <section><h2>PSEUDOS BANNIS</h2><div class="list" id="bans"></div></section>
+  </div>
+</div>
+<script>
+(function () {
+  'use strict';
+  var API = 'https://nhsroymqvwrjflagzznz.supabase.co/functions/v1/gv';
+  var KEY = '', GRP = 'pub', data = null;
+  var FL = { rapide: 'TRÈS RAPIDE', regulier: 'RYTHME DE MACHINE', serre: 'TAPS TRÈS SERRÉS', synthetique: 'TAPS SIMULÉS', doigts: 'PLUSIEURS DOIGTS', non_arme: 'HORLOGE NON LANCÉE', ralenti: 'PARTIE AU RALENTI', ancien_client: 'ANCIENNE VERSION' };
+  function $(id) { return document.getElementById(id); }
+  function esc(t) { return String(t == null ? '' : t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function fr(ms) { return (ms / 1000).toLocaleString('fr-FR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }); }
+  try { KEY = localStorage.getItem('gv_admin') || ''; } catch (e) { KEY = ''; }
+  function call(body, cb) {
+    fetch(API, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(Object.assign({ key: KEY, grp: GRP }, body)) })
+      .then(function (r) { return r.json().then(function (d) { d.__status = r.status; return d; }); })
+      .then(cb, function () { cb({ __status: 0 }); });
+  }
+  function stats(s) {
+    if (!s) return '';
+    var p = [];
+    if (s.meanIv != null) p.push('RYTHME ' + (1000 / s.meanIv).toFixed(1) + '/S');
+    if (s.cv != null) p.push('RÉGULARITÉ ' + s.cv + ' %');
+    if (s.minIv != null) p.push('MIN ' + s.minIv + ' MS');
+    if (s.misses != null) p.push('RATÉS ' + s.misses);
+    if (s.refused) p.push('REFUSÉS ' + s.refused);
+    if (s.liftMin != null) p.push('LEVÉE MIN ' + s.liftMin + ' MS');
+    if (s.durMed != null) p.push('APPUI ' + s.durMed + ' MS');
+    if (s.sizeMax != null) p.push('CONTACT ' + s.sizeMin + '–' + s.sizeMax);
+    return p.join(' · ');
+  }
+  function card(r, kind) {
+    var when = new Date(r.created_at).toLocaleString('fr-FR', { weekday: 'short', hour: '2-digit', minute: '2-digit' });
+    var fl = (r.flags || []).map(function (f) { return '<span class="flag">' + esc(FL[f] || f) + '</span>'; }).join('');
+    var btn = kind === 'pend'
+      ? '<button class="ok" data-a="ok" data-id="' + r.id + '">VALIDER</button><button class="no" data-a="rejected" data-id="' + r.id + '">REFUSER</button>'
+      : '<button class="no" data-a="rejected" data-id="' + r.id + '">RETIRER CE TEMPS</button>';
+    btn += r.banned ? '' : '<button class="no" data-ban="' + esc(r.name) + '">BANNIR LE PSEUDO</button>';
+    return '<div class="card"><div class="row"><span class="nm">' + esc(r.name) + '</span><span class="tm">' + fr(r.time_ms) + ' S</span><span class="g">' + esc(when) + '</span></div>'
+      + (fl ? '<div class="flags">' + fl + '</div>' : '') + '<div class="st">' + esc(stats(r.stats)) + '</div>' + (r.ua ? '<div class="st">' + esc(r.ua) + '</div>' : '')
+      + '<div class="bar">' + btn + '</div></div>';
+  }
+  function render() {
+    var d = data, pend = (d.pending || []).filter(function (r) { return r.grp === GRP; }), top = (d.top || []).filter(function (r) { return r.grp === GRP; }), bans = (d.bans || []).filter(function (r) { return r.grp === GRP; });
+    $('hPend').textContent = 'EN ATTENTE (' + pend.length + ')';
+    $('pend').innerHTML = pend.length ? pend.map(function (r) { return card(r, 'pend'); }).join('') : '<p class="empty">RIEN EN ATTENTE.</p>';
+    $('top').innerHTML = top.length ? top.map(function (r) { return card(r, 'top'); }).join('') : '<p class="empty">PERSONNE ENCORE.</p>';
+    $('bans').innerHTML = bans.length ? bans.map(function (r) { return '<div class="card"><div class="row"><span class="nm">' + esc(r.name) + '</span><button data-unban="' + esc(r.name) + '">LEVER</button></div></div>'; }).join('') : '<p class="empty">AUCUN.</p>';
+  }
+  function load() {
+    call({ action: 'admin_list' }, function (d) {
+      if (d.__status === 403) { KEY = ''; try { localStorage.removeItem('gv_admin'); } catch (e) {} $('main').hidden = true; $('login').hidden = false; $('lmsg').textContent = 'CLÉ REFUSÉE.'; $('lmsg').hidden = false; return; }
+      if (!d.pending) { $('lmsg').textContent = 'HORS LIGNE, RÉESSAIE.'; $('lmsg').hidden = false; return; }
+      data = d; $('login').hidden = true; $('main').hidden = false; $('lmsg').hidden = true; render();
+    });
+  }
+  $('go').addEventListener('click', function () { KEY = $('key').value.trim(); try { localStorage.setItem('gv_admin', KEY); } catch (e) {} load(); });
+  $('key').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('go').click(); });
+  $('logout').addEventListener('click', function () { KEY = ''; try { localStorage.removeItem('gv_admin'); } catch (e) {} $('main').hidden = true; $('login').hidden = false; $('key').value = ''; });
+  $('reload').addEventListener('click', load);
+  function setG(g) { GRP = g; $('gPub').classList.toggle('on', g === 'pub'); $('gTest').classList.toggle('on', g === 'test'); if (data) render(); }
+  $('gPub').addEventListener('click', function () { setG('pub'); }); $('gTest').addEventListener('click', function () { setG('test'); });
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.a) { b.disabled = true; call({ action: 'admin_set', id: +b.dataset.id, status: b.dataset.a }, load); }
+    else if (b.dataset.ban != null) {
+      if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'SÛR ? TOUCHE ENCORE'; return; }      // pas de confirm() : on demande un deuxième appui
+      call({ action: 'admin_ban', name: b.dataset.ban, on: true }, load);
+    }
+    else if (b.dataset.unban != null) call({ action: 'admin_ban', name: b.dataset.unban, on: false }, load);
+  });
+  if (KEY) load();
+})();
+</script>
+</body>
+</html>
