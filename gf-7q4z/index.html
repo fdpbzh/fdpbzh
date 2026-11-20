@@ -80,6 +80,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
 @media (max-height:720px){.title{margin-top:calc(10vh + 52px)}.panel{gap:10px}.links{margin-top:-4px}.testtag{display:none!important}}
 .turn{display:none}
 @media (orientation:landscape) and (max-height:520px){.turn{display:flex;position:absolute;inset:0;z-index:5;align-items:center;justify-content:center;pointer-events:auto;touch-action:none;background:rgba(22,10,58,.94);color:#fff;text-align:center;font-size:1.4em;line-height:1.8;text-shadow:3px 3px 0 var(--out)}}
+.wait{display:block;font-size:max(7px,.62em);line-height:1.5;letter-spacing:.06em;color:var(--hot);white-space:normal}
 .rec .lr{margin:0;font-size:.85em;color:var(--hot)}.rec .lr b{font-weight:400;color:#fff}
 .pseudo{appearance:none;box-sizing:border-box;width:min(80%,20em);font-family:var(--f);font-size:1.15em;letter-spacing:.06em;text-align:center;text-transform:uppercase;color:#fff;padding:12px 10px;
   background:rgba(38,20,110,.75);border:3px solid var(--cyan);border-radius:0;outline:none;box-shadow:4px 4px 0 var(--out);user-select:text;-webkit-user-select:text}
@@ -992,7 +993,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
   function showRec() {
     var d = boardData, el = $('rec'); if (!d) { el.hidden = true; return; }
     var top = (d.top || []).slice(0, 3), h = '';                                    // l'accueil : le podium et la lanterne rouge, rien d'autre
-    if (top.length) h += '<ol>' + top.map(function (r, i) { return '<li><span class="rk">' + (i + 1) + (i ? 'E' : 'ER') + '</span><span class="nm">' + esc(r.name) + '</span><span class="tm">' + fr(r.time_ms / 1000, 3) + '</span></li>'; }).join('') + '</ol>';
+    if (top.length) h += '<ol>' + top.map(function (r, i) { return '<li><span class="rk">' + (i + 1) + (i ? 'E' : 'ER') + '</span><span class="nm">' + esc(r.name) + (r.wait ? '<small class="wait">EN ATTENTE DE VALIDATION</small>' : '') + '</span><span class="tm">' + fr(r.time_ms / 1000, 3) + '</span></li>'; }).join('') + '</ol>';
     var w = d.worst, inTop = w && top.some(function (r) { return r.name === w.name && r.time_ms === w.time_ms; });
     if (w && !inTop) h += '<p class="lr">LANTERNE ROUGE · <b>' + esc(w.name) + '</b> ' + fr(w.time_ms / 1000, 3) + '</p>';
     el.innerHTML = h; el.hidden = !h || state !== 'menu';
@@ -1000,7 +1001,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
   function fillSheet() {
     var d = boardData, ol = $('topList'), fx = $('facts');
     if (!d) { ol.innerHTML = '<li class="empty">' + (online ? 'CHARGEMENT…' : 'HORS LIGNE.<br>LE CLASSEMENT REVIENT AVEC LE RÉSEAU.') + '</li>'; fx.innerHTML = ''; return; }
-    ol.innerHTML = d.top.length ? d.top.map(function (r, i) { return '<li class="' + (r.name === myName ? 'me' : '') + '"><span class="rk">' + (i + 1) + (i ? 'E' : 'ER') + '</span><span class="nm">' + esc(r.name) + '</span><span class="tm">' + fr(r.time_ms / 1000, 3) + '</span></li>'; }).join('')
+    ol.innerHTML = d.top.length ? d.top.map(function (r, i) { return '<li class="' + (r.name === myName ? 'me' : '') + '"><span class="rk">' + (i + 1) + (i ? 'E' : 'ER') + '</span><span class="nm">' + esc(r.name) + (r.wait ? '<small class="wait">EN ATTENTE DE VALIDATION</small>' : '') + '</span><span class="tm">' + fr(r.time_ms / 1000, 3) + '</span></li>'; }).join('')
       : '<li class="empty">PERSONNE ENCORE.<br>À TOI !</li>';
     var F = [];
     if (d.day) F.push(['RECORD DU JOUR', esc(d.day.name) + ' · ' + fr(d.day.time_ms / 1000, 3)]);
@@ -1016,7 +1017,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
     if (!r.ok) return 'TEMPS NON RETENU PAR LE SERVEUR';
     var abs = r.best && r.time_ms <= r.best.time_ms, jour = r.day && r.time_ms <= r.day.time_ms;   // un record, c'est battre tout le monde, soi compris
     var first = abs ? 'RECORD ABSOLU !' : jour ? 'RECORD DU JOUR !' : '';
-    return (first ? first + '<br>' : '') + r.rank + (r.rank === 1 ? 'ER' : 'E') + ' SUR ' + r.players + ' · DU JOUR : ' + r.dayRank + (r.dayRank === 1 ? 'ER' : 'E');
+    return (first ? first + '<br>' : '') + r.rank + (r.rank === 1 ? 'ER' : 'E') + ' SUR ' + r.players + ' · DU JOUR : ' + r.dayRank + (r.dayRank === 1 ? 'ER' : 'E') + (r.wait ? '<br><span class="wait">EN ATTENTE DE VALIDATION</span>' : '');
   }
   $('boardBtn').addEventListener('click', function () { fillSheet(); $('pseudo2').value = myName; $('sheet').hidden = false; loadBoard(); $('sheetClose').focus(); });
   $('sheetClose').addEventListener('click', function () { $('sheet').hidden = true; });

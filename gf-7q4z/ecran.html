@@ -40,6 +40,7 @@ li.new{animation:flash 1.2s steps(2) 4}
 .qr #qr img,.qr #qr canvas{width:9em!important;height:9em!important;image-rendering:pixelated}
 .qr p{margin:0;font-size:.85em;line-height:1.8;color:var(--mute)} .qr b{font-weight:400;color:#fff}
 .off{color:var(--hot)}
+.wait{display:block;font-size:.34em;line-height:1.7;letter-spacing:.04em;color:var(--hot);white-space:normal}
 @media (max-aspect-ratio:1/1){.wrap{grid-template-columns:minmax(0,1fr);overflow:auto;height:auto;min-height:100%}body{overflow:auto}}
 </style>
 </head>
@@ -79,11 +80,11 @@ li.new{animation:flash 1.2s steps(2) 4}
     var top = d.top || [];
     $('top').innerHTML = top.length ? top.map(function (r, i) {
       var key = r.name + ':' + r.time_ms, isNew = !first && !seen[key]; seen[key] = 1;
-      return '<li class="' + (isNew ? 'new' : '') + '"><span class="rk">' + (i + 1) + (i ? 'E' : 'ER') + '</span><span class="nm">' + esc(r.name) + '</span><span class="tm">' + fr(r.time_ms) + '</span></li>';
+      return '<li class="' + (isNew ? 'new' : '') + '"><span class="rk">' + (i + 1) + (i ? 'E' : 'ER') + '</span><span class="nm">' + esc(r.name) + (r.wait ? '<small class="wait">EN ATTENTE DE VALIDATION</small>' : '') + '</span><span class="tm">' + fr(r.time_ms) + '</span></li>';
     }).join('') : '<li class="empty">PERSONNE ENCORE. À TOI !</li>';
     if (first) top.forEach(function (r) { seen[r.name + ':' + r.time_ms] = 1; });
     first = false;
-    $('day').innerHTML = d.day ? esc(d.day.name) + ' · <span class="v">' + fr(d.day.time_ms) + ' S</span>' : 'PAS ENCORE DE TEMPS AUJOURD’HUI';
+    $('day').innerHTML = d.day ? esc(d.day.name) + ' · <span class="v">' + fr(d.day.time_ms) + ' S</span>' + (d.day.wait ? '<small class="wait">EN ATTENTE DE VALIDATION</small>' : '') : 'PAS ENCORE DE TEMPS AUJOURD’HUI';
     $('worst').innerHTML = d.worst ? esc(d.worst.name) + ' · <span class="v">' + fr(d.worst.time_ms) + ' S</span>' : '—';
     $('plays').textContent = String(d.plays || 0); $('players').textContent = String(d.players || 0);
     $('state').textContent = ''; $('state').className = '';
