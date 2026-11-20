@@ -53,7 +53,7 @@ input{background:rgba(18,10,58,.7);border:2px solid var(--cyan);padding:10px;min
   'use strict';
   var API = 'https://nhsroymqvwrjflagzznz.supabase.co/functions/v1/gv';
   var KEY = '', GRP = 'pub', data = null;
-  var FL = { rapide: 'TRÈS RAPIDE', regulier: 'RYTHME DE MACHINE', serre: 'TAPS TRÈS SERRÉS', synthetique: 'TAPS SIMULÉS', doigts: 'PLUSIEURS DOIGTS', non_arme: 'HORLOGE NON LANCÉE', ralenti: 'PARTIE AU RALENTI', ancien_client: 'ANCIENNE VERSION' };
+  var FL = { rapide: 'TRÈS RAPIDE', regulier: 'RYTHME DE MACHINE', serre: 'TAPS TRÈS SERRÉS', synthetique: 'TAPS SIMULÉS', doigts: 'PLUSIEURS DOIGTS', non_arme: 'HORLOGE NON LANCÉE', visee: 'VISÉE DE MACHINE', ralenti: 'PARTIE AU RALENTI', ancien_client: 'ANCIENNE VERSION' };
   function $(id) { return document.getElementById(id); }
   function esc(t) { return String(t == null ? '' : t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function fr(ms) { return (ms / 1000).toLocaleString('fr-FR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }); }
@@ -74,6 +74,8 @@ input{background:rgba(18,10,58,.7);border:2px solid var(--cyan);padding:10px;min
     if (s.liftMin != null) p.push('LEVÉE MIN ' + s.liftMin + ' MS');
     if (s.durMed != null) p.push('APPUI ' + s.durMed + ' MS');
     if (s.sizeMax != null) p.push('CONTACT ' + s.sizeMin + '–' + s.sizeMax);
+    if (s.aimRms != null) p.push('DISPERSION ' + s.aimRms + ' PX');
+    if (s.lagMs != null) p.push('RETARD ' + Math.round(s.lagMs) + ' MS');
     return p.join(' · ');
   }
   function card(r, kind) {
