@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#26146e">
-<title>Goéland et Frites</title>
+<title>Goéland Vitesse</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Yellowtail&display=swap">
 <style>
 /* Plein écran portrait. Vu du dessus : le terre-plein, la barquette, le goéland, les crabes. Le chrono en haut.
@@ -20,6 +20,7 @@
   --f:"Press Start 2P", ui-monospace, Menlo, monospace;
   --f-script:"Yellowtail", "Brush Script MT", cursive;
 }
+[hidden]{display:none!important}
 html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflow:hidden;overscroll-behavior:none}
 .stage{container-type:inline-size;position:relative;height:100%;max-width:560px;margin:0 auto;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;background:var(--bg)}
@@ -36,7 +37,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
 .left{text-align:right;font-size:1.8em;line-height:1.35;color:var(--gold);text-shadow:-2px 0 0 var(--out),0 -2px 0 var(--out),2px 0 0 var(--out),0 2px 0 var(--out),3px 3px 0 var(--orange)}
 .left small{display:block;font-size:.4em;letter-spacing:.12em;color:#fff;text-shadow:2px 2px 0 var(--out)}
 
-/* le titre : GOÉLAND en lettres de couchant, « et frites » en néon turquoise, de travers */
+/* le titre : GOÉLAND en lettres de couchant, « vitesse » en néon turquoise, de travers */
 .title{font-size:1em;margin:max(2.2em,14vh) 0 0;display:flex;flex-direction:column;align-items:center;font-weight:400;line-height:1;text-align:center}
 .t1{font-size:3.3em;letter-spacing:.02em;color:#ffb03a;background:var(--sunset);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
   filter:drop-shadow(3px 3px 0 var(--out)) drop-shadow(2px 2px 0 var(--out)) drop-shadow(0 0 14px rgba(255,62,140,.55))}
@@ -68,6 +69,35 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
 .play:active{filter:drop-shadow(0 1px 0 #120a3a);transform:translateY(4px)}
 .play:disabled{opacity:.5}
 .play:focus-visible{outline:3px solid var(--cyan);outline-offset:6px}
+.share{appearance:none;background:none;border:0;cursor:pointer;font-family:var(--f);font-size:1em;letter-spacing:.08em;color:var(--cyan);text-shadow:2px 2px 0 var(--out);padding:12px 18px;min-height:44px}
+.share:focus-visible{outline:3px solid var(--cyan);outline-offset:2px}
+.links{display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin-top:-8px}
+.testtag{font-size:.7em;letter-spacing:.1em;color:var(--gold);text-shadow:2px 2px 0 var(--out)}
+.rec{font-size:.72em;line-height:2;color:var(--cyan);text-shadow:2px 2px 0 var(--out)}
+.rec b{font-weight:400;color:#fff}
+.pseudo{appearance:none;box-sizing:border-box;width:min(80%,20em);font-family:var(--f);font-size:1.15em;letter-spacing:.06em;text-align:center;text-transform:uppercase;color:#fff;padding:12px 10px;
+  background:rgba(38,20,110,.75);border:3px solid var(--cyan);border-radius:0;outline:none;box-shadow:4px 4px 0 var(--out);user-select:text;-webkit-user-select:text}
+.pseudo::placeholder{color:#9fe9e4;opacity:.8}
+.pseudo:focus{border-color:var(--gold)}
+.pseudo.err{border-color:var(--hot);animation:shake .3s}
+.pseudo.small{width:100%;font-size:.9em;padding:8px}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.stage[data-ui="over"] .pseudo:not(.small){display:none}
+/* la feuille du classement, par-dessus la scène */
+.sheet{pointer-events:auto;touch-action:pan-y;position:absolute;inset:0;z-index:5;overflow-y:auto;display:flex;flex-direction:column;gap:14px;align-items:stretch;
+  padding-block:max(20px,env(safe-area-inset-top,0px)) max(20px,env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  background:linear-gradient(180deg,rgba(38,20,110,.97),rgba(22,10,58,.98))}
+.sheet-h{margin:8px 0 0;text-align:center;font-weight:400;font-size:1.7em;color:#ffb03a;background:var(--sunset);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(3px 3px 0 #120a3a)}
+.top{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.top li{display:grid;grid-template-columns:2.6em minmax(0,1fr) auto;gap:8px;align-items:baseline;padding:9px 4px;border-bottom:2px dotted rgba(255,62,140,.45);font-size:.9em}
+.top li .rk{color:var(--mute)} .top li .tm{color:var(--gold);font-variant-numeric:tabular-nums}
+.top li .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fff}
+.top li:nth-child(1) .rk{color:var(--gold)} .top li.me .nm{color:var(--cyan)}
+.top .empty{display:block;text-align:center;color:var(--mute);border:0;line-height:2}
+.facts{margin:0;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 12px;font-size:.75em}
+.facts dt{color:var(--cyan)} .facts dd{margin:0;text-align:right;color:#fff}
+.facts-name{display:flex;flex-direction:column;gap:8px;font-size:.7em;color:var(--cyan)}
+.share:active{transform:translateY(2px)}
 @media (prefers-reduced-motion:no-preference){.play:not(:disabled) .in::before{animation:blink 1s steps(1) infinite}}
 @keyframes blink{50%{opacity:0}}
 </style>
@@ -82,12 +112,23 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
       <div class="time" id="time">0,000</div>
       <div class="left"><span id="left">50</span><small>FRITES</small></div>
     </div>
-    <h1 class="title" id="title"><span class="t1">GOÉLAND</span><span class="t2">et frites</span></h1>
+    <h1 class="title" id="title"><span class="t1">GOÉLAND</span><span class="t2">vitesse</span></h1>
     <section class="panel" id="panel" aria-live="polite">
       <p class="big" id="big" hidden></p>
       <dl class="stats" id="stats" hidden></dl>
+      <p class="testtag" id="testtag" hidden>MODE TEST · CLASSEMENT DU GROUPE</p>
       <p class="verdict" id="verdict">50 FRITES. TAPE DANS LA BARQUETTE : À CHAQUE TAP, IL EN GOBE UNE. LE CHRONO PART AU PREMIER COUP DE BEC.</p>
+      <p class="rec" id="rec" hidden></p>
+      <input class="pseudo" id="pseudo" type="text" maxlength="12" placeholder="TON PSEUDO" aria-label="Ton pseudo pour le classement" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="go">
       <button class="play" id="play" type="button"><span class="plate px"><span class="ring px"><span class="in px"><span class="lbl" id="playLbl">À TABLE</span></span></span></span></button>
+      <div class="links"><button class="share" id="share" type="button" hidden>&gt; PARTAGER</button><button class="share" id="boardBtn" type="button">&gt; CLASSEMENT</button></div>
+    </section>
+    <section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetH" hidden>
+      <h2 class="sheet-h" id="sheetH">CLASSEMENT</h2>
+      <ol class="top" id="topList"></ol>
+      <dl class="facts" id="facts"></dl>
+      <label class="facts-name">TON PSEUDO <input class="pseudo small" id="pseudo2" type="text" maxlength="12" placeholder="TON PSEUDO" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false"></label>
+      <button class="share" id="sheetClose" type="button">&lt; RETOUR</button>
     </section>
   </div>
 </div>
@@ -127,7 +168,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
   var PAL = PALS.vc;
   var N = 50, TAU = 6.283185307179586, OUT = PAL.out, SC = 2;   // SC : pixels de dessin par unité du goéland et de la barquette (plus de détail)
   var dpr = 1, W = 2, H = 2, NPX = 2, PW = 2, PH = 2, groundC = null, QY = 10, WH = 24;
-  var state = 'menu', t0 = 0, clock = 0, last = 0, hits = [], misses = 0, lastDown = 0, down = {}, maxDown = 0, refused = 0, warnT = 0, lastHit = -1e9;
+  var state = 'menu', t0 = 0, clock = 0, last = 0, hits = [], misses = 0, lastDown = 0, down = {}, maxDown = 0, refused = 0, warnT = 0, lastHit = -1e9, penalty = 0;
   var store = {
     get: function (k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },
     set: function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* stockage indisponible */ } }
@@ -510,22 +551,9 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
           if (e2 < 1.05) { if (P.blink) return 'w'; if (e2 < 0.3 && du > -0.2) return 'e'; return e2 < 0.62 ? 'E' : 'R'; }
         }
       }
-      /* la tête renversée en arrière (P.up) : le bec pointe vers la caméra, grand ouvert. Vu du dessus, c'est un losange jaune
-         (la mandibule du haut vers l'arrière de la tête, celle du bas vers l'avant, avec sa tache rouge), et dedans le rose de la bouche,
-         la langue, le fond de la gorge. */
-      var up = P.up || 0;
-      if (up > 0.05) {
-        var mu = u - (hu + hx * 0.15), mrx = 0.5 + 3.5 * up, mry = 0.5 + 2.9 * up, ma = Math.abs(mu) / mrx + Math.abs(v) / mry, mo = P.beak || 0;
-        if (ma < 1) {
-          if (ma > 1 - 0.34 / up || mo < 0.2) return mu < 0 ? 'Y' : (mu > mrx * 0.55 && v > 0 && G.spot ? 'r' : 'y');   // le bord des mandibules
-          if (ma < 0.22) return '#4a0b22';                                         // le fond de la gorge
-          if (mu > mrx * 0.15 && Math.abs(v) < mry * 0.4) return '#ff9aaa';          // la langue
-          return '#e4486a';
-        }
-      }
       /* le bec */
-      var b0 = hu + hx * 0.8, blE = G.bl * (1 - up); du = u - b0;
-      if (du >= 0 && du < blE) {
+      var b0 = hu + hx * 0.8; du = u - b0;
+      if (du >= 0 && du < G.bl) {
         var half = G.bw0 * (1 - du / G.bl * 0.45) - (du > G.bl - 1.2 ? (du - G.bl + 1.2) * 0.5 : 0), op = (P.beak || 0) * 1.5 * (du / G.bl);
         if (P.beak > 0.05) {                        // un goéland ouvre le bec de haut en bas : vu du dessus, la mandibule du haut se relève et paraît plus courte,
           var Lu = G.bl * (1 - 0.28 * P.beak);       // celle du bas dépasse devant avec sa tache rouge, et on voit le rose de la bouche aux commissures
@@ -683,14 +711,92 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
     }
   }
 
+  /*SIM-START*/
+  /* ---------- la partie, rejouable à l'identique par le serveur ----------
+     Tout ce qui décide du score est ici, sans écran ni hasard caché : la barquette et le goéland avancent par pas fixes de 1/60 s,
+     le hasard des coups de bec vient d'une graine, et chaque tap (instant, position, autres doigts posés) passe par les mêmes règles.
+     Le serveur exécute ce même code sur la trace de la partie : s'il ne retrouve pas les 50 frites, le score n'est pas pris. */
+  var GVSIM = (function () {
+    var SC = 2, GS = 1.6, TW = 38, TH = 26, N = 50, STEP = 1000 / 60, DT = 1 / 60, NEAR = 14, FAR = 26, HOLD_UNUSED = 600, TAU = 6.283185307179586;
+    var FK = Math.exp(-4.2 * DT), FA = Math.exp(-5 * DT), WANT = (23.6 * GS + 3.4) * SC;
+    function lcg(seed) { var s = seed >>> 0; return function () { s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s / 4294967296; }; }
+    function create(seed, PW, PH, k) {                    // k : pixels CSS par pixel de jeu, pour mesurer les doigts en vraie distance
+      var QY = Math.round(PH * 0.1), zone = { x0: 22 * SC, y0: QY + 24 + 18 * SC, x1: PW - 22 * SC, y1: Math.round(PH * 0.88) };
+      var T = { x: PW * 0.72, y: (zone.y0 + zone.y1) / 2, vx: 0, vy: 0, a: -0.1, va: 0 };
+      var B = { x: T.x - (23.6 * GS + 4.4) * SC, y: T.y + 6, a: 0, step: 0 };
+      return { T: T, B: B, zone: zone, tick: 0, rnd: lcg(seed), k: k, hits: [], misses: 0, refused: 0, t0: null, lastHit: -1e9, done: false, result: null,
+        F1: { h: [], zz: [], acc: [], two: false, G: null, X: null, lastX: 0 } };
+    }
+    function step(S) {
+      var T = S.T, B = S.B, z = S.zone;
+      T.vx *= FK; T.vy *= FK; T.va *= FA; T.x += T.vx * DT; T.y += T.vy * DT; T.a += T.va * DT;
+      if (T.x < z.x0) { T.x = z.x0; T.vx = Math.abs(T.vx) * 0.6; } if (T.x > z.x1) { T.x = z.x1; T.vx = -Math.abs(T.vx) * 0.6; }
+      if (T.y < z.y0) { T.y = z.y0; T.vy = Math.abs(T.vy) * 0.6; } if (T.y > z.y1) { T.y = z.y1; T.vy = -Math.abs(T.vy) * 0.6; }
+      var dx = T.x - B.x, dy = T.y - B.y, dist = Math.hypot(dx, dy), da = Math.atan2(dy, dx) - B.a;       // le goéland la suit
+      while (da > Math.PI) da -= TAU; while (da < -Math.PI) da += TAU;
+      B.a += da * 0.2;
+      var mv = (dist - WANT) * 0.15;
+      if (Math.abs(dist - WANT) > 0.5) { B.x += dx / dist * mv; B.y += dy / dist * mv; B.step += Math.abs(mv) * 0.9 / SC; }
+      S.tick++;
+    }
+    function advance(S, tMs) { var target = Math.floor(tMs / STEP); while (S.tick < target) step(S); }
+    /* un seul doigt : pas deux doigts posés, 50 ms au moins entre deux coups, et le zigzag de deux doigts qui alternent (10 sur 12) */
+    function finger(S, t, rx, ry, o) {
+      var F = S.F1, h = F.h, zz = F.zz, back = 0;
+      h.push([rx, ry]); if (h.length > 3) h.shift();
+      if (h.length === 3) {
+        var a = h[0], b = h[1], c = h[2], dAC = Math.hypot(a[0] - c[0], a[1] - c[1]), dAB = Math.hypot(a[0] - b[0], a[1] - b[1]), dBC = Math.hypot(b[0] - c[0], b[1] - c[1]);
+        zz.push(dAC < NEAR && dAB > FAR && dBC > FAR ? 1 : 0); if (zz.length > 12) zz.shift();
+        var nz = 0; for (var i = 0; i < zz.length; i++) nz += zz[i];
+        if (!F.two && zz.length === 12 && nz >= 10) {
+          var P = [(a[0] + c[0]) / 2, (a[1] + c[1]) / 2], Q = b;
+          F.two = true; F.lastX = t;
+          if (Math.hypot(P[0], P[1]) <= Math.hypot(Q[0], Q[1])) { F.G = P; F.X = Q; } else { F.G = Q; F.X = P; }
+          for (var j = 0; j < F.acc.length; j++) {                                      // les frites volées par l'autre doigt reviennent
+            var q = F.acc[j];
+            if (Math.hypot(q.rx - F.X[0], q.ry - F.X[1]) < Math.hypot(q.rx - F.G[0], q.ry - F.G[1])) { var at = S.hits.indexOf(q.hit); if (at >= 0 && S.hits.length > 1) { S.hits.splice(at, 1); back++; } }
+          }
+          S.refused += back;
+        }
+      }
+      if (F.two && t - F.lastX > 1200) { F.two = false; F.zz = []; }
+      if (o > 0) return { r: 2, back: back };
+      if (F.two) {
+        var dG = Math.hypot(rx - F.G[0], ry - F.G[1]), dX = Math.hypot(rx - F.X[0], ry - F.X[1]);
+        if (dX < dG) { F.X = [F.X[0] * 0.6 + rx * 0.4, F.X[1] * 0.6 + ry * 0.4]; F.lastX = t; return { r: 2, back: back }; }
+        F.G = [F.G[0] * 0.6 + rx * 0.4, F.G[1] * 0.6 + ry * 0.4];
+      }
+      if (t - S.lastHit < 50) return { r: 1, back: back };
+      return { r: 0, back: back };
+    }
+    /* un tap : t en ms depuis le début de la partie, x et y en pixels de jeu, o = autres doigts posés */
+    function tap(S, t, x, y, o, margin) {
+      if (S.done) return { r: 'fin' };
+      advance(S, t);
+      var T = S.T, dx = x - T.x, dy = y - T.y, ca = Math.cos(-T.a), sa = Math.sin(-T.a), u = dx * ca - dy * sa, v = dx * sa + dy * ca, m = 5 + (margin || 0);
+      if (!(Math.abs(u) < (TW / 2 + m) * SC && Math.abs(v) < (TH / 2 + m) * SC)) { if (S.t0 !== null) S.misses++; return { r: 'rate' }; }
+      var rx = dx * S.k, ry = dy * S.k, f = finger(S, t, rx, ry, o);
+      if (f.r) { S.refused++; return { r: f.r === 2 ? 'doigts' : 'vite', back: f.back }; }
+      if (S.t0 === null) S.t0 = t;
+      S.lastHit = t;
+      var hit = { t: t - S.t0 }; S.hits.push(hit); S.F1.acc.push({ rx: rx, ry: ry, hit: hit }); if (S.F1.acc.length > 12) S.F1.acc.shift();
+      var ang = Math.atan2(T.y - S.B.y, T.x - S.B.x) + (S.rnd() - 0.5) * 2.4, pw = (55 + S.rnd() * 70) * SC * 1;   // la tête pousse la barquette, au hasard de la graine
+      T.vx += Math.cos(ang) * pw; T.vy += Math.sin(ang) * pw; T.va += (S.rnd() - 0.5) * 6;
+      if (S.hits.length >= N) { S.done = true; S.result = S.hits[N - 1].t; }
+      return { r: 'frite', back: f.back };
+    }
+    return { create: create, step: step, advance: advance, tap: tap, N: N, STEP: STEP };
+  })();
+  /*SIM-END*/
+
   /* ---------- l'état de la scène ---------- */
-  var toss = null, T = { x: 0, y: 0, vx: 0, vy: 0, a: 0, va: 0 }, B = { x: 0, y: 0, a: 0, step: 0 }, peck = 0, peckT = 9, blinkT = 0, look = 0, flying = [], crumbs = [], burp = 0;
-  var zone = { x0: 0, y0: 0, x1: 0, y1: 0 };
+  var T = { x: 0, y: 0, vx: 0, vy: 0, a: 0, va: 0 }, B = { x: 0, y: 0, a: 0, step: 0 }, peck = 0, peckT = 9, blinkT = 0, look = 0, flying = [], crumbs = [], burp = 0;
+  var zone = { x0: 0, y0: 0, x1: 0, y1: 0 }, sim = null, simStart = 0, trace = [], seed = 0;
   function setZone() { zone = { x0: 22 * SC, y0: Math.round(PH * 0.1) + WH + 18 * SC, x1: PW - 22 * SC, y1: Math.round(PH * (state === 'menu' || state === 'over' ? 0.7 : 0.88)) }; }
   function reset() {
     setZone(); makeFries();
-    T.x = PW * 0.72; T.y = (zone.y0 + zone.y1) / 2; T.vx = T.vy = 0; T.a = -0.1; T.va = 0;
-    B.x = T.x - (23.6 * GS + 4.4) * SC; B.y = T.y + 6; B.a = 0; flying = []; crumbs = []; burp = 0; peckT = 9; toss = null;
+    sim = GVSIM.create(seed, PW, PH, NPX / dpr); simStart = performance.now(); T = sim.T; B = sim.B; trace = [];   // une partie neuve, sur sa graine
+    flying = []; crumbs = []; burp = 0; peckT = 9;
   }
   function resize() {
     dpr = Math.min(3, window.devicePixelRatio || 1);
@@ -706,113 +812,189 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
 
   function setUi(p) { stage.dataset.ui = p; $('panel').hidden = p !== 'menu' && p !== 'over'; $('title').hidden = p !== 'menu'; $('hud').hidden = p === 'menu'; }
   $('play').addEventListener('click', function () {
-    audio(); state = 'ready'; hits = []; misses = 0; down = {}; maxDown = 0; refused = 0; warnT = 0; lastHit = -1e9; F1 = { h: [], zz: 0, two: false, G: null, X: null, lastX: 0 }; reset(); setUi('ready');
+    if (state === 'menu') {                                                          // il faut un pseudo pour le classement
+      var n = cleanName($('pseudo').value);
+      if (!n) { $('pseudo').classList.add('err'); $('pseudo').focus(); return; }
+      myName = n; store.set('gv_name', n); $('pseudo').value = n; $('pseudo').blur();
+    }
+    $('share').hidden = true; $('rec').hidden = true; audio(); state = 'ready'; down = {}; maxDown = 0; warnT = 0; penalty = 0;
+    if (sess) { seed = sess.seed >>> 0; sid = sess.sid; sess = null; } else { seed = nextSeed(); sid = null; }   // hors ligne : on joue quand même
+    reset(); hits = sim.hits; misses = 0; refused = 0; setUi('ready');
     $('left').textContent = N; $('time').textContent = '0,000';
   });
 
   /* ---------- un coup de bec ---------- */
+  function nextSeed() { try { var a = new Uint32Array(1); crypto.getRandomValues(a); return a[0]; } catch (e) { return Math.floor(Math.random() * 4294967296); } }
+  function buzz(p) { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) { /* pas de vibreur */ } }
   function strike(tt) {
     var left = fries.filter(function (f) { return f.on; }), f = left[Math.floor(Math.random() * left.length)];
     f.on = false;
     var ca = Math.cos(T.a), sa = Math.sin(T.a);
-    if (hits.length >= N) toss = { t: 0, l: f.l, spin: (Math.random() < 0.5 ? -1 : 1) * (9 + Math.random() * 5), snd: 0 };   // la dernière : il la jette en l'air
-    else flying.push({ x: T.x + (f.x * ca - f.y * sa) * SC, y: T.y + (f.x * sa + f.y * ca) * SC, a: T.a + f.a, l: f.l, t: 0, tx: 0, ty: 0 });
+    flying.push({ x: T.x + (f.x * ca - f.y * sa) * SC, y: T.y + (f.x * sa + f.y * ca) * SC, a: T.a + f.a, l: f.l, t: 0, tx: 0, ty: 0 });
     for (var k = 0; k < 4; k++) crumbs.push({ x: T.x + (Math.random() - 0.5) * 20 * SC, y: T.y + (Math.random() - 0.5) * 12 * SC, vx: (Math.random() - 0.5) * 70 * SC, vy: (Math.random() - 0.5) * 70 * SC, t: 0 });
-    var ang = Math.atan2(T.y - B.y, T.x - B.x) + (Math.random() - 0.5) * 2.4, pw = (55 + Math.random() * 70) * SC * (toss ? 0.3 : 1);   // la tête pousse la barquette, un peu au hasard
-    T.vx += Math.cos(ang) * pw; T.vy += Math.sin(ang) * pw; T.va += (Math.random() - 0.5) * 6;
-    peck = 1; peckT = 0; scarePeck();
+    peck = 1; peckT = 0; scarePeck(); buzz(hits.length >= N ? [30, 40, 60] : 12);
     tone(260 + Math.random() * 60, 120, 0.05, 'square', 0.05); tone(900, 1400, 0.03, 'triangle', 0.03, 0.04);
   }
   stage.addEventListener('pointerdown', function (e) {
-    if (e.target.closest && e.target.closest('.panel')) return;
+    if (e.target.closest && (e.target.closest('.panel') || e.target.closest('.sheet'))) return;
     if (state !== 'ready' && state !== 'run') return;
     e.preventDefault();
     var tt = performance.now(), r = stage.getBoundingClientRect(), px = (e.clientX - r.left) * dpr / NPX, py = (e.clientY - r.top) * dpr / NPX;
-    var dx = px - T.x, dy = py - T.y, ca = Math.cos(-T.a), sa = Math.sin(-T.a), u = dx * ca - dy * sa, v = dx * sa + dy * ca;
-    var inside = Math.abs(u) < (TW / 2 + 5) * SC && Math.abs(v) < (TH / 2 + 5) * SC;          // la barquette, avec un peu de marge pour le doigt
-    if (!inside) { if (state === 'run') misses++; crumbs.push({ x: px, y: py, vx: 0, vy: 0, t: 0, miss: true }); return; }
-    if (!oneFinger(e, tt, (e.clientX - r.left) - T.x * NPX / dpr, (e.clientY - r.top) - T.y * NPX / dpr)) { refused++; warnT = 0.9; return; }
-    if (state === 'ready') { state = 'run'; t0 = tt; }
-    lastHit = tt;
-    hits.push({ t: tt - t0 });
+    var others = 0; for (var id in down) if (+id !== e.pointerId && tt - down[id] < 600) others++;
+    var t = Math.round((tt - simStart) * 10) / 10, x = Math.round(px * 100) / 100, y = Math.round(py * 100) / 100;
+    if (trace.length < 900) trace.push([t, x, y, others]);                          // la trace, que le serveur rejouera
+    var res = GVSIM.tap(sim, t, x, y, others);
+    misses = sim.misses; refused = sim.refused;
+    if (res.r === 'rate') { crumbs.push({ x: px, y: py, vx: 0, vy: 0, t: 0, miss: true }); return; }
+    if (res.back) {                                                                  // deux doigts reconnus : les frites volées reviennent
+      for (var bk = 0, fi = 0; bk < res.back && fi < fries.length; fi++) if (!fries[fi].on) { fries[fi].on = true; bk++; }
+      penalty = res.back; warnT = 1.6; $('left').textContent = N - sim.hits.length;
+    }
+    if (res.r !== 'frite') { if (res.r === 'doigts' && !penalty) warnT = 0.9; return; }
+    if (state === 'ready') { state = 'run'; t0 = simStart + sim.t0; }
     strike(tt);
-    $('left').textContent = N - hits.length;
-    if (hits.length >= N) finish();
+    $('left').textContent = N - sim.hits.length;
+    if (sim.done) finish();
   }, { passive: false });
-  /* ---------- un seul doigt ----------
-     1) un doigt qui se pose alors qu'un autre touche encore la vitre ne compte pas ;
-     2) deux coups de bec comptés sont séparés d'au moins 80 ms (plus de 12 par seconde, aucun doigt seul ne suit une barquette qui bouge) ;
-     3) deux doigts qui alternent sans se chevaucher tapent en zigzag : un coup ici, un coup à un centimètre, un coup ici…
-        Dès que ce zigzag se répète, on reconnaît les deux doigts (par leur place par rapport à la barquette) et seul celui
-        qui tape le plus près du milieu de la barquette compte. Les positions sont en pixels CSS : 1 cm ≈ 38 px. */
-  var F1 = { h: [], zz: 0, two: false, G: null, X: null, lastX: 0 }, NEAR = 14, FAR = 26;
-  function oneFinger(e, tt, rx, ry) {
-    var others = Object.keys(down).filter(function (k) { return +k !== e.pointerId; }).length;
-    var h = F1.h; h.push([rx, ry]); if (h.length > 3) h.shift();
-    if (h.length === 3) {
-      var a = h[0], b = h[1], c = h[2], dAC = Math.hypot(a[0] - c[0], a[1] - c[1]), dAB = Math.hypot(a[0] - b[0], a[1] - b[1]), dBC = Math.hypot(b[0] - c[0], b[1] - c[1]);
-      if (dAC < NEAR && dAB > FAR && dBC > FAR) F1.zz++; else F1.zz = Math.max(0, F1.zz - 1);
-      if (!F1.two && F1.zz >= 3) {
-        var P = [(a[0] + c[0]) / 2, (a[1] + c[1]) / 2], Q = b;
-        F1.two = true; F1.lastX = tt;
-        if (Math.hypot(P[0], P[1]) <= Math.hypot(Q[0], Q[1])) { F1.G = P; F1.X = Q; } else { F1.G = Q; F1.X = P; }   // le doigt gardé : le plus près du milieu
-      }
-    }
-    if (F1.two && tt - F1.lastX > 1200) { F1.two = false; F1.zz = 0; }
-    if (others > 0) return false;
-    if (F1.two) {
-      var dG = Math.hypot(rx - F1.G[0], ry - F1.G[1]), dX = Math.hypot(rx - F1.X[0], ry - F1.X[1]);
-      if (dX < dG) { F1.X = [F1.X[0] * 0.6 + rx * 0.4, F1.X[1] * 0.6 + ry * 0.4]; F1.lastX = tt; return false; }
-      F1.G = [F1.G[0] * 0.6 + rx * 0.4, F1.G[1] * 0.6 + ry * 0.4];
-    }
-    if (tt - lastHit < 80) return false;
-    return true;
-  }
   stage.addEventListener('contextmenu', function (e) { e.preventDefault(); });
-  window.addEventListener('pointerdown', function (e) { lastDown = performance.now(); down[e.pointerId] = 1; var n = Object.keys(down).length; if (state === 'run' && n > maxDown) maxDown = n; }, true);
+  window.addEventListener('pointerdown', function (e) { lastDown = performance.now(); down[e.pointerId] = lastDown; var n = Object.keys(down).length; if (state === 'run' && n > maxDown) maxDown = n; }, true);
   function up(e) { delete down[e.pointerId]; }
   window.addEventListener('pointerup', up, true); window.addEventListener('pointercancel', up, true);
 
   function finish() {
-    state = 'over';                                                                // le rot vient après la frite rattrapée
-    var ms = hits[hits.length - 1].t, prev = best, isNew = !best || ms < best;
+    state = 'over'; burp = 1;
+    var ms = sim.result, prev = best, isNew = !best || ms < best;
     if (isNew) { best = ms; store.set('gf_best', best); }
     $('time').textContent = fr(ms / 1000, 3);
+    tone(140, 70, 0.45, 'sawtooth', 0.08, 0.25);                                  // le rot
+    if (sid) {
+      lastRes = 'wait';
+      api({ action: 'submit', sid: sid, name: myName, trace: trace, PW: PW, PH: PH, k: NPX / dpr, claimed: ms, ua: navigator.userAgent }, function (d) {
+        lastRes = d ? d : 'off'; if (d && d.top) { boardData = d; fillSheet(); }
+        if (state === 'over' && !$('panel').hidden) { var vv = $('verdict'), extra = verdictText(); vv.innerHTML = baseVerdict + (extra ? '<br>' + extra : ''); }
+        prefetch();
+      });
+      sid = null;
+    } else { lastRes = 'off'; prefetch(); }
     var iv = [], i, m = 0, sd = 0;
     for (i = 1; i < hits.length; i++) iv.push(hits[i].t - hits[i - 1].t);
     for (i = 0; i < iv.length; i++) m += iv[i]; m /= Math.max(1, iv.length);
     for (i = 0; i < iv.length; i++) sd += (iv[i] - m) * (iv[i] - m); sd = Math.sqrt(sd / Math.max(1, iv.length));
     setTimeout(function () {
       var v = $('verdict');
-      v.textContent = isNew && prev ? 'NOUVEAU RECORD !' : prev ? 'TON RECORD : ' + fr(prev / 1000, 3) + ' S' : 'PREMIER CHRONO';
+      baseVerdict = isNew && prev ? 'TON NOUVEAU RECORD !' : prev ? 'TON RECORD : ' + fr(prev / 1000, 3) + ' S' : 'PREMIER CHRONO';
+      var extra = verdictText(); v.innerHTML = baseVerdict + (extra ? '<br>' + extra : ''); $('testtag').hidden = true;
       v.classList.toggle('new', isNew && !!prev);
       $('big').innerHTML = fr(ms / 1000, 3) + '<small>S</small>'; $('big').hidden = false;
       var rows = [['CADENCE', fr(N / (ms / 1000), 1) + ' /S'], ['RATÉS', String(misses)], ['RÉGULARITÉ', fr(m ? sd / m * 100 : 0, 0) + ' %'], ['REFUSÉS', String(refused)]];
       $('stats').innerHTML = rows.map(function (r) { return '<div><dt>' + r[0] + '</dt><dd>' + r[1] + '</dd></div>'; }).join(''); $('stats').hidden = false;
       $('playLbl').textContent = 'REJOUER'; $('play').disabled = true; setUi('over'); setZone();
+      lastMs = ms; makeCard(ms); $('share').hidden = false; $('share').textContent = '> PARTAGER';
       var shown = performance.now();
       (function arm() { var n2 = performance.now(); if (n2 - shown > 400 && n2 - lastDown > 400) $('play').disabled = false; else setTimeout(arm, 60); })();
-    }, 2100);
+    }, 700);
   }
+
+  /* ---------- le classement en ligne : une graine par partie, la trace envoyée et rejouée par le serveur ----------
+     #test dans l'adresse met ce téléphone dans le groupe de test (classement à part, traces gardées pour l'analyse), #public le remet au public. */
+  var API = 'https://nhsroymqvwrjflagzznz.supabase.co/functions/v1/gv';
+  var GRP = (function () { var h = (location.hash || '').replace('#', ''); if (h === 'test') store.set('gv_grp', 'test'); if (h === 'public') store.set('gv_grp', 'pub'); return store.get('gv_grp') === 'test' ? 'test' : 'pub'; })();
+  var sess = null, sid = null, boardData = null, myName = store.get('gv_name') || '', lastRes = null, online = true;
+  function api(body, cb) {
+    var done = false, to = setTimeout(function () { if (!done) { done = true; cb(null); } }, 8000);
+    try {
+      fetch(API, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(Object.assign({ grp: GRP }, body)) })
+        .then(function (r) { return r.json(); })
+        .then(function (d) { if (!done) { done = true; clearTimeout(to); online = true; cb(d); } }, function () { if (!done) { done = true; clearTimeout(to); online = false; cb(null); } });
+    } catch (e) { done = true; clearTimeout(to); online = false; cb(null); }
+  }
+  function cleanName(v) { return String(v || '').toUpperCase().replace(/[^A-Z0-9ÀÂÄÉÈÊËÎÏÔÖÙÛÜÇ _.\-']/g, '').replace(/\s+/g, ' ').trim().slice(0, 12); }
+  function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function secs(ms) { return fr(ms / 1000, 3) + ' S'; }
+  function prefetch() { api({ action: 'start' }, function (d) { sess = d && d.sid ? d : null; }); }
+  function loadBoard() { api({ action: 'board' }, function (d) { if (d && d.top) { boardData = d; showRec(); fillSheet(); } }); }
+  function showRec() {
+    var d = boardData, el = $('rec'); if (!d) { el.hidden = true; return; }
+    var L = [];
+    if (d.day) L.push('RECORD DU JOUR : <b>' + esc(d.day.name) + '</b> ' + secs(d.day.time_ms));
+    if (d.best) L.push('RECORD : <b>' + esc(d.best.name) + '</b> ' + secs(d.best.time_ms));
+    el.innerHTML = L.join('<br>'); el.hidden = !L.length || state === 'over';
+  }
+  function fillSheet() {
+    var d = boardData, ol = $('topList'), fx = $('facts');
+    if (!d) { ol.innerHTML = '<li class="empty">' + (online ? 'CHARGEMENT…' : 'HORS LIGNE.<br>LE CLASSEMENT REVIENT AVEC LE RÉSEAU.') + '</li>'; fx.innerHTML = ''; return; }
+    ol.innerHTML = d.top.length ? d.top.map(function (r, i) { return '<li class="' + (r.name === myName ? 'me' : '') + '"><span class="rk">' + (i + 1) + (i ? 'E' : 'ER') + '</span><span class="nm">' + esc(r.name) + '</span><span class="tm">' + fr(r.time_ms / 1000, 3) + '</span></li>'; }).join('')
+      : '<li class="empty">PERSONNE ENCORE.<br>À TOI !</li>';
+    var F = [];
+    if (d.day) F.push(['RECORD DU JOUR', esc(d.day.name) + ' · ' + fr(d.day.time_ms / 1000, 3)]);
+    if (d.worst) F.push(['LANTERNE ROUGE', esc(d.worst.name) + ' · ' + fr(d.worst.time_ms / 1000, 3)]);
+    F.push(['JOUEURS', String(d.players || 0)]); F.push(['PARTIES JOUÉES', String(d.plays || 0)]);
+    fx.innerHTML = F.map(function (f) { return '<dt>' + f[0] + '</dt><dd>' + f[1] + '</dd>'; }).join('');
+  }
+  function verdictText() {
+    var r = lastRes;
+    if (r === 'wait') return 'ENVOI DU TEMPS…';
+    if (r === 'off') return 'HORS LIGNE : TEMPS NON ENREGISTRÉ';
+    if (!r) return '';
+    if (!r.ok) return 'TEMPS NON RETENU PAR LE SERVEUR';
+    var abs = r.best && r.time_ms <= r.best.time_ms, jour = r.day && r.time_ms <= r.day.time_ms;   // un record, c'est battre tout le monde, soi compris
+    var first = abs ? 'RECORD ABSOLU !' : jour ? 'RECORD DU JOUR !' : '';
+    return (first ? first + '<br>' : '') + r.rank + (r.rank === 1 ? 'ER' : 'E') + ' SUR ' + r.players + ' · DU JOUR : ' + r.dayRank + (r.dayRank === 1 ? 'ER' : 'E');
+  }
+  $('boardBtn').addEventListener('click', function () { fillSheet(); $('pseudo2').value = myName; $('sheet').hidden = false; loadBoard(); $('sheetClose').focus(); });
+  $('sheetClose').addEventListener('click', function () { $('sheet').hidden = true; });
+  $('pseudo2').addEventListener('change', function () { var n = cleanName(this.value); if (n) { myName = n; store.set('gv_name', n); $('pseudo').value = n; } this.value = myName; });
+  $('pseudo').addEventListener('input', function () { this.classList.remove('err'); });
+  $('pseudo').addEventListener('keydown', function (e) { if (e.key === 'Enter') { this.blur(); $('play').click(); } });
+
+  /* ---------- partager son temps : une carte image du score, le partage du téléphone, ou à défaut le lien copié ---------- */
+  var lastMs = 0, cardBlob = null, baseVerdict = '';
+  function shareText(ms) { return 'J’ai gobé 50 frites en ' + fr(ms / 1000, 3) + ' s sur Goéland Vitesse 🐦🍟 Tu fais mieux ?'; }
+  function makeCard(ms) {
+    cardBlob = null;
+    try {
+      var c = document.createElement('canvas'), w = 1080, h = 1350, x = c.getContext('2d'), sw = cv.width, sh = cv.height, sc = Math.max(w / sw, h / sh);
+      c.width = w; c.height = h; x.imageSmoothingEnabled = false;
+      var fx = (B.x + T.x) / 2 * NPX * sc, fy = (B.y + T.y) / 2 * NPX * sc;                 // le goéland et sa barquette au milieu de la carte
+      var ox = clamp(w / 2 - fx, w - sw * sc, 0), oy = clamp(h * 0.52 - fy, h - sh * sc, 0);
+      x.drawImage(cv, ox, oy, sw * sc, sh * sc);
+      var gr = x.createLinearGradient(0, h * 0.45, 0, h); gr.addColorStop(0, 'rgba(38,20,110,0)'); gr.addColorStop(1, 'rgba(38,20,110,.92)'); x.fillStyle = gr; x.fillRect(0, 0, w, h);
+      x.textAlign = 'center';
+      x.font = '64px "Press Start 2P", monospace'; x.fillStyle = OUT; x.fillText('GOÉLAND', w / 2 + 6, 186); x.fillStyle = '#ffb03a'; x.fillText('GOÉLAND', w / 2, 180);
+      x.font = '96px "Yellowtail", cursive'; x.fillStyle = OUT; x.fillText('vitesse', w / 2 + 120, 296); x.fillStyle = '#effffe'; x.shadowColor = '#4fe8e2'; x.shadowBlur = 24; x.fillText('vitesse', w / 2 + 114, 290); x.shadowBlur = 0;
+      x.font = '120px "Press Start 2P", monospace'; x.fillStyle = OUT; x.fillText(fr(ms / 1000, 3), w / 2 + 8, h - 330 + 8); x.fillStyle = '#ffd05a'; x.fillText(fr(ms / 1000, 3), w / 2, h - 330);
+      x.font = '40px "Press Start 2P", monospace'; x.fillStyle = '#fff'; x.fillText('SECONDES POUR 50 FRITES', w / 2, h - 230);
+      x.font = '34px "Press Start 2P", monospace'; x.fillStyle = '#4fe8e2'; x.fillText('FDP.BZH', w / 2, h - 110);
+      c.toBlob(function (b) { cardBlob = b; }, 'image/png');
+    } catch (e) { cardBlob = null; }
+  }
+  $('share').addEventListener('click', function () {
+    var url = location.href.split('#')[0], text = shareText(lastMs), btn = $('share');
+    function copied(ok) { btn.textContent = ok ? '> LIEN COPIÉ !' : '> ' + url; }
+    function copy() { try { navigator.clipboard.writeText(text + ' ' + url).then(function () { copied(true); }, function () { copied(false); }); } catch (e) { copied(false); } }
+    try {
+      if (navigator.share) {
+        var data = { title: 'Goéland Vitesse', text: text, url: url };
+        if (cardBlob && typeof File === 'function') { var f = new File([cardBlob], 'goeland-vitesse.png', { type: 'image/png' }); if (navigator.canShare && navigator.canShare({ files: [f] })) data.files = [f]; }
+        navigator.share(data).catch(function (e) { if (!e || e.name !== 'AbortError') copy(); });
+        return;
+      }
+    } catch (e) { /* le partage du téléphone n'est pas disponible */ }
+    copy();
+  });
 
   /* ---------- la boucle ---------- */
   function frame(ts) {
     requestAnimationFrame(frame);
     var dt = Math.min(0.05, Math.max(0, (ts - last) / 1000)); last = ts; clock += dt;
     if (state === 'run') $('time').textContent = fr((ts - t0) / 1000, 3);
-    /* la barquette glisse, freinée par le béton, et rebondit sur les bords */
-    var fk = Math.exp(-4.2 * dt);
-    T.vx *= fk; T.vy *= fk; T.va *= Math.exp(-5 * dt);
-    T.x += T.vx * dt; T.y += T.vy * dt; T.a += T.va * dt;
-    if (T.x < zone.x0) { T.x = zone.x0; T.vx = Math.abs(T.vx) * 0.6; } if (T.x > zone.x1) { T.x = zone.x1; T.vx = -Math.abs(T.vx) * 0.6; }
-    if (T.y < zone.y0) { T.y = zone.y0; T.vy = Math.abs(T.vy) * 0.6; } if (T.y > zone.y1) { T.y = zone.y1; T.vy = -Math.abs(T.vy) * 0.6; }
-    if (state === 'menu') { T.x += (PW * 0.72 - T.x) * dt; T.y += ((zone.y0 + zone.y1) / 2 - T.y) * dt; }
-    /* le goéland la suit : il se place pour que sa tête tombe dessus, se tourne vers elle, et trottine */
-    var dx = T.x - B.x, dy = T.y - B.y, dist = Math.hypot(dx, dy), want = (23.6 * GS + 3.4) * SC, aim = Math.atan2(dy, dx), da = aim - B.a;
-    while (da > Math.PI) da -= TAU; while (da < -Math.PI) da += TAU;
-    B.a += da * Math.min(1, 12 * dt);
-    var mv = (dist - want) * Math.min(1, 9 * dt);
-    if (Math.abs(dist - want) > 0.5) { B.x += dx / dist * mv; B.y += dy / dist * mv; B.step += Math.abs(mv) * 0.9 / SC; }
+    /* la barquette glisse et le goéland la suit : c'est la simulation qui avance, au même pas que sur le serveur */
+    if (sim) {
+      var target = Math.floor((ts - simStart) / GVSIM.STEP);
+      if (state !== 'run' && state !== 'ready' && target - sim.tick > 600) sim.tick = target - 1;   // page restée en arrière-plan : on saute
+      GVSIM.advance(sim, ts - simStart);
+      if (state === 'over' && T.y > zone.y1) T.y += (zone.y1 - T.y) * Math.min(1, 3 * dt);       // à l'arrivée, la barquette remonte au-dessus du panneau
+    }
     peckT += dt; peck = peckT < 0.05 ? peckT / 0.05 : Math.max(0, 1 - (peckT - 0.05) / 0.09);
     blinkT -= dt; if (blinkT < -0.12) blinkT = 1.5 + Math.random() * 3;
     if (state === 'menu' || state === 'over') look += ((Math.sin(clock * 0.9) > 0.3 ? 1 : Math.sin(clock * 0.9) < -0.3 ? -1 : 0) - look) * Math.min(1, 6 * dt);
@@ -830,31 +1012,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
       var hx = B.x + Math.cos(B.a) * 19 * SC * GS, hy = B.y + Math.sin(B.a) * 19 * SC * GS, k = f.t / 0.1, fx = f.x + (hx - f.x) * k, fy = f.y + (hy - f.y) * k;
       for (var kk = 0; kk < 8; kk++) { g.fillStyle = kk < 2 || kk > 5 ? '#d99a2a' : '#ffd23f'; g.fillRect(Math.round(fx + Math.cos(f.a) * (kk - 4)), Math.round(fy + Math.sin(f.a) * (kk - 4)), 2, 2); }
     }
-    var GP = { neck: peck, beak: peck > 0.25 ? peck : 0, look: look, step: B.step, blink: blinkT < 0 ? 1 : 0, up: 0 }, tf = null;
-    if (toss) {
-      /* la dernière frite : 0 – 0,12 s il la pince, 0,12 – 0,3 s coup de tête, elle monte en tournant ; la tête se renverse,
-         le bec s'ouvre en grand vers nous ; vers 1 s elle retombe dedans, GLOUPS ; puis le rot */
-      var q = toss.t += dt, gx = Math.cos(B.a), gy = Math.sin(B.a), U = GULL, sc = SC * GS;
-      function headU(nk) { return U.chest + U.neckL + U.hx * 0.6 + (U.neckL + 4.2) * nk; }
-      var AIR0 = 0.24, AIR = 0.78, upA = clamp((q - 0.3) / 0.22, 0, 1) * (1 - clamp((q - AIR0 - AIR - 0.05) / 0.25, 0, 1));
-      GP.neck = q < 0.12 ? 1 : q < AIR0 ? 1 - (q - 0.12) / (AIR0 - 0.12) * 0.6 : 0.4 - 0.2 * upA; GP.beak = q < 0.12 ? 0 : q < AIR0 ? 0 : upA; GP.up = upA; GP.look = 0;
-      var tipU = headU(1) + U.hx * 0.8 + U.bl, mouthU = headU(0.2) + U.hx * 0.15;
-      if (q < AIR0) { var kk = q < 0.12 ? 0 : (q - 0.12) / (AIR0 - 0.12); tf = { u: tipU - kk * 3, h: kk * 6, a: B.a + Math.PI / 2 }; }          // pincée au bout du bec
-      else if (q < AIR0 + AIR) { var tau = (q - AIR0) / AIR; tf = { u: tipU - 3 + (mouthU - tipU + 3) * tau, h: 6 + 150 * tau * (1 - tau) - 6 * tau, a: B.a + Math.PI / 2 + toss.spin * (q - AIR0) }; }
-      if (q >= AIR0 && toss.snd === 0) { toss.snd = 1; tone(300, 900, 0.18, 'triangle', 0.05); }                            // hop
-      if (q >= AIR0 + AIR && toss.snd === 1) { toss.snd = 2; tone(520, 160, 0.16, 'square', 0.07); tone(240, 120, 0.12, 'sine', 0.06, 0.06); }   // GLOUPS
-      if (q >= AIR0 + AIR + 0.35 && toss.snd === 2) { toss.snd = 3; burp = 1; tone(140, 70, 0.45, 'sawtooth', 0.08); }                       // le rot
-      if (q > 3) toss = null;
-      if (tf) { tf.x = B.x + gx * tf.u * sc; tf.y = B.y + gy * tf.u * sc; }
-    }
-    drawGull(B.x, B.y, B.a, GP, true);
-    if (tf) {                                                                       // la frite en l'air : plus haut = plus grosse, son ombre reste au sol
-      var hgt = Math.max(0, tf.h), zoom = 1 + hgt / 70, Lf = toss.l * SC * zoom, oy = -hgt * 0.35 * SC, fc = Math.cos(tf.a), fs = Math.sin(tf.a), kq;
-      if (hgt > 2) { g.fillStyle = 'rgba(40,24,70,' + (0.3 * (1 - hgt / 120)).toFixed(2) + ')'; for (kq = 0; kq < toss.l * SC; kq++) g.fillRect(Math.round(tf.x + (kq - toss.l * SC / 2) * fc) + 3, Math.round(tf.y + (kq - toss.l * SC / 2) * fs) + 4, 2, 2); }
-      var th2 = Math.max(2, Math.round(2 * zoom));
-      for (kq = 0; kq < Lf; kq++) { g.fillStyle = '#7a4a10'; g.fillRect(Math.round(tf.x + (kq - Lf / 2) * fc) - 1, Math.round(tf.y + oy + (kq - Lf / 2) * fs) - 1, th2 + 2, th2 + 2); }
-      for (kq = 0; kq < Lf; kq++) { g.fillStyle = kq < 2 * zoom || kq > Lf - 2 * zoom ? '#d99a2a' : '#ffd23f'; g.fillRect(Math.round(tf.x + (kq - Lf / 2) * fc), Math.round(tf.y + oy + (kq - Lf / 2) * fs), th2, th2); }
-    }
+    drawGull(B.x, B.y, B.a, { neck: peck, beak: peck > 0.25 ? peck : 0, look: look, step: B.step, blink: blinkT < 0 ? 1 : 0 }, true);
     for (i = crumbs.length - 1; i >= 0; i--) {                                     // les miettes, et les taps à côté
       var c = crumbs[i]; c.t += dt; if (c.t > (c.miss ? 0.3 : 0.4)) { crumbs.splice(i, 1); continue; }
       if (c.miss) { var rr = (3 + c.t * 30) * SC; g.fillStyle = 'rgba(255,84,112,' + (1 - c.t / 0.3).toFixed(2) + ')'; for (var a = 0; a < 12; a++) g.fillRect(Math.round(c.x + Math.cos(a / 12 * TAU) * rr), Math.round(c.y + Math.sin(a / 12 * TAU) * rr), 1, 1); continue; }
@@ -874,14 +1032,22 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
       warnT -= dt;
       ctx.font = Math.round(W / 24) + 'px "Press Start 2P", monospace'; ctx.textAlign = 'center';
       var wy = (T.y - 34 * SC) * NPX; ctx.globalAlpha = Math.min(1, warnT * 3);
-      ctx.fillStyle = OUT; ctx.fillText('UN SEUL DOIGT !', W / 2 + 2, wy + 2); ctx.fillStyle = '#4fe8e2'; ctx.fillText('UN SEUL DOIGT !', W / 2, wy); ctx.globalAlpha = 1;
+      var wt = penalty ? 'UN SEUL DOIGT ! +' + penalty : 'UN SEUL DOIGT !';
+      ctx.fillStyle = OUT; ctx.fillText(wt, W / 2 + 2, wy + 2); ctx.fillStyle = '#4fe8e2'; ctx.fillText(wt, W / 2, wy); ctx.globalAlpha = 1;
+      if (warnT <= 0) penalty = 0;
     }
     if (state === 'ready' && Math.floor(clock * 2.4) % 3) {
       ctx.font = Math.round(W / 26) + 'px "Press Start 2P", monospace'; ctx.textAlign = 'center';
       ctx.fillStyle = OUT; ctx.fillText('TAPE DANS LA BARQUETTE', W / 2 + 2, (T.y + 30 * SC) * NPX + 2); ctx.fillStyle = '#ffffff'; ctx.fillText('TAPE DANS LA BARQUETTE', W / 2, (T.y + 30 * SC) * NPX);
     }
   }
-  function start() { applyPal(); resize(); setUi('menu'); if (best) $('verdict').innerHTML = 'TON RECORD : <b>' + fr(best / 1000, 3) + ' S</b><br>50 FRITES, TAPE DANS LA BARQUETTE.'; last = performance.now(); requestAnimationFrame(frame); }
+  function start() {
+    applyPal(); resize(); setUi('menu');
+    if (best) $('verdict').innerHTML = 'TON RECORD : <b>' + fr(best / 1000, 3) + ' S</b><br>50 FRITES, TAPE DANS LA BARQUETTE.';
+    $('pseudo').value = myName; $('testtag').hidden = GRP !== 'test';
+    prefetch(); loadBoard();
+    last = performance.now(); requestAnimationFrame(frame);
+  }
   if (window.claude && window.claude.hot && window.claude.hot.ready) window.claude.hot.ready(start); else start();
 })();
 </script>

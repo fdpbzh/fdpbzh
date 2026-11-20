@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Goéland Vitesse · écran</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Yellowtail&display=swap">
+<style>
+/* L'écran d'affichage de la fête : à ouvrir sur une télé ou un vidéoprojecteur, en plein écran.
+   Il se met à jour tout seul toutes les 15 secondes. #test dans l'adresse affiche le classement du groupe de test. */
+:root{color-scheme:dark;--bg:#26146e;--deep:#160a3a;--ink:#fff6fb;--mute:#d9c6ef;--hot:#ff3e8c;--gold:#ffd05a;--cyan:#4fe8e2;--out:#120a3a;
+  --sunset:linear-gradient(180deg,#ffe27a 0 28%,#ffb03a 28% 50%,#ff5a8a 50% 76%,#d23bc8 76% 100%);
+  --f:"Press Start 2P",ui-monospace,Menlo,monospace;--f-script:"Yellowtail","Brush Script MT",cursive}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:radial-gradient(120% 90% at 50% 0%,#7c269e 0%,var(--bg) 45%,var(--deep) 100%);color:var(--ink);font-family:var(--f);overflow:hidden}
+.wrap{box-sizing:border-box;height:100%;display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);gap:2.5vh 4vw;
+  padding-block:4vh;padding-left:max(4vw,env(safe-area-inset-left,0px));padding-right:max(4vw,env(safe-area-inset-right,0px));font-size:clamp(10px,1.6vw,26px)}
+header{grid-column:1/-1;display:flex;align-items:flex-end;justify-content:space-between;gap:3vw;flex-wrap:wrap}
+.title{display:flex;align-items:flex-end;gap:1.2vw;margin:0;font-weight:400}
+.t1{font-size:2.3em;line-height:1;color:#ffb03a;background:var(--sunset);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(.12em .12em 0 var(--out))}
+.t2{font-family:var(--f-script);font-size:3em;line-height:.8;color:#effffe;text-shadow:0 0 .1em var(--cyan),0 0 .35em var(--cyan),.06em .06em 0 var(--out);transform:rotate(-8deg)}
+.tag{font-size:.8em;letter-spacing:.12em;color:var(--gold);text-shadow:.15em .15em 0 var(--out)}
+.board{min-height:0;display:flex;flex-direction:column;gap:1.2vh}
+.board h2,.side h2{margin:0;font-weight:400;font-size:1em;letter-spacing:.14em;color:var(--cyan);text-shadow:.15em .15em 0 var(--out)}
+ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.9vh}
+li{display:grid;grid-template-columns:3.2em minmax(0,1fr) auto;gap:1em;align-items:baseline;padding:.7vh .4em;border-bottom:.18em dotted rgba(255,62,140,.45);font-size:1.25em;text-shadow:.12em .12em 0 var(--out)}
+li .rk{color:var(--mute)} li .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap} li .tm{color:var(--gold);font-variant-numeric:tabular-nums}
+li:first-child{font-size:1.7em} li:first-child .rk{color:var(--gold)}
+li.new{animation:flash 1.2s steps(2) 4}
+@keyframes flash{50%{background:rgba(79,232,226,.25)}}
+.empty{display:block;color:var(--mute);border:0;line-height:2}
+.side{min-height:0;display:flex;flex-direction:column;gap:2.4vh}
+.card{padding:1.6vh 1.2em;background:rgba(18,10,58,.55);box-shadow:inset 0 0 0 .2em var(--hot),.35em .35em 0 var(--out)}
+.card p{margin:.8vh 0 0;font-size:1.15em;line-height:1.5;text-shadow:.12em .12em 0 var(--out)}
+.card .v{color:var(--gold)}
+.qr{display:flex;align-items:center;gap:1.2em;margin-top:auto}
+.qr #qr{background:#fff;padding:.5em;line-height:0}
+.qr #qr img,.qr #qr canvas{width:9em!important;height:9em!important;image-rendering:pixelated}
+.qr p{margin:0;font-size:.85em;line-height:1.8;color:var(--mute)} .qr b{font-weight:400;color:#fff}
+.off{color:var(--hot)}
+@media (max-aspect-ratio:1/1){.wrap{grid-template-columns:minmax(0,1fr);overflow:auto;height:auto;min-height:100%}body{overflow:auto}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1 class="title"><span class="t1">GOÉLAND</span><span class="t2">vitesse</span></h1>
+    <p class="tag" id="tag">50 FRITES, LE PLUS VITE POSSIBLE</p>
+  </header>
+  <section class="board" aria-live="polite">
+    <h2>★ TOP 10 ★</h2>
+    <ol id="top"><li class="empty">CHARGEMENT…</li></ol>
+  </section>
+  <aside class="side">
+    <div class="card"><h2>RECORD DU JOUR</h2><p id="day">—</p></div>
+    <div class="card"><h2>LANTERNE ROUGE</h2><p id="worst">—</p></div>
+    <div class="card"><h2>PARTIES JOUÉES</h2><p><span class="v" id="plays">—</span> · <span id="players">—</span> JOUEURS</p></div>
+    <div class="qr"><div id="qr" aria-hidden="true"></div><p>JOUE SUR TON TÉLÉPHONE :<br><b id="url"></b><br><span id="state"></span></p></div>
+  </aside>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+(function () {
+  'use strict';
+  var API = 'https://nhsroymqvwrjflagzznz.supabase.co/functions/v1/gv';
+  var GRP = (location.hash || '').indexOf('test') >= 0 ? 'test' : 'pub';
+  var GAME = location.href.split('#')[0].replace(/ecran\.html.*$/, '') + (GRP === 'test' ? '#test' : '');
+  var seen = {}, first = true;
+  function $(id) { return document.getElementById(id); }
+  function fr(ms) { return (ms / 1000).toLocaleString('fr-FR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }); }
+  function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  $('url').textContent = GAME.replace(/^https?:\/\//, '').replace(/\/$/, '');
+  if (GRP === 'test') $('tag').textContent = 'MODE TEST · CLASSEMENT DU GROUPE';
+  try { new QRCode($('qr'), { text: GAME, width: 180, height: 180, correctLevel: QRCode.CorrectLevel.M }); } catch (e) { $('qr').hidden = true; }
+  function render(d) {
+    var top = d.top || [];
+    $('top').innerHTML = top.length ? top.map(function (r, i) {
+      var key = r.name + ':' + r.time_ms, isNew = !first && !seen[key]; seen[key] = 1;
+      return '<li class="' + (isNew ? 'new' : '') + '"><span class="rk">' + (i + 1) + (i ? 'E' : 'ER') + '</span><span class="nm">' + esc(r.name) + '</span><span class="tm">' + fr(r.time_ms) + '</span></li>';
+    }).join('') : '<li class="empty">PERSONNE ENCORE. À TOI !</li>';
+    if (first) top.forEach(function (r) { seen[r.name + ':' + r.time_ms] = 1; });
+    first = false;
+    $('day').innerHTML = d.day ? esc(d.day.name) + ' · <span class="v">' + fr(d.day.time_ms) + ' S</span>' : 'PAS ENCORE DE TEMPS AUJOURD’HUI';
+    $('worst').innerHTML = d.worst ? esc(d.worst.name) + ' · <span class="v">' + fr(d.worst.time_ms) + ' S</span>' : '—';
+    $('plays').textContent = String(d.plays || 0); $('players').textContent = String(d.players || 0);
+    $('state').textContent = ''; $('state').className = '';
+  }
+  function load() {
+    fetch(API, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'board', grp: GRP }) })
+      .then(function (r) { return r.json(); })
+      .then(function (d) { if (d && d.top) render(d); }, function () { $('state').textContent = 'HORS LIGNE, NOUVEL ESSAI DANS 15 S'; $('state').className = 'off'; });
+  }
+  load(); setInterval(load, 15000);
+})();
+</script>
+</body>
+</html>
