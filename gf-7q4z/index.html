@@ -89,6 +89,8 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
 .contact p{margin:0}.contact .ct-h{color:var(--gold);font-size:1.15em}.contact .ct-s{font-size:.75em;color:var(--mute)}.contact .ct-ok{color:var(--cyan)}
 .contact .pseudo{font-size:1em;text-transform:none;padding:9px 10px}
 .contact .links{flex-wrap:nowrap;margin:0}.contact .share{padding:8px 10px;min-height:40px}
+.titre{margin:-8px 0 0;font-size:.95em;letter-spacing:.06em;color:var(--cyan);text-shadow:2px 2px 0 var(--out),0 0 10px rgba(79,232,226,.45);text-wrap:balance}
+.rec .fm{margin:0;font-size:.8em;color:var(--mute)}.rec .fm b{font-weight:400;color:var(--gold)}
 .rec .lr{margin:0;font-size:.85em;color:var(--hot)}.rec .lr b{font-weight:400;color:#fff}
 .pseudo{appearance:none;box-sizing:border-box;width:min(80%,20em);font-family:var(--f);font-size:1.15em;letter-spacing:.06em;text-align:center;text-transform:uppercase;color:#fff;padding:12px 10px;
   background:rgba(38,20,110,.75);border:3px solid var(--cyan);border-radius:0;outline:none;box-shadow:4px 4px 0 var(--out);user-select:text;-webkit-user-select:text}
@@ -130,6 +132,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
     <h1 class="title" id="title"><span class="t1">GOÉLAND</span><span class="t2">vitesse</span></h1>
     <section class="panel" id="panel" aria-live="polite">
       <p class="big" id="big" hidden></p>
+      <p class="titre" id="titre" hidden></p>
       <dl class="stats" id="stats" hidden></dl>
       <p class="testtag" id="testtag" hidden>MODE TEST · CLASSEMENT DU GROUPE</p>
       <p class="verdict" id="verdict" hidden></p>
@@ -190,6 +193,37 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
   PALS.vcneon = { out: '#1a0c52', conc: [150, 146, 146], sun: null, glints: true, css: VC_CSS,
     night: { amb: [0.38, 0.32, 0.68], soft: 0.55, lamps: [{ x: -0.06, y: 'wall', r: 0.9, c: [1.0, 0.62, 0.3], i: 1.0, glow: 0.2, refl: true }, { x: 1.06, y: 0.55, r: 0.9, c: [1.0, 0.25, 0.65], i: 0.9, glow: 0.3 }] } };
   var PAL = PALS.vc;
+  /* la lumière suit le soleil de Pors-Poulhan : plein jour, couchant Vice City, heure bleue, nuit au lampadaire.
+     On calcule la hauteur du soleil à l'heure du téléphone (48° N, 4,5° O), puis on mélange les trois ambiances. */
+  var SKY = { day: { amb: [1.0, 0.98, 0.95], soft: 1, lamp: 0, glow: 0, sun: [255, 240, 220, 0.05] },
+              vc: { amb: [0.86, 0.7, 0.95], soft: 0.65, lamp: 0.45, glow: 0.24, sun: [255, 80, 150, 0.14] },
+              night: { amb: [0.28, 0.25, 0.56], soft: 0.5, lamp: 1.25, glow: 0.22, sun: [255, 80, 150, 0] } }, skyKey = null;
+  function sunElev(d) {
+    var lat = 48.03 * Math.PI / 180, lon = -4.52, start = Date.UTC(d.getUTCFullYear(), 0, 0), doy = (d - start) / 86400000;
+    var decl = 23.44 * Math.PI / 180 * Math.sin(2 * Math.PI * (284 + doy) / 365), b = 2 * Math.PI * (doy - 81) / 364;
+    var eot = 9.87 * Math.sin(2 * b) - 7.53 * Math.cos(b) - 1.5 * Math.sin(b);                       // l'équation du temps, en minutes
+    var st = d.getUTCHours() + d.getUTCMinutes() / 60 + lon / 15 + eot / 60, H = (st - 12) * 15 * Math.PI / 180;
+    return Math.asin(Math.sin(lat) * Math.sin(decl) + Math.cos(lat) * Math.cos(decl) * Math.cos(H)) * 180 / Math.PI;
+  }
+  function skyNow() {
+    var d = new Date(), h = store.get('gv_hour');                                     // gv_hour : pour essayer une heure précise (tests)
+    if (typeof h === 'number') { d = new Date(); d.setHours(Math.floor(h), Math.round((h % 1) * 60), 0, 0); }
+    var e = sunElev(d), mix = function (a, b, k) { return a + (b - a) * k; }, A, B2, k;
+    if (e >= 12) { A = SKY.day; B2 = SKY.day; k = 0; }
+    else if (e >= 2) { A = SKY.day; B2 = SKY.vc; k = (12 - e) / 10; }
+    else if (e >= -8) { A = SKY.vc; B2 = SKY.night; k = (2 - e) / 10; }
+    else { A = SKY.night; B2 = SKY.night; k = 0; }
+    k = Math.round(k * 20) / 20;                                                     // par paliers : la carte de lumière n'est recalculée qu'au changement
+    return { key: A === B2 ? (A === SKY.day ? 'j' : 'n') : (A === SKY.day ? 'c' : 'b') + k, amb: [0, 1, 2].map(function (i) { return mix(A.amb[i], B2.amb[i], k); }),
+      soft: mix(A.soft, B2.soft, k), lamp: mix(A.lamp, B2.lamp, k), glow: mix(A.glow, B2.glow, k), sun: [0, 1, 2, 3].map(function (i) { return mix(A.sun[i], B2.sun[i], k); }) };
+  }
+  function applySky() {                                                              // vrai si l'ambiance a changé
+    var sk = skyNow(); if (sk.key === skyKey) return false; skyKey = sk.key;
+    var nt = PALS.vc.night; nt.amb = sk.amb; nt.soft = sk.soft; nt.lamps[0].i = sk.lamp; nt.lamps[0].glow = sk.glow;
+    PALS.vc.sun = sk.sun[3] > 0.005 ? 'rgba(' + sk.sun.slice(0, 3).map(Math.round).join(',') + ',' + sk.sun[3].toFixed(3) + ')' : null;
+    PALS.vc.glints = sk.lamp > 0.2 || sk.sun[3] > 0.08;                                // les reflets rose et or ne scintillent qu'au couchant et la nuit
+    return true;
+  }
   var N = 50, TAU = 6.283185307179586, OUT = PAL.out, SC = 2;   // SC : pixels de dessin par unité du goéland et de la barquette (plus de détail)
   var dpr = 1, W = 2, H = 2, NPX = 2, PW = 2, PH = 2, groundC = null, QY = 10, WH = 24;
   var state = 'menu', t0 = 0, clock = 0, last = 0, hits = [], misses = 0, lastDown = 0, down = {}, maxDown = 0, refused = 0, warnT = 0, lastHit = -1e9, penalty = 0;
@@ -212,6 +246,18 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
       o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
       gn.gain.setValueAtTime(vol, t); gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
       o.connect(gn); gn.connect(AC.destination); o.start(t); o.stop(t + dur + 0.02);
+    } catch (e) { /* pas de son */ }
+  }
+
+  var NOISE = null;
+  function crunch(hz, a) {                                                            // le croquant d'une frite mâchée : un souffle bref, filtré
+    if (!AC) return;
+    try {
+      if (!NOISE) { NOISE = AC.createBuffer(1, Math.round(AC.sampleRate * 0.05), AC.sampleRate); var dd = NOISE.getChannelData(0); for (var i = 0; i < dd.length; i++) dd[i] = (Math.random() * 2 - 1) * (1 - i / dd.length); }
+      var src = AC.createBufferSource(), bp = AC.createBiquadFilter(), gn = AC.createGain(), t = AC.currentTime;
+      src.buffer = NOISE; bp.type = 'bandpass'; bp.frequency.value = 1400 + hz * 120 + Math.random() * 300; bp.Q.value = 2.2;
+      gn.gain.setValueAtTime(0.05 * a, t); gn.gain.exponentialRampToValueAtTime(0.0001, t + 0.04);
+      src.connect(bp); bp.connect(gn); gn.connect(AC.destination); src.start(t); src.stop(t + 0.05);
     } catch (e) { /* pas de son */ }
   }
 
@@ -655,6 +701,8 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
       var t = u > G.sh ? (u - G.sh) / (G.chest - G.sh) : (G.sh - u) / (G.sh - G.tail);
       var pp = u > G.sh ? G.p : G.pb, bw = t < 1 ? G.bw * Math.pow(1 - Math.pow(t, pp), 1 / pp) : 0;
       if (G.loose && u < G.sh) bw += G.loose * Math.max(0, Math.min(1, (G.sh - u) / 6)) * (1 - Math.max(0, t - 0.7) / 0.3);   // les ailes lâches débordent
+      if (P.fat) bw *= 1 + P.fat * Math.max(0, 1 - Math.abs(u - G.sh * 0.5 - 1) / 9);   // le ventre qui s'arrondit à chaque frite, surtout au milieu
+      var wg = P.wing || 0;
       if (av < bw) {
         if (u > G.chest - 1.8) return v > 1.5 ? 's' : 'W';                          // la poitrine
         if (av > bw - 0.9) return v > 0 ? 'd' : 'M';                                 // le bord des ailes
@@ -665,6 +713,17 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
         if (!G.juv && Math.abs(av - G.bw * 0.55 - (u - G.sh) * 0.05) < 0.4 && u > G.sh - 4.5) return 'L';          // la ligne des scapulaires
         if (u < G.tail + 1.5) return 'k';
         return v > 0 ? 'M' : 'm';
+      }
+      /* les ailes à demi ouvertes : il les secoue pour digérer, deux ou trois coups, vues du dessus */
+      if (wg > 0.04 && av > bw * 0.5) {
+        var L = wg * 17, a2 = av - bw * 0.85, uc = G.sh - 1.2 - a2 * 0.32, ch = 6.2 - 3.6 * Math.min(1, a2 / Math.max(1, L));
+        if (a2 > 0 && a2 < L && Math.abs(u - uc) < ch / 2) {
+          var wf = a2 / L;
+          if (wf > 0.93) return 'W';                                                 // le bout blanc
+          if (wf > 0.7) return Math.abs(wf - 0.82) < 0.04 && Math.abs(u - uc) < ch * 0.2 ? 'W' : (v > 0 ? 'K' : 'k');   // les rémiges noires, et leur miroir
+          if (u < uc - ch / 2 + 0.9) return 'W';                                     // le bord de fuite, blanc
+          return u > uc + ch / 2 - 0.8 ? 'L' : (v > 0 ? 'M' : 'm');
+        }
       }
       /* les rémiges noires, longues, croisées derrière la queue, avec leurs miroirs */
       var p0 = G.tail + 3;
@@ -861,6 +920,8 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
 
   /* ---------- l'état de la scène ---------- */
   var T = { x: 0, y: 0, vx: 0, vy: 0, a: 0, va: 0 }, B = { x: 0, y: 0, a: 0, step: 0 }, peck = 0, peckT = 9, blinkT = 0, look = 0, flying = [], crumbs = [], burp = 0;
+  var chewA = 0, chewPh = 0, chewHz = 4, chewBeak = 0;
+  function fatNow() { return fries.length ? 0.09 * fries.filter(function (f) { return !f.on; }).length / fries.length : 0; }   // jusqu'à 9 % plus large, la barquette finie
   var leave = null, gone = false, enter = null, capT = -9, capV = null;                                   // le goéland qui s'en va, puis revient pour la partie suivante
   var arena = [0, 0, 1], lastUp = -1, downAt = {}, pens = [];
   var zone = { x0: 0, y0: 0, x1: 0, y1: 0 }, sim = null, simStart = 0, trace = [], seed = 0;
@@ -876,11 +937,12 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
     W = cv.width = Math.max(2, Math.round(r.width * dpr)); H = cv.height = Math.max(2, Math.round(r.height * dpr));
     NPX = Math.max(1, Math.round(W / 220));
     PW = pc.width = Math.ceil(W / NPX); PH = pc.height = Math.ceil(H / NPX);
-    groundC = makeGround(); setZone(); makeLight();
+    applySky(); groundC = makeGround(); setZone(); makeLight();
     if (!fries.length) reset();
     makeCrabs(); hitT = []; wet = []; spray = [];
   }
   window.addEventListener('resize', resize);
+  setInterval(function () { if (applySky() && PW > 2) makeLight(); }, 60000);   // le soleil tourne : on suit, une fois par minute
 
   function setUi(p) { stage.dataset.ui = p; $('panel').hidden = p !== 'menu' && p !== 'over'; $('title').hidden = p !== 'menu'; $('hud').hidden = p === 'menu'; }
   $('play').addEventListener('click', function () {
@@ -908,7 +970,9 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
     flying.push({ x: T.x + (f.x * ca - f.y * sa) * SC, y: T.y + (f.x * sa + f.y * ca) * SC, a: T.a + f.a, l: f.l, t: 0, tx: 0, ty: 0 });
     for (var k = 0; k < 4; k++) crumbs.push({ x: T.x + (Math.random() - 0.5) * 20 * SC, y: T.y + (Math.random() - 0.5) * 12 * SC, vx: (Math.random() - 0.5) * 70 * SC, vy: (Math.random() - 0.5) * 70 * SC, t: 0 });
     peck = 1; peckT = 0; scarePeck(); buzz(hits.length >= N ? [30, 40, 60] : 12);
-    tone(260 + Math.random() * 60, 120, 0.05, 'square', 0.05); tone(900, 1400, 0.03, 'triangle', 0.03, 0.04);
+    var hs = sim.hits, n3 = Math.min(3, hs.length - 1), cad = n3 > 0 ? 1000 * n3 / Math.max(40, hs[hs.length - 1].t - hs[hs.length - 1 - n3].t) : 4;
+    chewHz = clamp(cad, 3, 10); chewA = 1; lastHit = performance.now();
+    tone(230 + cad * 9 + Math.random() * 40, 120, 0.05, 'square', 0.05); tone(900, 1400, 0.03, 'triangle', 0.03, 0.04);   // plus il va vite, plus le coup de bec est aigu
   }
   stage.addEventListener('pointerdown', function (e) {
     if (e.target.closest && (e.target.closest('.panel') || e.target.closest('.sheet') || e.target.closest('.turn'))) return;
@@ -969,6 +1033,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
       var extra = verdictText(); v.innerHTML = baseVerdict + (extra ? '<br>' + extra : ''); $('testtag').hidden = true;
       v.classList.toggle('new', isNew && !!prev);
       $('big').innerHTML = fr(ms / 1000, 3) + '<small>S</small>'; $('big').hidden = false;
+      $('titre').textContent = titre(ms); $('titre').hidden = false;
       var rows = [['CADENCE', fr(N / (ms / 1000), 1) + ' /S'], ['RATÉS', String(misses)], ['RÉGULARITÉ', fr(m ? sd / m * 100 : 0, 0) + ' %'], ['REFUSÉS', String(refused)]];
       $('stats').innerHTML = rows.map(function (r) { return '<div><dt>' + r[0] + '</dt><dd>' + r[1] + '</dd></div>'; }).join(''); $('stats').hidden = true;
       $('playLbl').textContent = 'REJOUER'; $('play').disabled = true; setUi('over'); setZone();
@@ -1017,6 +1082,16 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
   }
   function cleanName(v) { return String(v || '').toUpperCase().replace(/[^A-Z0-9ÀÂÄÉÈÊËÎÏÔÖÙÛÜÇ _.\-']/g, '').replace(/\s+/g, ' ').trim().slice(0, 12); }
   function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  /* un titre selon le temps, de la légende au crabe qui dort */
+  var TITRES = [[5, 'GOÉLAND SUPERSONIQUE'], [5.5, 'LÉGENDE DU CAP SIZUN'], [6, 'TERREUR DES BARQUETTES'], [6.5, 'GOÉLAND DE COMPÉTITION'], [7, 'ASPIRATEUR À FRITES'],
+    [7.5, 'BEC D’OR DE PORS-POULHAN'], [8, 'PIRATE DU QUAI'], [8.5, 'FLÈCHE D’AUDIERNE'], [9, 'GOÉLAND AFFAMÉ'], [9.5, 'BON COUP DE BEC'],
+    [10, 'HABITUÉ DE LA FRITERIE'], [10.5, 'GOÉLAND DU DIMANCHE'], [11, 'MOUETTE AMBITIEUSE'], [11.5, 'GOURMAND DE PASSAGE'], [12, 'PIQUE-FRITE AMATEUR'],
+    [12.5, 'MOUETTE DE BASSIN'], [13, 'GOÉLAND EN RODAGE'], [13.5, 'DÉGUSTATEUR PATIENT'], [14, 'CORMORAN DISTRAIT'], [14.5, 'GOÉLAND À LA SIESTE'],
+    [15, 'AMATEUR DE CRÊPES'], [15.5, 'TOURISTE DU PORT'], [16, 'PIGEON DE PARKING'], [16.5, 'GOÉLAND EN PANTOUFLES'], [17, 'MOUETTE À MARÉE BASSE'],
+    [17.5, 'CANARD EN PLASTIQUE'], [18, 'FRITE FROIDE'], [18.5, 'GOÉLAND EMPAILLÉ'], [19, 'BIGORNEAU PRESSÉ'], [19.5, 'ESCARGOT DE MER'],
+    [20, 'MOULE ACCROCHÉE AU ROCHER'], [1e9, 'CRABE QUI DORT']];
+  function titre(ms) { var s2 = ms / 1000; for (var i = 0; i < TITRES.length; i++) if (s2 < TITRES[i][0]) return TITRES[i][1]; return TITRES[TITRES.length - 1][1]; }
+  function fries2(plays) { return ((plays || 0) * N).toLocaleString('fr-FR'); }   // chaque partie finie, c'est une barquette de 50 frites
   function secs(ms) { return fr(ms / 1000, 3) + ' S'; }
   function prefetch() {
     api({ action: 'start', tk: GRP === 'test' ? store.get('gv_tk') : undefined }, function (d) {
@@ -1032,6 +1107,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
     if (top.length) h += '<ol>' + top.map(function (r, i) { return '<li><span class="rk">' + (i + 1) + (i ? 'E' : 'ER') + '</span><span class="nm">' + esc(r.name) + (r.wait ? '<small class="wait">EN ATTENTE DE VALIDATION</small>' : '') + '</span><span class="tm">' + fr(r.time_ms / 1000, 3) + '</span></li>'; }).join('') + '</ol>';
     var w = d.worst, inTop = w && top.some(function (r) { return r.name === w.name && r.time_ms === w.time_ms; });
     if (w && !inTop) h += '<p class="lr">LANTERNE ROUGE · <b>' + esc(w.name) + '</b> ' + fr(w.time_ms / 1000, 3) + '</p>';
+    if (d.plays) h += '<p class="fm"><b>' + fries2(d.plays) + '</b> FRITES MANGÉES</p>';
     el.innerHTML = h; el.hidden = !h || state !== 'menu';
   }
   function fillSheet() {
@@ -1042,7 +1118,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
     var F = [];
     if (d.day) F.push(['RECORD DU JOUR', esc(d.day.name) + ' · ' + fr(d.day.time_ms / 1000, 3)]);
     if (d.worst) F.push(['LANTERNE ROUGE', esc(d.worst.name) + ' · ' + fr(d.worst.time_ms / 1000, 3)]);
-    F.push(['JOUEURS', String(d.players || 0)]); F.push(['PARTIES JOUÉES', String(d.plays || 0)]);
+    F.push(['JOUEURS', String(d.players || 0)]); F.push(['FRITES MANGÉES', fries2(d.plays)]);
     fx.innerHTML = F.map(function (f) { return '<dt>' + f[0] + '</dt><dd>' + f[1] + '</dd>'; }).join('');
   }
   function verdictText() {
@@ -1078,6 +1154,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
       x.font = '96px "Yellowtail", cursive'; x.fillStyle = OUT; x.fillText('vitesse', w / 2 + 120, 296); x.fillStyle = '#effffe'; x.shadowColor = '#4fe8e2'; x.shadowBlur = 24; x.fillText('vitesse', w / 2 + 114, 290); x.shadowBlur = 0;
       x.font = '120px "Press Start 2P", monospace'; x.fillStyle = OUT; x.fillText(fr(ms / 1000, 3), w / 2 + 8, h - 330 + 8); x.fillStyle = '#ffd05a'; x.fillText(fr(ms / 1000, 3), w / 2, h - 330);
       x.font = '40px "Press Start 2P", monospace'; x.fillStyle = '#fff'; x.fillText('SECONDES POUR 50 FRITES', w / 2, h - 230);
+      var tt2 = titre(ms), fs = Math.min(46, Math.floor(900 / tt2.length)); x.font = fs + 'px "Press Start 2P", monospace'; x.fillStyle = OUT; x.fillText(tt2, w / 2 + 4, h - 165 + 4); x.fillStyle = '#4fe8e2'; x.fillText(tt2, w / 2, h - 165);
       x.font = '34px "Press Start 2P", monospace'; x.fillStyle = '#4fe8e2'; x.fillText('FDP.BZH', w / 2, h - 110);
       c.toBlob(function (b) { cardBlob = b; }, 'image/png');
     } catch (e) { cardBlob = null; }
@@ -1115,9 +1192,11 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
       var capY = capV != null ? Math.min(zone.y1, capV) : zone.y1;
       if (state === 'menu' && T.y > capY) { var dyc = capY - T.y; T.y += dyc; B.y += dyc; }       // à l'accueil, le goéland et sa barquette se posent d'emblée dans la place libre
       if (state === 'over' && T.y > capY) T.y += (capY - T.y) * Math.min(1, 3 * dt);               // à l'arrivée, la barquette remonte au-dessus du panneau
+      if (state === 'over' && !(leave && leave.go) && B.y > capY + 12) B.y += (capY + 12 - B.y) * Math.min(1, 3 * dt);   // et le goéland avec, qu'on le voie digérer
     }
     if (state === 'over' && leave) {                                               // repu, il tourne le dos à la barquette et s'en va en dandinant
       leave.t += dt;
+      leave.wing = leave.t > 0.95 && leave.t < 1.85 ? 0.7 * Math.pow(Math.abs(Math.sin((leave.t - 0.95) / 0.3 * Math.PI)), 0.8) : 0;   // trois petits coups d'aile pour digérer, puis il part
       if (leave.t > 1.6) {
         if (!leave.go) { leave.go = true; B = { x: B.x, y: B.y, a: B.a, step: B.step }; leave.dir = (B.x <= T.x ? Math.PI : 0) + (Math.random() - 0.5) * 0.5; }
         var lda = wrapA(leave.dir - B.a); B.a += lda * Math.min(1, 4 * dt);
@@ -1127,6 +1206,10 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
       }
     }
     peckT += dt; peck = peckT < 0.05 ? peckT / 0.05 : Math.max(0, 1 - (peckT - 0.05) / 0.09);
+    chewA = Math.max(0, chewA - dt * (state === 'over' ? 0.9 : 2.2));                 // il mâche entre deux coups de bec, au rythme du joueur
+    var cph = chewPh; chewPh += dt * chewHz;
+    chewBeak = peck > 0.05 ? 0 : chewA * 0.32 * Math.max(0, Math.sin(chewPh * TAU));
+    if (chewA > 0.15 && Math.floor(chewPh) !== Math.floor(cph) && performance.now() - lastHit > 60) crunch(chewHz, chewA);
     blinkT -= dt; if (blinkT < -0.12) blinkT = 1.5 + Math.random() * 3;
     if (state === 'menu' || state === 'over') look += ((Math.sin(clock * 0.9) > 0.3 ? 1 : Math.sin(clock * 0.9) < -0.3 ? -1 : 0) - look) * Math.min(1, 6 * dt);
     else look *= 0.8;
@@ -1146,9 +1229,9 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
     if (enter) {                                                                   // il revient en trottinant pour la partie suivante (dessin seul, la partie ne l'attend pas)
       enter.t += dt; var ek = Math.min(1, enter.t / 0.55), ee = 1 - (1 - ek) * (1 - ek), exx = enter.x + (B.x - enter.x) * ee, eyy = enter.y + (B.y - enter.y) * ee;
       var ea = ek < 0.75 ? Math.atan2(B.y - enter.y, B.x - enter.x) : B.a;
-      drawGull(exx, eyy, ea, { neck: peck, beak: peck > 0.25 ? peck : 0, look: 0, step: B.step + enter.t * 14, blink: 0 }, true);
+      drawGull(exx, eyy, ea, { neck: peck, beak: peck > 0.25 ? peck : 0, look: 0, step: B.step + enter.t * 14, blink: 0, fat: 0 }, true);
       if (ek >= 1) enter = null;
-    } else if (!gone) drawGull(B.x, B.y, B.a, { neck: peck, beak: peck > 0.25 ? peck : 0, look: leave && leave.go ? 0 : look, step: B.step, blink: blinkT < 0 ? 1 : 0 }, true);
+    } else if (!gone) drawGull(B.x, B.y, B.a, { neck: peck, beak: Math.max(peck > 0.25 ? peck : 0, chewBeak), look: leave && leave.go ? 0 : look, step: B.step, blink: blinkT < 0 ? 1 : 0, fat: fatNow(), wing: leave ? leave.wing || 0 : 0 }, true);
     for (i = crumbs.length - 1; i >= 0; i--) {                                     // les miettes, et les taps à côté
       var c = crumbs[i]; c.t += dt; if (c.t > (c.miss ? 0.3 : 0.4)) { crumbs.splice(i, 1); continue; }
       if (c.miss) { var rr = (3 + c.t * 30) * SC; g.fillStyle = 'rgba(255,84,112,' + (1 - c.t / 0.3).toFixed(2) + ')'; for (var a = 0; a < 12; a++) g.fillRect(Math.round(c.x + Math.cos(a / 12 * TAU) * rr), Math.round(c.y + Math.sin(a / 12 * TAU) * rr), 1, 1); continue; }

@@ -57,7 +57,7 @@ li.new{animation:flash 1.2s steps(2) 4}
   <aside class="side">
     <div class="card"><h2>RECORD DU JOUR</h2><p id="day">—</p></div>
     <div class="card"><h2>LANTERNE ROUGE</h2><p id="worst">—</p></div>
-    <div class="card"><h2>PARTIES JOUÉES</h2><p><span class="v" id="plays">—</span> · <span id="players">—</span> JOUEURS</p></div>
+    <div class="card"><h2>FRITES MANGÉES</h2><p><span class="v" id="plays">—</span> · <span id="players">—</span> JOUEURS</p></div>
     <div class="qr"><div id="qr" aria-hidden="true"></div><p>JOUE SUR TON TÉLÉPHONE :<br><b id="url"></b><br><span id="state"></span></p></div>
   </aside>
 </div>
@@ -86,7 +86,7 @@ li.new{animation:flash 1.2s steps(2) 4}
     first = false;
     $('day').innerHTML = d.day ? esc(d.day.name) + ' · <span class="v">' + fr(d.day.time_ms) + ' S</span>' + (d.day.wait ? '<small class="wait">EN ATTENTE DE VALIDATION</small>' : '') : 'PAS ENCORE DE TEMPS AUJOURD’HUI';
     $('worst').innerHTML = d.worst ? esc(d.worst.name) + ' · <span class="v">' + fr(d.worst.time_ms) + ' S</span>' : '—';
-    $('plays').textContent = String(d.plays || 0); $('players').textContent = String(d.players || 0);
+    $('plays').textContent = ((d.plays || 0) * 50).toLocaleString('fr-FR'); $('players').textContent = String(d.players || 0);
     $('state').textContent = ''; $('state').className = '';
   }
   function load() {
