@@ -703,6 +703,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
       if (G.loose && u < G.sh) bw += G.loose * Math.max(0, Math.min(1, (G.sh - u) / 6)) * (1 - Math.max(0, t - 0.7) / 0.3);   // les ailes lâches débordent
       if (P.fat) bw *= 1 + P.fat * Math.max(0, 1 - Math.abs(u - G.sh * 0.5 - 1) / 9);   // le ventre qui s'arrondit à chaque frite, surtout au milieu
       var wg = P.wing || 0;
+      if (wg > 0.04 && u < G.sh + 3) bw *= 1 - 0.38 * wg;                            // ailes ouvertes : le dos s'affine, il ne porte plus les ailes repliées
       if (av < bw) {
         if (u > G.chest - 1.8) return v > 1.5 ? 's' : 'W';                          // la poitrine
         if (av > bw - 0.9) return v > 0 ? 'd' : 'M';                                 // le bord des ailes
@@ -715,18 +716,29 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
         return v > 0 ? 'M' : 'm';
       }
       /* les ailes à demi ouvertes : il les secoue pour digérer, deux ou trois coups, vues du dessus */
-      if (wg > 0.04 && av > bw * 0.5) {
-        var L = wg * 17, a2 = av - bw * 0.85, uc = G.sh - 1.2 - a2 * 0.32, ch = 6.2 - 3.6 * Math.min(1, a2 / Math.max(1, L));
-        if (a2 > 0 && a2 < L && Math.abs(u - uc) < ch / 2) {
-          var wf = a2 / L;
-          if (wf > 0.93) return 'W';                                                 // le bout blanc
-          if (wf > 0.7) return Math.abs(wf - 0.82) < 0.04 && Math.abs(u - uc) < ch * 0.2 ? 'W' : (v > 0 ? 'K' : 'k');   // les rémiges noires, et leur miroir
-          if (u < uc - ch / 2 + 0.9) return 'W';                                     // le bord de fuite, blanc
-          return u > uc + ch / 2 - 0.8 ? 'L' : (v > 0 ? 'M' : 'm');
+      if (wg > 0.04 && av > bw * 0.45) {
+        /* les ailes ouvertes, d'après le goéland argenté : 55 à 67 cm de long pour 1,25 à 1,55 m d'envergure, donc des ailes longues et fines.
+           Le bras sort droit et s'avance un peu jusqu'au poignet, la main se replie vers l'arrière en s'effilant ; tout en courbes. */
+        var L = wg * 40, a2 = av - bw * 0.62, sw = a2 / L;
+        if (a2 > 0 && sw < 1) {
+          var hand = sw > 0.42 ? (sw - 0.42) / 0.58 : 0;
+          var le = G.sh + 3.2 + 2.0 * Math.sin(Math.min(1, sw / 0.42) * Math.PI / 2) - 0.6 * L * Math.pow(hand, 1.5);   // le bord d'attaque
+          var cw = sw <= 0.42 ? 10 - 2.2 * sw / 0.42 : 7.8 * Math.pow(Math.max(0, 1 - Math.pow(hand, 1.7)), 0.65) + 0.4;   // la largeur de l'aile
+          if (u <= le && u > le - cw) {
+            var depth = (le - u) / cw;
+            if (sw > 0.72) {                                                         // le bout noir, ses miroirs et ses petites pointes blanches
+              if (sw > 0.975 || (sw > 0.86 && sw < 0.905 && depth > 0.25 && depth < 0.75)) return 'W';
+              return v > 0 ? 'K' : 'k';
+            }
+            if (depth > 1 - 1.3 / cw) return 'W';                                    // le bord de fuite blanc
+            if (depth < 0.12) return 'L';                                            // le bord d'attaque, plus clair
+            return v > 0 ? 'M' : 'm';
+          }
         }
       }
       /* les rémiges noires, longues, croisées derrière la queue, avec leurs miroirs */
       var p0 = G.tail + 3;
+      if (wg > 0.3 && u < p0 && u > G.tail - 4) return av < 2.6 - Math.max(0, G.tail - u) * 0.15 ? (u < G.tail - 2.6 ? 's' : 'W') : null;   // ailes ouvertes : plus de rémiges croisées, juste la queue blanche
       if (u < p0 && u > G.tip) {
         for (q = -1; q <= 1; q += 2) {
           var cv2 = q * (G.spread + (u - p0) * G.conv), wd = G.pw * (1 - Math.pow((p0 - u) / (p0 - G.tip), 3) * 0.6);
@@ -747,7 +759,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
   var gullAt = makeGull(GULL), GS = 1.6;            // GS : le goéland est dessiné 1,6 fois plus grand que la barquette (un vrai goéland fait deux barquettes de long)
   var gullBuf = null;
   function drawGull(cx, cy, ang, P, shadow) {      // rasterise le goéland tourné, pixel par pixel, avec son liseré
-    var R0 = Math.ceil(27 * SC * GS), S = R0 * 2 + 1, ca = Math.cos(ang), sa = Math.sin(ang), x, y, u, v, k, col, ix = Math.round(cx), iy = Math.round(cy);
+    var R0 = Math.ceil((P.wing > 0.04 ? 48 : 27) * SC * GS), S = R0 * 2 + 1, ca = Math.cos(ang), sa = Math.sin(ang), x, y, u, v, k, col, ix = Math.round(cx), iy = Math.round(cy);
     if (!gullBuf || gullBuf.length !== S * S) gullBuf = new Array(S * S);
     for (y = 0; y < S; y++) for (x = 0; x < S; x++) {
       var dx = x - R0 + 0.5 - (cx - ix), dy = y - R0 + 0.5 - (cy - iy);
@@ -1196,7 +1208,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);overflo
     }
     if (state === 'over' && leave) {                                               // repu, il tourne le dos à la barquette et s'en va en dandinant
       leave.t += dt;
-      leave.wing = leave.t > 0.95 && leave.t < 1.85 ? 0.7 * Math.pow(Math.abs(Math.sin((leave.t - 0.95) / 0.3 * Math.PI)), 0.8) : 0;   // trois petits coups d'aile pour digérer, puis il part
+      leave.wing = leave.t > 0.95 && leave.t < 1.97 ? 0.85 * Math.pow(Math.abs(Math.sin((leave.t - 0.95) / 0.34 * Math.PI)), 0.7) : 0;   // trois petits coups d'aile pour digérer, puis il part
       if (leave.t > 1.6) {
         if (!leave.go) { leave.go = true; B = { x: B.x, y: B.y, a: B.a, step: B.step }; leave.dir = (B.x <= T.x ? Math.PI : 0) + (Math.random() - 0.5) * 0.5; }
         var lda = wrapA(leave.dir - B.a); B.a += lda * Math.min(1, 4 * dt);
